@@ -6,25 +6,28 @@ const allowedOrigins = [
   'http://localhost:5175',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
-  'http://127.0.0.1:5175'
+  'http://127.0.0.1:5175',
+  'https://insight-lens.vercel.app'
 ];
 
-if (config.clientUrl && !allowedOrigins.includes(config.clientUrl)) {
-  allowedOrigins.push(config.clientUrl);
-}
+const addNormalizedOrigin = (rawUrl) => {
+  if (!rawUrl) return;
+  const clean = rawUrl.trim().replace(/\/+$/, '');
+  if (clean && !allowedOrigins.includes(clean)) {
+    allowedOrigins.push(clean);
+  }
+};
+
+addNormalizedOrigin(config.clientUrl);
 
 if (process.env.ALLOWED_ORIGINS) {
-  const extra = process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
-  extra.forEach(o => {
-    if (o && !allowedOrigins.includes(o)) {
-      allowedOrigins.push(o);
-    }
-  });
+  process.env.ALLOWED_ORIGINS.split(',').forEach(addNormalizedOrigin);
 }
 
 export const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const cleanOrigin = origin ? origin.replace(/\/+$/, '') : null;
+    if (!cleanOrigin || allowedOrigins.includes(cleanOrigin)) {
       callback(null, true);
     } else {
       callback(new Error(`CORS error: Origin ${origin} is not allowed.`));

@@ -1,4 +1,9 @@
 // API Utility Functions: Error Handling, Classification & Retry Logic
+export const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_BACKEND_URL ||
+  'http://localhost:3000'
+).replace(/\/+$/, '');
 
 export class ApiError extends Error {
   constructor(message, status, type, isRetryable = false) {

@@ -1,6 +1,7 @@
 // Backend API Integration
 
 import { systemPreferences, loadPreferences } from './storage.js';
+import { API_BASE } from '../utils/api.js';
 
 export async function callGemini25Flash(dataUrl, researchLength, writingStyle, onAttemptModel = null, onRetryNotice = null) {
   const startMs = Date.now();
@@ -13,8 +14,7 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, o
   const selectedProvider = systemPreferences.provider || 'auto';
   const lang = systemPreferences.language || 'en';
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-  const targetUrl = `${backendUrl}/api/analyze`;
+  const targetUrl = `${API_BASE}/api/analyze`;
   const payload = {
     dataUrl: dataUrl,
     promptObj: { researchLength, language: lang },

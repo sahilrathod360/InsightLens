@@ -1,5 +1,7 @@
 // InsightLens Preferences & Diagnostic Service
 
+import { API_BASE } from '../utils/api.js';
+
 export const DEFAULT_PREFERENCES = {
   theme: 'dark', // 'dark' | 'light' | 'system'
   provider: 'auto', // 'auto' | 'gemini' | 'openrouter'
@@ -74,7 +76,7 @@ export function applyPreferencesToDOM(prefs = getStoredPreferences()) {
 }
 
 export async function testApiConnection(provider, apiKey) {
-  const targetUrl = 'http://localhost:3000/api/settings/test-provider';
+  const targetUrl = `${API_BASE}/api/settings/test-provider`;
   try {
     const res = await fetch(targetUrl, {
       method: 'POST',
