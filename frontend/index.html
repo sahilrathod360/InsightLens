@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>InsightLens — Visual Intelligence & Academic Research Journal</title>
+  
+  <!-- Tailwind CSS with Plugins -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- html2pdf.js for Clean PDF Exports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Google Fonts & Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            background: "#07080d",
+            surface: "#07080d",
+            "surface-container": "#0e111a",
+            "surface-container-low": "#090b12",
+            "surface-container-lowest": "#05060a",
+            "surface-container-high": "#141824",
+            "surface-container-highest": "#1d2334",
+            "surface-variant": "#161b29",
+            "outline-variant": "#262e45",
+            primary: "#f8fafc",
+            "primary-container": "#1e2235",
+            "on-primary-container": "#f8fafc",
+            secondary: "#cbd5e1",
+            "secondary-container": "#191c28",
+            "on-secondary-container": "#e2e8f0",
+            tertiary: "#818cf8",
+            "tertiary-container": "#242242",
+            "on-tertiary-container": "#c084fc",
+            "on-surface": "#f8fafc",
+            "on-surface-variant": "#94a3b8",
+            error: "#f87171",
+            "error-container": "#371618",
+            "on-error-container": "#fca5a5",
+            maroon: "#161b29",
+            coffee: "#0e111a"
+          },
+          borderRadius: {
+            DEFAULT: "0.625rem",
+            lg: "0.875rem",
+            xl: "1rem",
+            "2xl": "1.25rem",
+            full: "9999px"
+          },
+          spacing: {
+            gutter: "28px",
+            "margin-desktop": "48px"
+          },
+          fontFamily: {
+            body-lg: ["Inter", "sans-serif"],
+            body-md: ["Inter", "sans-serif"],
+            body-sm: ["Inter", "sans-serif"],
+            label-md: ["Inter", "sans-serif"],
+            label-sm: ["Inter", "sans-serif"],
+            display-lg: ["\"Source Serif 4\"", "serif"],
+            display-lg-mobile: ["\"Source Serif 4\"", "serif"],
+            headline-lg: ["\"Source Serif 4\"", "serif"],
+            headline-md: ["\"Source Serif 4\"", "serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Immediate Critical CSS for Modals & Dropdowns (Prevents FOUC/Startup Flash) -->
+  <style>
+    .modal-transition, .dropdown-transition {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .modal-transition.show, .dropdown-transition.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-[17px] leading-[1.47] antialiased min-h-screen flex flex-col selection:bg-orange-500/30 selection:text-white transition-colors duration-200">
+
+  <!-- Top Navigation Bar (Futuristic Glassmorphic Style) -->
+  <nav class="bg-background/85 backdrop-blur-xl border-b border-white/[0.08] sticky top-0 z-50 py-2.5 px-6 sm:px-8 w-full transition-all">
+    <div class="max-w-[1200px] mx-auto h-full flex items-center justify-between">
+      
+      <!-- Left: Sleek Logo & Inline Desktop Nav -->
+      <div class="flex items-center gap-8">
+        <a class="text-[17px] font-semibold text-slate-100 hover:text-white tracking-apple cursor-pointer flex items-center gap-2.5 transition-opacity" id="nav-brand">
+          <div class="w-7 h-7 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+            <span class="material-symbols-outlined text-[18px]">adjust</span>
+          </div>
+          <span class="font-sans font-semibold tracking-apple text-[17px]">InsightLens</span>
+        </a>
+        
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-1.5 text-xs text-slate-400" id="nav-links">
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="landing">Home</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="desk">Research Desk</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="dashboard">Dashboard</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="archive">Archive</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="settings">Settings</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="methodology">Methodology</button>
+        </div>
+
+        <!-- Mobile Hamburger Toggle -->
+        <button id="mobile-menu-toggle-btn" aria-label="Toggle Navigation Menu" aria-expanded="false" class="md:hidden text-slate-400 hover:text-slate-100 p-1.5 rounded-lg hover:bg-white/[0.08] cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-[22px]">menu</span>
+        </button>
+      </div>
+
+      <!-- Mobile Navigation Drawer Dropdown -->
+      <div id="mobile-nav-drawer" class="dropdown-transition md:hidden absolute top-full left-0 right-0 bg-[#0e111a]/95 backdrop-blur-2xl border-b border-white/10 p-4 flex flex-col gap-1.5 shadow-2xl z-50">
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="landing">Home</button>
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="desk">Research Desk</button>
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="dashboard">Dashboard</button>
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="archive">Archive</button>
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="settings">Settings</button>
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="methodology">Methodology</button>
+      </div>
+      
+      <!-- Right Controls: Profile, Theme, Sign In, More -->
+      <div class="flex items-center gap-2.5">
+        <!-- Light/Dark Mode Toggle -->
+        <button id="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme" class="w-8.5 h-8.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] cursor-pointer flex items-center justify-center transition-colors border border-white/5">
+          <span class="material-symbols-outlined text-[18px]" id="theme-toggle-icon">light_mode</span>
+        </button>
+
+        <!-- Welcome [Name] & Avatar Badge -->
+        <div id="user-welcome-badge" class="hidden flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.1] px-3 py-1.5 rounded-lg text-xs text-slate-200 border border-white/10 cursor-pointer transition-all">
+          <div id="nav-user-avatar" class="w-5.5 h-5.5 rounded-full bg-gradient-to-tr from-orange-500 to-rose-500 text-white font-semibold text-[10px] flex items-center justify-center shadow-sm">
+            SR
+          </div>
+          <span class="hidden sm:inline font-medium text-slate-300"><strong id="header-user-name" class="font-medium text-slate-100 max-w-[110px] truncate inline-block align-bottom">Dr. Sahil</strong></span>
+        </div>
+
+        <!-- Auth Action Button -->
+        <button id="auth-nav-btn" class="text-xs text-slate-200 hover:text-white bg-white/[0.08] hover:bg-white/[0.14] px-3.5 py-1.5 rounded-lg border border-white/10 transition-all font-medium flex items-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">account_circle</span>
+          <span id="auth-btn-label">Sign In</span>
+        </button>
+
+        <!-- Three-Dot Menu (Logged-In Users Only) -->
+        <div class="relative hidden" id="user-menu-container">
+          <button id="three-dot-menu-btn" title="Researcher Options" aria-label="Researcher Options" aria-haspopup="true" aria-expanded="false" class="w-8.5 h-8.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] border border-white/5 cursor-pointer flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-[18px]">more_vert</span>
+          </button>
+          
+          <div id="user-dropdown-menu" class="dropdown-transition absolute right-0 mt-2 w-52 bg-[#0e111a] border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 text-xs backdrop-blur-2xl">
+            <button id="menu-profile-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-orange-400">person</span>
+              Researcher Profile
+            </button>
+            <button id="menu-dashboard-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-amber-400">dashboard</span>
+              Researcher Dashboard
+            </button>
+            <button id="menu-settings-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer border-b border-white/[0.06]">
+              <span class="material-symbols-outlined text-[16px] text-slate-400">settings</span>
+              System Settings
+            </button>
+            <button id="menu-logout-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-red-400 flex items-center gap-2.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">logout</span>
+              Sign Out
+            </button>
+          </div>
+        </div>
+
+        <!-- Export Button in Nav -->
+        <button id="export-nav-btn" class="hidden bg-slate-100 hover:bg-white text-slate-950 text-xs font-semibold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
+          <span class="material-symbols-outlined text-[16px]">download</span>
+          Export PDF
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SCREEN 1: BRAND NEW LANDING PAGE V2 (PREMIUM SAAS DESIGN) -->
+  <main id="page-landing" class="page-view flex-grow w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-0 pb-10 md:pb-16 space-y-24 md:space-y-32 relative">
+    
+    <!-- Pure CSS Ambient Background (No WebGL, No Canvas, Zero Layout Impact) -->
+    <div class="landing-bg-container">
+      <div class="landing-bg-gradient parallax-layer" data-parallax-speed="-10"></div>
+      <div class="landing-orb landing-orb-1 parallax-layer" data-parallax-speed="30"></div>
+      <div class="landing-orb landing-orb-2 parallax-layer" data-parallax-speed="-20"></div>
+      <div class="landing-orb landing-orb-3 parallax-layer" data-parallax-speed="40"></div>
+      <div class="landing-grain-overlay"></div>
+    </div>
+
+    <!-- 1. IMMERSIVE HERO SECTION (7:5 ASYMMETRIC GRID) -->
+    <section id="landing-hero" class="min-h-[calc(100vh-4rem)] flex items-center pt-0">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center w-full">
+        
+        <!-- LEFT (7 COLS): HEADLINE & VALUE PROP -->
+        <div class="lg:col-span-7 space-y-6 text-left reveal-on-scroll">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-mono font-semibold">
+            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+            Gemini 3.1 Pro Vision Engine • v3.3 Protocol
+          </div>
+
+          <h1 id="landing-hero-title" class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-100 tracking-apple leading-[1.1]">
+            Turn Complex Visual Artifacts Into <span class="bg-gradient-to-r from-orange-400 via-amber-300 to-rose-400 bg-clip-text text-transparent italic font-serif">Structured Research Briefs.</span>
+          </h1>
+
+          <p id="landing-hero-subtitle" class="text-slate-400 text-base sm:text-lg max-w-[620px] leading-relaxed font-sans">
+            Empirical spatial tensor parsing, multimodal OCR extraction, and 11-section academic paper synthesis for domain researchers and enterprise analysts.
+          </p>
+          
+          <div id="landing-last-login" class="hidden text-xs font-mono text-slate-500 mt-2"></div>
+
+          <div class="flex flex-wrap items-center gap-4 pt-2">
+            <button id="hero-start-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-[17px] px-7 py-4 rounded-full flex items-center gap-2.5 transition-colors cursor-pointer btn-active-scale">
+              <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+              Open Research Desk
+            </button>
+
+            <button id="hero-demo-btn" class="bg-surface-container hover:bg-surface-container-high text-slate-200 border ghost-border font-normal text-[17px] px-6 py-4 rounded-full flex items-center gap-2.5 transition-colors cursor-pointer btn-active-scale">
+              <span class="material-symbols-outlined text-[20px] text-orange-500">play_circle</span>
+              Explore Interactive Demo
+            </button>
+          </div>
+
+          <div class="pt-6 flex flex-wrap items-center gap-6 text-xs text-slate-400 font-mono">
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-emerald-400">check_circle</span> 100% Client-Side Privacy</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-sky-400">check_circle</span> No Billing Configuration Required</span>
+          </div>
+        </div>
+
+        <!-- RIGHT (5 COLS): INTERACTIVE 3D/MOCKUP WORKSPACE CANVAS -->
+        <div class="lg:col-span-5 reveal-on-scroll delay-200 parallax-layer" data-parallax-speed="-15">
+          <div class="relative rounded-2xl border ghost-border bg-surface-container p-3 shadow-2xl overflow-hidden card-hover-lift hover-3d-wrapper">
+            <div class="flex items-center justify-between px-3.5 py-2 border-b ghost-border bg-surface-container-lowest rounded-t-xl text-xs hover-3d-lift">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+                <span class="ml-2 font-mono text-[11px] text-slate-400">insightlens.templates</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-surface-container-lowest rounded-b-xl space-y-3 hover-3d-lift">
+              <div class="relative h-64 rounded-xl overflow-hidden bg-black/50 border ghost-border group">
+                <img id="demo-preview-img" src="/samples/blueprint.jpg" alt="Template Workspace" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3.5">
+                  <span class="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-wider">Sample Template</span>
+                  <strong id="demo-active-title" class="text-slate-100 font-serif text-sm font-semibold truncate">Gothic Revival Cathedral Vaulting</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 2. TRUSTED ARCHIVAL & RESEARCH PROOF -->
+    <section class="border-y ghost-border py-8 text-center space-y-4 reveal-on-scroll delay-100">
+      <span class="text-[11px] uppercase tracking-widest font-mono font-semibold text-slate-500 block">Grounding Research Across Institutional Archives &amp; Enterprise Domains</span>
+      <div class="flex flex-wrap justify-center items-center gap-8 md:gap-14 text-xs font-semibold text-slate-400">
+        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-orange-400">school</span> MIT Architecture Lab</span>
+        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-amber-400">biotech</span> Stanford BioEngineering</span>
+        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-yellow-400">history_edu</span> Oxford Archival Research</span>
+        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-400">show_chart</span> Bessemer Quantitative</span>
+        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-rose-400">public</span> NASA Planetary Vision</span>
+      </div>
+    </section>
+
+    <!-- 3. BEFORE VS. AFTER COMPARISON SHOWCASE -->
+    <section id="landing-demo-section" class="space-y-8 text-left">
+      <div class="max-w-[620px] space-y-2 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">Transformation Impact</div>
+        <h2 class="font-serif text-3xl font-bold text-slate-100 tracking-apple">From Unstructured Pixels to Academic Precision</h2>
+        <p class="text-slate-400 text-xs sm:text-sm">See how InsightLens converts raw image uploads into cited 11-section research papers.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 hover-3d-wrapper">
+        <!-- BEFORE CARD -->
+        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 relative overflow-hidden hover-3d-lift reveal-on-scroll delay-100">
+          <div class="flex items-center justify-between border-b ghost-border pb-3">
+            <span class="px-3 py-1 rounded-full bg-red-500/10 text-red-400 font-mono text-[11px] font-bold border border-red-500/20">BEFORE: RAW UNSTRUCTURED IMAGE</span>
+            <span class="text-xs font-mono text-slate-500">Traditional OCR &amp; Vision</span>
+          </div>
+
+          <div class="h-52 rounded-xl overflow-hidden bg-black/40 border ghost-border">
+            <img src="/samples/blueprint.jpg" alt="Raw Blueprint Input" class="w-full h-full object-cover opacity-75 grayscale" />
+          </div>
+
+          <ul class="space-y-2 text-xs text-slate-400 font-mono">
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[16px]">close</span> Unformatted raster pixel data</li>
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[16px]">close</span> Unreadable text inscriptions and unindexed labels</li>
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[16px]">close</span> Zero historical context or verified citations</li>
+          </ul>
+        </div>
+
+        <!-- AFTER CARD -->
+        <div class="bg-surface-container-lowest p-6 rounded-2xl border border-orange-500/30 space-y-4 relative overflow-hidden shadow-xl hover-3d-lift reveal-on-scroll delay-200">
+          <div class="flex items-center justify-between border-b ghost-border pb-3">
+            <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[11px] font-bold border border-emerald-500/20">AFTER: INSIGHTLENS SYNTHESIS</span>
+            <span class="text-xs font-mono text-orange-400 font-bold">11-Section Paper Format</span>
+          </div>
+
+          <div class="p-4 bg-surface-container rounded-xl border ghost-border space-y-3 font-sans text-xs">
+            <div class="flex items-center justify-between font-mono text-[10px] text-slate-400">
+              <span>Report ID: <strong class="text-slate-200">RPT-2026-9482</strong></span>
+              <span class="text-emerald-400 font-bold">98.4% Confidence</span>
+            </div>
+            <h4 class="font-serif font-bold text-slate-100 text-sm">Empirical Analysis of Gothic Revival Vaulting</h4>
+            <p class="text-slate-300 text-[11px] leading-relaxed line-clamp-3">
+              Multimodal evaluation confirming load-bearing stone masonry rib arcades, clerestory window stress distributions, and APA 7th academic citations.
+            </p>
+          </div>
+
+          <ul class="space-y-2 text-xs text-slate-300 font-mono">
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[16px]">check_circle</span> 11 structured sections with side Table of Contents</li>
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[16px]">check_circle</span> Extracted OCR tokens &amp; spatial bounding boxes</li>
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[16px]">check_circle</span> Exportable to standalone A4 PDF, Markdown &amp; JSON</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. WORKFLOW STORYTELLING SECTION -->
+    <section class="space-y-10 text-left">
+      <div class="text-center max-w-[560px] mx-auto space-y-2 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">End-to-End Pipeline</div>
+        <h2 class="font-serif text-3xl font-bold text-slate-100 tracking-apple">Three-Step Research Architecture</h2>
+        <p class="text-slate-400 text-xs sm:text-sm">Designed for high-velocity academic research and enterprise documentation.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative hover-3d-wrapper">
+        <svg class="workflow-line-svg hidden md:block" viewBox="0 0 1000 100" preserveAspectRatio="none">
+          <path class="workflow-line-path" d="M 0,50 Q 250,0 500,50 T 1000,50" />
+        </svg>
+
+        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 card-hover-lift hover-3d-lift reveal-on-scroll delay-100 relative">
+          <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center font-mono font-bold text-sm border border-orange-500/20">
+            01
+          </div>
+          <h3 class="font-serif font-bold text-slate-100 text-lg">Ingest Artifact</h3>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Upload blueprints, financial charts, bio-medical plates, or historical manuscripts up to 25MB via drag &amp; drop or sample preset selection.
+          </p>
+        </div>
+
+        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 card-hover-lift hover-3d-lift reveal-on-scroll delay-200 relative">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-mono font-bold text-sm border border-amber-500/20">
+            02
+          </div>
+          <h3 class="font-serif font-bold text-slate-100 text-lg">Neural Reasoning</h3>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            The Gemini multimodal engine parses spatial geometry, extracts optical OCR inscriptions, and synthesizes domain background knowledge.
+          </p>
+        </div>
+
+        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 card-hover-lift hover-3d-lift reveal-on-scroll delay-300 relative">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-mono font-bold text-sm border border-rose-500/20">
+            03
+          </div>
+          <h3 class="font-serif font-bold text-slate-100 text-lg">Publish &amp; Export</h3>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Review the 11-section paper canvas, trigger "Explain This Report" insights, and export directly to clean A4 PDF or Markdown format.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. INTERACTIVE FEATURE GRID (ASYMMETRICAL COMPOSITION) -->
+    <section class="space-y-8 text-left">
+      <div class="max-w-[620px] space-y-2 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">Engine Capabilities</div>
+        <h2 class="font-serif text-3xl font-bold text-slate-100 tracking-apple">Engineered for Analytical Precision</h2>
+        <p class="text-slate-400 text-xs sm:text-sm">Built to handle complex technical imagery with empirical accuracy.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 hover-3d-wrapper">
+        <!-- 8 COLS CARD: SPATIAL TENSOR ANALYSIS -->
+        <div class="md:col-span-8 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-100">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center border border-orange-500/20">
+              <span class="material-symbols-outlined text-[22px]">polyline</span>
+            </div>
+            <h3 class="font-serif font-bold text-slate-100 text-xl">Spatial Tensor Analysis</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-[560px]">
+              Calculates geometric bounding coordinates, detects line contours, and evaluates spatial aspect ratios across multi-resolution raster visuals.
+            </p>
+          </div>
+
+          <div class="p-3 bg-surface-container-lowest rounded-xl border ghost-border flex items-center justify-between text-xs font-mono text-slate-400">
+            <span>Tensor Bounding Resolution: <strong class="text-slate-200"><span class="counter-value" data-target="1920">0</span> x <span class="counter-value" data-target="1080">0</span> px</strong></span>
+            <span class="text-orange-400 font-bold">Sub-Pixel Vector Accuracy</span>
+          </div>
+        </div>
+
+        <!-- 4 COLS CARD: OCR TOKENIZER -->
+        <div class="md:col-span-4 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-200">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+              <span class="material-symbols-outlined text-[22px]">font_download</span>
+            </div>
+            <h3 class="font-serif font-bold text-slate-100 text-lg">Multimodal OCR Tokenizer</h3>
+            <p class="text-slate-400 text-xs leading-relaxed">
+              Extracts illegible or small text labels, axis legends, and embedded annotations into structured JSON arrays.
+            </p>
+          </div>
+
+          <span class="text-[11px] font-mono text-amber-300 font-bold block pt-2"><span class="counter-value" data-target="100%">0%</span> Inscription Parsing</span>
+        </div>
+
+        <!-- 4 COLS CARD: CITATION SYNTHESIS -->
+        <div class="md:col-span-4 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-300">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
+              <span class="material-symbols-outlined text-[22px]">menu_book</span>
+            </div>
+            <h3 class="font-serif font-bold text-slate-100 text-lg">Academic Citation Standard</h3>
+            <p class="text-slate-400 text-xs leading-relaxed">
+              Synthesizes verified APA 7th, Chicago, IEEE, and MLA references based on domain knowledge patterns.
+            </p>
+          </div>
+
+          <span class="text-[11px] font-mono text-rose-300 font-bold block pt-2">APA 7th Standard Verified</span>
+        </div>
+
+        <!-- 8 COLS CARD: INSTANT EXPORTS -->
+        <div class="md:col-span-8 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-400">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+              <span class="material-symbols-outlined text-[22px]">download_for_offline</span>
+            </div>
+            <h3 class="font-serif font-bold text-slate-100 text-xl">Instant Publication Exports</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-[560px]">
+              Export your structured 11-section paper directly to clean A4 PDF documents, raw Markdown briefs `.md`, or raw JSON data files with a single click.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 text-xs font-mono text-slate-300 pt-2">
+            <span class="px-2.5 py-1 rounded bg-surface-container-lowest border ghost-border">A4 PDF (.pdf)</span>
+            <span class="px-2.5 py-1 rounded bg-surface-container-lowest border ghost-border">Markdown (.md)</span>
+            <span class="px-2.5 py-1 rounded bg-surface-container-lowest border ghost-border">JSON Data (.json)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SAMPLE RESEARCH BRIEF DEMO CARDS -->
+    <section class="space-y-8 text-left">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b ghost-border pb-4">
+        <div>
+          <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">Live Sample Preset Showcase</div>
+          <h2 class="font-serif text-2xl md:text-3xl font-bold text-slate-100 tracking-apple">Explore Pre-Analyzed Visual Datasets</h2>
+        </div>
+        <button onclick="navigateTo('desk')" class="text-xs font-mono text-orange-500 hover:text-orange-400 flex items-center gap-1.5 cursor-pointer">
+          Open Research Desk <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- DEMO CARD 1: BLUEPRINT -->
+        <div class="landing-demo-card active bg-surface-container rounded-2xl border border-orange-500/50 p-4 space-y-3 cursor-pointer card-hover-lift" data-sample-type="blueprint">
+          <div class="h-44 rounded-xl overflow-hidden bg-black/40 border ghost-border">
+            <img src="/samples/blueprint.jpg" alt="Blueprint Sample" class="w-full h-full object-cover" />
+          </div>
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-mono text-orange-400 font-bold uppercase">Template</span>
+            <h4 class="font-serif font-bold text-slate-100 text-sm">Cathedral Vaulting</h4>
+          </div>
+        </div>
+
+        <!-- DEMO CARD 2: CHART -->
+        <div class="landing-demo-card bg-surface-container rounded-2xl border ghost-border p-4 space-y-3 cursor-pointer card-hover-lift" data-sample-type="chart">
+          <div class="h-44 rounded-xl overflow-hidden bg-black/40 border ghost-border">
+            <img src="/samples/chart.jpg" alt="Financial Chart Sample" class="w-full h-full object-cover" />
+          </div>
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-mono text-amber-400 font-bold uppercase">Template</span>
+            <h4 class="font-serif font-bold text-slate-100 text-sm">SaaS Retention Chart</h4>
+          </div>
+        </div>
+
+        <!-- DEMO CARD 3: INFOGRAPHIC -->
+        <div class="landing-demo-card bg-surface-container rounded-2xl border ghost-border p-4 space-y-3 cursor-pointer card-hover-lift" data-sample-type="infographic">
+          <div class="h-44 rounded-xl overflow-hidden bg-black/40 border ghost-border">
+            <img src="/samples/infographic.jpg" alt="Infographic Sample" class="w-full h-full object-cover" />
+          </div>
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-mono text-rose-400 font-bold uppercase">Template</span>
+            <h4 class="font-serif font-bold text-slate-100 text-sm">Energy Infographic</h4>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. PREMIUM CTA BANNER -->
+    <section class="bg-surface-container p-8 md:p-12 rounded-3xl border border-orange-500/30 text-center space-y-6 shadow-2xl relative overflow-hidden">
+      <div class="max-w-[600px] mx-auto space-y-3">
+        <h2 class="font-serif text-3xl md:text-4xl text-slate-100 font-bold tracking-apple">Accelerate Your Visual Research Today</h2>
+        <p class="text-slate-400 text-xs sm:text-sm font-sans leading-relaxed">
+          Zero installation. Client-side local execution. Grounded multimodal vision intelligence in seconds.
+        </p>
+      </div>
+
+      <div class="pt-2 flex justify-center">
+        <button onclick="navigateTo('desk')" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-[17px] px-8 py-4 rounded-full inline-flex items-center gap-2.5 transition-colors cursor-pointer btn-active-scale">
+          <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+          Open Research Desk Workspace
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- EXECUTIVE RESEARCHER DASHBOARD PAGE -->
+  <div id="page-dashboard" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-8">
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700/50 mb-2.5">
+          Executive Portal
+        </div>
+        <h1 class="font-display-lg text-2xl md:text-3xl text-on-surface font-serif font-bold">
+          Researcher Dashboard
+        </h1>
+        <p class="font-body-sm text-on-surface-variant text-xs md:text-sm mt-1">Real-time statistics, saved research briefs, image galleries, and activity logs.</p>
+      </div>
+
+      <button id="dash-new-analysis-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-5 py-3 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md">
+        <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+        New Image Analysis
+      </button>
+    </header>
+
+    <!-- DASHBOARD STATISTICS CARDS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="bg-surface-container p-5 md:p-6 rounded-2xl ghost-border card-hover-lift flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-medium text-on-surface-variant">Images Analyzed</span>
+          <span class="material-symbols-outlined text-indigo-400 text-[22px]">image_search</span>
+        </div>
+        <div id="stat-images-analyzed" class="font-display-lg text-2xl md:text-3xl text-on-surface font-serif font-bold">14</div>
+        <span class="text-[11px] text-indigo-400 mt-1 flex items-center gap-1">+3 this week</span>
+      </div>
+
+      <div class="bg-surface-container p-5 md:p-6 rounded-2xl ghost-border card-hover-lift flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-medium text-on-surface-variant">Saved Briefs</span>
+          <span class="material-symbols-outlined text-sky-400 text-[22px]">bookmark</span>
+        </div>
+        <div id="stat-saved-reports" class="font-display-lg text-2xl md:text-3xl text-on-surface font-serif font-bold">8</div>
+        <span class="text-[11px] text-on-surface-variant mt-1">Stored in session</span>
+      </div>
+
+      <div class="bg-surface-container p-5 md:p-6 rounded-2xl ghost-border card-hover-lift flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-medium text-on-surface-variant">Avg Confidence</span>
+          <span class="material-symbols-outlined text-emerald-400 text-[22px]">verified</span>
+        </div>
+        <div id="stat-avg-confidence" class="font-display-lg text-2xl md:text-3xl text-emerald-400 font-serif font-bold">96.8%</div>
+        <span class="text-[11px] text-on-surface-variant mt-1">Gemini 3.6 Flash</span>
+      </div>
+
+      <div class="bg-surface-container p-5 md:p-6 rounded-2xl ghost-border card-hover-lift flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-medium text-on-surface-variant">Reports Exported</span>
+          <span class="material-symbols-outlined text-purple-400 text-[22px]">picture_as_pdf</span>
+        </div>
+        <div id="stat-exports-count" class="font-display-lg text-2xl md:text-3xl text-on-surface font-serif font-bold">19</div>
+        <span class="text-[11px] text-on-surface-variant mt-1">PDF / MD / JSON</span>
+      </div>
+    </div>
+
+    <!-- DASHBOARD TABS -->
+    <div class="flex border-b ghost-border text-xs font-medium overflow-x-auto">
+      <button id="dash-tab-overview" type="button" class="py-3 px-5 text-indigo-400 border-b-2 border-indigo-400 font-semibold flex items-center gap-2 cursor-pointer whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">dashboard</span> Overview
+      </button>
+      <button id="dash-tab-saved" type="button" class="py-3 px-5 text-on-surface-variant hover:text-on-surface flex items-center gap-2 cursor-pointer whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">bookmarks</span> Saved &amp; Favorites
+      </button>
+      <button id="dash-tab-history" type="button" class="py-3 px-5 text-on-surface-variant hover:text-on-surface flex items-center gap-2 cursor-pointer whitespace-nowrap">
+        <span class="material-symbols-outlined text-[18px]">manage_search</span> Search &amp; Exports
+      </button>
+    </div>
+
+    <!-- TAB PANEL 1: OVERVIEW -->
+    <div id="dash-panel-overview" class="space-y-8">
+      <section>
+        <h2 class="font-headline-lg text-xl text-on-surface font-serif font-bold mb-4">Recent Research Briefs</h2>
+        <div id="dash-recent-reports-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        </div>
+      </section>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <section class="lg:col-span-7 bg-surface-container p-6 rounded-2xl ghost-border space-y-4">
+          <div class="flex items-center justify-between border-b ghost-border pb-3.5">
+            <h3 class="font-headline-md text-sm text-on-surface font-semibold flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-400 text-[20px]">history</span>
+              Recent Research Activity
+            </h3>
+            <span class="text-[10px] font-mono text-on-surface-variant uppercase font-bold">Live Telemetry</span>
+          </div>
+
+          <div id="dash-activity-log-list" class="space-y-3 font-mono text-xs">
+            <div class="flex items-start gap-3 p-3 bg-surface-container-lowest rounded-xl ghost-border">
+              <span class="material-symbols-outlined text-emerald-400 text-[18px] mt-0.5">task_alt</span>
+              <div class="flex-grow flex justify-between items-baseline text-[11px]">
+                <span class="text-on-surface">Synthesized report: Gothic Revival Vaulting</span>
+                <span class="text-on-surface-variant">10m ago</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="lg:col-span-5 bg-surface-container p-6 rounded-2xl ghost-border space-y-4">
+          <div class="flex items-center justify-between border-b ghost-border pb-3.5">
+            <h3 class="font-headline-md text-sm text-on-surface font-semibold flex items-center gap-2">
+              <span class="material-symbols-outlined text-sky-400 text-[20px]">settings_system_daydream</span>
+              AI Telemetry &amp; Quota
+            </h3>
+            <span id="dash-ai-status" class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono border border-emerald-500/20 font-bold">Operational</span>
+          </div>
+
+          <div class="space-y-3 font-mono text-xs">
+            <div class="p-3.5 bg-surface-container-lowest rounded-xl ghost-border space-y-1.5">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-on-surface-variant">Active Vision Model:</span>
+                <strong id="dash-ai-model" class="text-indigo-400">Gemini 3.6 Flash</strong>
+              </div>
+              <div class="flex justify-between text-[11px]">
+                <span class="text-on-surface-variant">Rate Limit Status:</span>
+                <span class="text-emerald-400 font-bold">15 RPM / 1M TPM</span>
+              </div>
+            </div>
+
+            <div class="p-3.5 bg-surface-container-lowest rounded-xl ghost-border space-y-1.5">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-on-surface-variant">LocalStorage Reports:</span>
+                <span id="dash-storage-count" class="text-on-surface font-bold">8 entries (~240KB)</span>
+              </div>
+              <div class="flex justify-between text-[11px]">
+                <span class="text-on-surface-variant">Last Brief Date:</span>
+                <span id="dash-last-date" class="text-on-surface">Today, 2:14 PM</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- TAB PANEL 2: SAVED REPORTS -->
+    <div id="dash-panel-saved" class="hidden space-y-6">
+      <div class="flex justify-between items-center border-b ghost-border pb-4">
+        <div>
+          <h2 class="font-headline-lg text-xl text-on-surface font-serif font-bold">Saved Research Repository</h2>
+          <p class="font-body-sm text-on-surface-variant text-xs mt-0.5">Reports saved to your local browser profile.</p>
+        </div>
+      </div>
+      <div id="dash-saved-reports-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      </div>
+    </div>
+
+    <!-- TAB PANEL 3: SEARCH & EXPORTS -->
+    <div id="dash-panel-history" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section class="bg-surface-container p-6 rounded-2xl ghost-border space-y-4">
+          <h3 class="font-headline-md text-sm text-on-surface font-semibold border-b ghost-border pb-3.5 flex items-center gap-2">
+            <span class="material-symbols-outlined text-tertiary text-[20px]">manage_search</span>
+            Search History Keywords
+          </h3>
+          <ul id="dash-search-history-list" class="space-y-2 text-xs">
+          </ul>
+        </section>
+
+        <section class="bg-surface-container p-6 rounded-2xl ghost-border space-y-4">
+          <h3 class="font-headline-md text-sm text-on-surface font-semibold border-b ghost-border pb-3.5 flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-400 text-[20px]">download</span>
+            Recent Document Exports
+          </h3>
+          <div class="space-y-3 font-mono text-xs">
+            <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest rounded-xl ghost-border">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-purple-400 text-[18px]">picture_as_pdf</span>
+                <div>
+                  <span class="font-sans text-on-surface font-medium block">Gothic_Revival_Brief.pdf</span>
+                  <span class="text-[10px] text-on-surface-variant">Letter • 1.4 MB</span>
+                </div>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">Today 2:15 PM</span>
+            </div>
+            
+            <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest rounded-xl ghost-border">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-sky-400 text-[18px]">description</span>
+                <div>
+                  <span class="font-sans text-on-surface font-medium block">SaaS_ARR_Expansion.md</span>
+                  <span class="text-[10px] text-on-surface-variant">Markdown Raw • 18 KB</span>
+                </div>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">Yesterday</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: LOGIN & AUTHENTICATION MODAL -->
+  <div id="login-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div id="login-modal-content" class="bg-surface-container w-full max-w-[440px] p-8 rounded-2xl ghost-border space-y-6 shadow-2xl relative">
+      
+      <!-- Close Button -->
+      <button id="close-login-btn" type="button" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer rounded-full p-1 focus-ring">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+
+      <!-- AUTH HEADER & TABS -->
+      <div class="text-center space-y-2">
+        <div class="w-11 h-11 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center mx-auto mb-3 shadow-sm">
+          <span class="material-symbols-outlined text-[24px]">lock</span>
+        </div>
+        <h1 id="auth-title" class="font-display-lg text-2xl text-on-surface font-serif font-bold">Researcher Portal</h1>
+        <p id="auth-subtitle" class="font-body-sm text-on-surface-variant text-xs">Sign in to access your persistent research history and custom API keys.</p>
+      </div>
+
+      <!-- SIGN IN / SIGN UP TAB SELECTOR -->
+      <div class="flex border-b ghost-border text-xs font-semibold text-center">
+        <button id="tab-auth-signin" class="w-1/2 py-3 text-indigo-400 border-b-2 border-indigo-400 cursor-pointer">Sign In</button>
+        <button id="tab-auth-signup" class="w-1/2 py-3 text-on-surface-variant hover:text-on-surface cursor-pointer">Create Account</button>
+      </div>
+
+      <!-- FORM PAYLOAD -->
+      <form id="login-form" class="space-y-4.5 text-xs relative">
+        <div id="field-name-group" class="hidden grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label for="login-first-name" class="block text-on-surface font-medium">First Name</label>
+            <input type="text" id="login-first-name" placeholder="Sahil" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          </div>
+          <div class="space-y-1.5">
+            <label for="login-last-name" class="block text-on-surface font-medium">Last Name</label>
+            <input type="text" id="login-last-name" placeholder="Rathod" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="login-email" class="block text-on-surface font-medium">Email Address</label>
+          <input type="email" id="login-email" required placeholder="researcher@university.edu" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          <div id="email-verification-placeholder" class="hidden mt-1 text-[10px] text-amber-500 font-mono italic">
+            Email verification will be required (Coming Soon)
+          </div>
+        </div>
+
+        <div class="space-y-1.5 relative">
+          <label for="login-password" class="block text-on-surface font-medium">Password</label>
+          <div class="relative">
+            <input type="password" id="login-password" required placeholder="••••••••••••" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 pr-10 text-xs focus:border-indigo-400 focus:outline-none" />
+            <button type="button" id="toggle-password-btn" tabindex="-1" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer" aria-label="Toggle password visibility">
+              <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+            </button>
+          </div>
+          <!-- Password strength indicator (Hidden by default, shown only in signup mode) -->
+          <div id="password-strength-container" class="hidden pt-1">
+            <div class="flex gap-1 h-1 w-full rounded overflow-hidden bg-white/5">
+              <div id="pwd-str-1" class="flex-1 transition-colors bg-transparent"></div>
+              <div id="pwd-str-2" class="flex-1 transition-colors bg-transparent"></div>
+              <div id="pwd-str-3" class="flex-1 transition-colors bg-transparent"></div>
+              <div id="pwd-str-4" class="flex-1 transition-colors bg-transparent"></div>
+            </div>
+            <div class="flex justify-between items-center mt-1">
+              <span id="password-strength-text" class="text-[10px] text-slate-400">8+ characters</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="field-confirm-password-group" class="hidden space-y-1.5">
+          <label for="login-confirm-password" class="block text-on-surface font-medium">Confirm Password</label>
+          <div class="relative">
+            <input type="password" id="login-confirm-password" placeholder="••••••••••••" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 pr-10 text-xs focus:border-indigo-400 focus:outline-none" />
+            <button type="button" id="toggle-confirm-password-btn" tabindex="-1" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer" aria-label="Toggle password visibility">
+              <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2 relative">
+          <button type="submit" id="submit-login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md">
+            <span class="material-symbols-outlined text-[18px]">login</span>
+            <span id="submit-login-label">Sign In to Workspace</span>
+          </button>
+        </div>
+
+        <div class="text-center pt-2">
+          <button type="button" id="guest-access-btn" class="text-on-surface-variant hover:text-primary text-xs font-mono transition-colors cursor-pointer">
+            Continue as Guest Researcher &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: FUTURISTIC AI RESEARCH DESK WORKBENCH -->
+  <div id="page-desk" class="page-view hidden flex-grow w-full max-w-[1000px] mx-auto px-6 md:px-8 py-10 space-y-8">
+    
+    <!-- HEADER WORKBENCH STATUS -->
+    <header class="text-center max-w-[640px] mx-auto space-y-2">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] font-medium mb-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Gemini AI Vision Workbench Active
+      </div>
+      <h1 class="font-headline-md text-2xl md:text-3xl text-on-surface font-serif font-bold">Visual Synthesis Workbench</h1>
+      <p class="font-body-md text-on-surface-variant text-xs md:text-sm">Follow the 4-step AI pipeline below to analyze visual artifacts in real time.</p>
+    </header>
+
+    <!-- STEP 1: UPLOAD COMPONENT -->
+    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-5 relative overflow-hidden">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold flex items-center justify-center font-mono">1</span>
+          <h2 class="font-headline-md text-base text-on-surface font-bold">Upload Image Source</h2>
+        </div>
+        <span class="text-[11px] font-mono text-on-surface-variant">Max 25MB • PNG, JPG, WEBP, SVG</span>
+      </div>
+
+      <div id="drop-zone" tabindex="0" role="region" aria-label="Image drop zone" class="bg-surface-container-lowest p-8 md:p-10 rounded-2xl border border-dashed border-white/20 hover:border-indigo-400/50 transition-all cursor-pointer text-center relative group">
+        <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml" class="hidden" />
+        
+        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform shadow-md">
+          <span class="material-symbols-outlined text-[28px]">cloud_upload</span>
+        </div>
+
+        <p class="text-base font-semibold text-on-surface mb-1">Drag and drop your visual artifact here</p>
+        <p class="text-xs text-on-surface-variant mb-5">Or browse local computer files to begin instant neural extraction</p>
+
+        <button type="button" id="browse-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-6 py-3 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer shadow-md">
+          <span class="material-symbols-outlined text-[18px]">folder_open</span>
+          Select File
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 2: SAMPLE ARTIFACT QUICK PREVIEW -->
+    <section class="bg-surface-container p-6 rounded-2xl ghost-border space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-400 text-xs font-bold flex items-center justify-center font-mono">2</span>
+          <h2 class="font-headline-md text-base text-on-surface font-bold">Or Select a Trial Artifact</h2>
+        </div>
+        <span class="text-[11px] text-on-surface-variant font-mono">Instant One-Click Load</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+        <div class="sample-chip bg-surface-container-lowest p-3.5 rounded-xl border ghost-border hover:border-indigo-400/50 cursor-pointer transition-all flex items-center gap-3.5" data-sample="blueprint">
+          <img src="/samples/blueprint.jpg" alt="Blueprint" class="w-13 h-13 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+          <div class="overflow-hidden">
+            <span class="text-[10px] font-mono text-indigo-400 block font-bold">Gothic Blueprint</span>
+            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Structural Vector Study</span>
+          </div>
+        </div>
+
+        <div class="sample-chip bg-surface-container-lowest p-3.5 rounded-xl border ghost-border hover:border-indigo-400/50 cursor-pointer transition-all flex items-center gap-3.5" data-sample="chart">
+          <img src="/samples/chart.jpg" alt="SaaS Chart" class="w-13 h-13 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+          <div class="overflow-hidden">
+            <span class="text-[10px] font-mono text-sky-400 block font-bold">Financial Chart</span>
+            <span class="text-xs text-on-surface truncate block font-serif font-semibold">SaaS ARR Expansion</span>
+          </div>
+        </div>
+
+        <div class="sample-chip bg-surface-container-lowest p-3.5 rounded-xl border ghost-border hover:border-indigo-400/50 cursor-pointer transition-all flex items-center gap-3.5" data-sample="infographic">
+          <img src="/samples/infographic.jpg" alt="Clean Energy" class="w-13 h-13 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+          <div class="overflow-hidden">
+            <span class="text-[10px] font-mono text-emerald-400 block font-bold">Clean Energy</span>
+            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Decarbonization Index</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3 & STEP 4: PARAMETERS & SYNTHESIS CONTROL -->
+    <section class="bg-surface-container p-6 rounded-2xl ghost-border grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+      <div class="md:col-span-8 space-y-4">
+        <div class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-full bg-sky-500/20 border border-sky-500/30 text-sky-400 text-xs font-bold flex items-center justify-center font-mono">3</span>
+          <h2 class="font-headline-md text-base text-on-surface font-bold">Synthesis Options &amp; Parameters</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div class="space-y-1.5">
+            <label for="select-length" class="block text-on-surface-variant font-medium text-[11px]">Research Depth</label>
+            <select id="select-length" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
+              <option value="long" selected>Comprehensive (3-4 Detailed Sections)</option>
+              <option value="short">Short Brief (1-2 Concise Sections)</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="select-style" class="block text-on-surface-variant font-medium text-[11px]">Writing Style &amp; Tone</label>
+            <select id="select-style" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
+              <option value="classic" selected>Classic Academic &amp; Formal</option>
+              <option value="creative">Creative &amp; Narrative Insight</option>
+              <option value="minimal">Minimalist Technical &amp; Data Bullets</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="md:col-span-4 space-y-2.5">
+        <div class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center font-mono">4</span>
+          <span class="font-headline-md text-base text-on-surface font-bold">Synthesize</span>
+        </div>
+        <div class="p-3.5 bg-surface-container-lowest rounded-xl border ghost-border text-[11px] text-on-surface-variant text-center font-mono">
+          Drop an image above or click a trial artifact to execute analysis.
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- SCREEN 4: CLEAN & TRUSTWORTHY ANALYSIS PROCESSING SCREEN -->
+  <div id="page-loading" class="page-view hidden flex-grow w-full max-w-[1000px] mx-auto px-6 md:px-8 py-12">
+    <div class="max-w-[880px] mx-auto space-y-8">
+      
+      <!-- HEADER TASK STATUS -->
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
+          <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+          Processing Visual Document
+        </div>
+        <h2 class="font-headline-md text-2xl md:text-3xl text-on-surface font-serif font-bold">Synthesizing Research Brief</h2>
+        <p class="text-on-surface-variant text-xs md:text-sm flex items-center justify-center gap-2.5">
+          <span id="processing-model-label">Gemini AI Neural Inference</span>
+          <span>•</span>
+          <span class="text-indigo-400 font-mono font-bold">Estimated time: ~2–4s</span>
+        </p>
+      </div>
+
+      <!-- MAIN PROCESSING LAYOUT -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- LEFT: UPLOADED IMAGE PREVIEW STAGE -->
+        <div class="md:col-span-7 bg-surface-container p-5 rounded-2xl ghost-border flex flex-col justify-between space-y-4">
+          <div class="relative w-full h-[280px] bg-surface-container-lowest rounded-xl overflow-hidden flex items-center justify-center border ghost-border">
+            <img id="stage-image" src="" alt="Processing Target" class="max-h-full max-w-full object-contain p-3" />
+          </div>
+          
+          <div class="p-3.5 bg-surface-container-lowest rounded-xl border ghost-border flex justify-between items-center text-xs text-on-surface-variant font-mono">
+            <span id="info-filename" class="truncate max-w-[180px] font-sans text-on-surface font-semibold">document.png</span>
+            <span id="info-dimensions" class="text-indigo-400 font-bold">1920x1080</span>
+            <span id="info-filesize">2.4 MB</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: REALISTIC STAGE PROGRESS & STEPS -->
+        <div class="md:col-span-5 bg-surface-container p-6 rounded-2xl ghost-border flex flex-col justify-between text-xs space-y-6">
+          <div>
+            <div class="flex justify-between items-center mb-2.5">
+              <span id="status-title" class="text-indigo-400 font-bold text-xs font-mono">Phase 1: Ingesting Document Data...</span>
+              <span id="progress-percentage" class="font-mono text-on-surface font-bold text-sm">0%</span>
+            </div>
+            
+            <div class="w-full bg-surface-container-lowest h-2.5 rounded-full overflow-hidden mb-6 border ghost-border">
+              <div id="progress-fill" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <!-- PROFESSIONAL 6-STEP PROGRESS PIPELINE -->
+            <div class="space-y-3">
+              <div id="step-1" class="flex items-center justify-between text-xs transition-all">
+                <div class="flex items-center gap-2.5">
+                  <span class="step-icon material-symbols-outlined text-[18px] text-indigo-400 animate-spin">sync</span>
+                  <span class="step-label text-on-surface font-medium">1. Uploading Image</span>
+                </div>
+                <span class="step-status text-[10px] font-mono text-indigo-400 font-bold">In Progress</span>
+              </div>
+
+              <div id="step-2" class="flex items-center justify-between text-xs opacity-40 transition-all">
+                <div class="flex items-center gap-2.5">
+                  <span class="step-icon material-symbols-outlined text-[18px] text-on-surface-variant">hourglass_empty</span>
+                  <span class="step-label text-on-surface-variant">2. OCR Text Extraction</span>
+                </div>
+                <span class="step-status text-[10px] font-mono text-on-surface-variant">Pending</span>
+              </div>
+
+              <div id="step-3" class="flex items-center justify-between text-xs opacity-40 transition-all">
+                <div class="flex items-center gap-2.5">
+                  <span class="step-icon material-symbols-outlined text-[18px] text-on-surface-variant">hourglass_empty</span>
+                  <span class="step-label text-on-surface-variant">3. Visual Feature Detection</span>
+                </div>
+                <span class="step-status text-[10px] font-mono text-on-surface-variant">Pending</span>
+              </div>
+
+              <div id="step-4" class="flex items-center justify-between text-xs opacity-40 transition-all">
+                <div class="flex items-center gap-2.5">
+                  <span class="step-icon material-symbols-outlined text-[18px] text-on-surface-variant">hourglass_empty</span>
+                  <span class="step-label text-on-surface-variant">4. AI Reasoning (Gemini)</span>
+                </div>
+                <span class="step-status text-[10px] font-mono text-on-surface-variant">Pending</span>
+              </div>
+
+              <div id="step-5" class="flex items-center justify-between text-xs opacity-40 transition-all">
+                <div class="flex items-center gap-2.5">
+                  <span class="step-icon material-symbols-outlined text-[18px] text-on-surface-variant">hourglass_empty</span>
+                  <span class="step-label text-on-surface-variant">5. Citation Synthesis</span>
+                </div>
+                <span class="step-status text-[10px] font-mono text-on-surface-variant">Pending</span>
+              </div>
+
+              <div id="step-6" class="flex items-center justify-between text-xs opacity-40 transition-all">
+                <div class="flex items-center gap-2.5">
+                  <span class="step-icon material-symbols-outlined text-[18px] text-on-surface-variant">hourglass_empty</span>
+                  <span class="step-label text-on-surface-variant">6. Generating Report</span>
+                </div>
+                <span class="step-status text-[10px] font-mono text-on-surface-variant">Pending</span>
+              </div>
+            </div>
+          </div>
+
+          <button id="cancel-analysis-btn" class="w-full py-3 bg-surface-container-lowest border ghost-border text-on-surface-variant hover:text-on-surface text-xs rounded-xl transition-colors cursor-pointer font-medium">
+            Cancel Processing
+          </button>
+
+          <!-- API FAILURE ERROR CARD (SHOWN WHEN GEMINI API FAILS) -->
+          <div id="api-failure-card" class="hidden bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl space-y-3 text-xs">
+            <div class="flex items-start gap-3">
+              <span class="material-symbols-outlined text-purple-400 text-[22px] shrink-0 mt-0.5">warning</span>
+              <div class="space-y-1">
+                <h4 class="font-bold text-purple-300 text-xs">Live AI Analysis Unavailable</h4>
+                <p class="text-on-surface-variant leading-relaxed text-[11px]">
+                  Live AI analysis is currently unavailable because the Gemini API quota has been exceeded. You can retry later or view a demonstration report.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2.5 pt-1">
+              <button id="retry-live-analysis-btn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all cursor-pointer shadow-md text-xs">
+                <span class="material-symbols-outlined text-[16px]">refresh</span>
+                Retry Live Analysis
+              </button>
+              
+              <button id="view-demo-report-btn" type="button" class="bg-surface-container-lowest text-on-surface border ghost-border px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all cursor-pointer text-xs font-medium">
+                <span class="material-symbols-outlined text-[16px] text-purple-400">visibility</span>
+                View Demo Report
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: PREMIUM AI RESEARCH RESULT SCREEN -->
+  <div id="page-result" class="page-view hidden flex-grow w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 py-8 space-y-8">
+    
+    <!-- Result Control Header Bar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-container p-4 sm:p-5 rounded-2xl ghost-border shadow-lg backdrop-blur-xl">
+      <div class="flex items-center gap-3.5">
+        <button id="new-analysis-btn" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface text-xs px-4 py-2.5 rounded-xl border ghost-border flex items-center gap-2 transition-all cursor-pointer font-medium hover:scale-105 active:scale-95">
+          <span class="material-symbols-outlined text-[18px] text-blue-400">arrow_back</span>
+          New Analysis
+        </button>
+        
+        <div class="h-4 w-px bg-white/10 hidden sm:block"></div>
+
+        <div>
+          <span id="result-status-badge" class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold flex items-center gap-1.5 inline-flex">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Verified Analysis
+          </span>
+          <span id="result-timestamp" class="text-xs text-on-surface-variant ml-2.5 font-mono">Aug 13, 2026</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 w-full sm:w-auto overflow-x-auto text-xs pb-1 sm:pb-0">
+        <button id="explain-report-btn" type="button" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer font-medium shrink-0 shadow-sm">
+          <span class="material-symbols-outlined text-[18px] text-blue-400">auto_awesome</span>
+          Explain Report
+        </button>
+
+        <button id="export-pdf-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-4.5 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md shrink-0 font-semibold hover:shadow-blue-500/20">
+          <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+          Export PDF
+        </button>
+
+        <button id="export-md-btn" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer shrink-0 font-medium">
+          <span class="material-symbols-outlined text-[18px] text-slate-400">description</span>
+          Markdown
+        </button>
+
+        <button id="export-json-btn" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer shrink-0 font-medium">
+          <span class="material-symbols-outlined text-[18px] text-slate-400">code</span>
+          JSON
+        </button>
+
+        <button id="share-btn" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer shrink-0 font-medium">
+          <span class="material-symbols-outlined text-[18px] text-slate-400">share</span>
+          Share
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN ACADEMIC PAPER REPORT CANVAS -->
+    <div id="paper-canvas" class="report-paper-wrapper space-y-10 shadow-2xl relative overflow-hidden transition-colors">
+      
+      <!-- 1. HERO SECTION: SUBJECT NAME -> SCIENTIFIC NAME -> CATEGORY PILL -->
+      <header class="border-b border-[var(--border-color)] pb-8 space-y-4 relative">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-[var(--accent-emerald)] text-xs font-mono font-bold border border-emerald-500/20">
+            <span class="w-2 h-2 rounded-full bg-[var(--accent-emerald)] animate-pulse"></span>
+            INSIGHTLENS AI RESEARCH BRIEF
+          </div>
+
+          <div class="flex items-center gap-3 text-xs font-mono text-[var(--text-muted)]">
+            <span id="report-provider-used" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--accent-purple)] font-bold">Google Gemini</span>
+            <span id="report-model-used" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">gemini-2.0-flash</span>
+            <span id="report-id-display" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] hidden sm:inline-block">RPT-89420</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <!-- LARGE BOLD SUBJECT NAME -->
+          <h1 id="report-hero-title" class="font-serif text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] text-[var(--text-primary)]">
+            Domestic Dog
+          </h1>
+          
+          <!-- SMALLER SCIENTIFIC NAME -->
+          <div id="report-scientific-name" class="font-serif italic text-base sm:text-lg text-[var(--text-secondary)]">
+            Canis lupus familiaris
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <!-- CATEGORY BADGE -->
+            <span id="report-category-subtitle" class="px-3.5 py-1 rounded-md bg-[var(--bg-card-subtle)] text-[var(--accent-purple)] font-mono text-xs font-semibold tracking-wide border border-[var(--border-color)]">
+              Veterinary Science &amp; Zoology
+            </span>
+            <span id="result-timestamp" class="text-xs text-[var(--text-muted)] font-mono">
+              Generated Aug 13, 2026
+            </span>
+          </div>
+        </div>
+
+        <p id="report-lead-summary" class="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed max-w-4xl font-sans font-normal pt-2">
+          An empirical visual research paper evaluated by InsightLens. Analyzing spatial geometry, chromatic properties, domain taxonomy, and technical specifications derived directly from visual evidence.
+        </p>
+      </header>
+
+      <!-- 2. AI DETECTION SUMMARY TELEMETRY CARDS (FIRST FOCAL SECTION) -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+          <div>
+            <h2 class="font-serif text-xl font-bold text-[var(--text-primary)] flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-emerald)] text-[22px]">analytics</span>
+              AI Detection Summary
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Primary visual tensor metrics, detected objects, and camera metadata</p>
+          </div>
+          <span class="text-xs font-mono text-[var(--accent-emerald)] font-semibold px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">10 Parameters Grounded</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 font-mono text-xs">
+          <!-- Card 1: Subject -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Detected Subject</span>
+            <strong id="grid-subject" class="text-[var(--text-primary)] text-xs font-sans font-bold block truncate">Domestic Dog</strong>
+          </div>
+          <!-- Card 2: Scientific Name -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Scientific Name</span>
+            <strong id="grid-scientific" class="text-[var(--accent-purple)] text-xs font-serif italic font-bold block truncate">Canis lupus familiaris</strong>
+          </div>
+          <!-- Card 3: Confidence -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-emerald)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Confidence Score</span>
+            <strong id="grid-confidence" class="text-[var(--accent-emerald)] text-xs font-bold block">99.4% High</strong>
+          </div>
+          <!-- Card 4: Processing Time -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Processing Time</span>
+            <strong id="grid-time" class="text-[var(--text-primary)] text-xs font-bold block">1.8s Latency</strong>
+          </div>
+          <!-- Card 5: Estimated Domain -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Estimated Domain</span>
+            <strong id="grid-category" class="text-[var(--accent-purple)] text-xs font-sans font-bold block truncate">Veterinary Science</strong>
+          </div>
+          <!-- Card 6: Detected Objects -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Objects Detected</span>
+            <strong id="grid-objects-count" class="text-[var(--accent-amber)] text-xs font-bold block">5 Regions</strong>
+          </div>
+          <!-- Card 7: Dominant Colors -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Dominant Hues</span>
+            <strong id="grid-colors" class="text-[var(--text-secondary)] text-xs font-sans font-medium block truncate">Brown, Green, White</strong>
+          </div>
+          <!-- Card 8: Resolution -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Resolution</span>
+            <strong id="grid-resolution" class="text-[var(--text-primary)] text-xs font-bold block">1920 x 1080 px</strong>
+          </div>
+          <!-- Card 9: OCR Inscriptions -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">OCR Text</span>
+            <strong id="grid-ocr-status" class="text-[var(--text-secondary)] text-xs font-sans font-medium block truncate">None detected</strong>
+          </div>
+          <!-- Card 10: Ingest Status -->
+          <div class="report-card space-y-1 hover:border-[var(--accent-emerald)] transition-all">
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Validation Status</span>
+            <strong id="grid-status" class="text-[var(--accent-emerald)] text-xs font-sans font-bold block">Schema Verified</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. VISUAL SOURCE TARGET & MULTI-METRIC BREAKDOWN -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start report-section-divider">
+        <!-- LEFT (7 COLS): UPLOADED IMAGE & CAPTION -->
+        <div class="lg:col-span-7 report-card space-y-3.5 shadow-md">
+          <div class="flex items-center justify-between text-xs font-mono border-b border-[var(--border-color)] pb-2.5">
+            <span class="text-[var(--text-primary)] font-semibold flex items-center gap-2">
+              <span class="material-symbols-outlined text-[var(--accent-link)] text-[18px]">image</span>
+              Visual Ingest Target
+            </span>
+            <span id="report-image-filename" class="text-[var(--text-muted)] font-sans text-[11px]">image.jpg</span>
+          </div>
+
+          <div class="relative w-full h-[360px] bg-[var(--bg-card-subtle)] rounded-xl overflow-hidden flex items-center justify-center border border-[var(--border-color)] group shadow-inner">
+            <img id="report-source-img" src="" alt="Analyzed Visual Artifact" class="max-h-full max-w-full object-contain p-2 rounded-lg transition-transform duration-300 group-hover:scale-[1.02]" />
+          </div>
+          
+          <figcaption id="report-caption" class="text-xs text-[var(--text-muted)] font-mono text-center pt-1 leading-relaxed">
+            Figure 1.1: Primary subject focal frame exhibiting high structural definition and clear contrast separation.
+          </figcaption>
+        </div>
+
+        <!-- RIGHT (5 COLS): MULTI-METRIC CONFIDENCE -->
+        <div class="lg:col-span-5 report-card space-y-6 shadow-md text-xs font-sans">
+          <div class="space-y-3.5 border-b border-[var(--border-color)] pb-5">
+            <h3 class="text-[var(--accent-link)] font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">bar_chart</span>
+              Multi-Metric Confidence Breakdown
+            </h3>
+            
+            <div class="space-y-3 font-mono text-[11px]">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-[var(--text-secondary)]">Overall Confidence</span>
+                  <span id="label-conf-overall" class="text-[var(--accent-emerald)] font-bold">99.4%</span>
+                </div>
+                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
+                  <div id="bar-conf-overall" class="bg-[var(--accent-emerald)] h-full transition-all duration-500" style="width: 99.4%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-[var(--text-secondary)]">Object Detection</span>
+                  <span id="label-conf-objects" class="text-[var(--accent-link)] font-bold">97.8%</span>
+                </div>
+                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
+                  <div id="bar-conf-objects" class="bg-[var(--accent-link)] h-full transition-all duration-500" style="width: 97.8%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-[var(--text-secondary)]">Subject Classification</span>
+                  <span id="label-conf-subject" class="text-[var(--accent-purple)] font-bold">99.1%</span>
+                </div>
+                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
+                  <div id="bar-conf-subject" class="bg-[var(--accent-purple)] h-full transition-all duration-500" style="width: 99.1%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2.5">
+            <span class="text-[11px] font-mono text-[var(--text-muted)] uppercase block font-bold">Detected Regions &amp; Objects:</span>
+            <div id="detected-objects-tags" class="flex flex-wrap gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-[var(--bg-card-subtle)] text-[var(--accent-link)] text-[11px] font-mono border border-[var(--border-color)]">Domestic Dog</span>
+              <span class="px-2.5 py-1 rounded-lg bg-[var(--bg-card-subtle)] text-[var(--accent-emerald)] text-[11px] font-mono border border-[var(--border-color)]">Grass</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. EXECUTIVE SUMMARY MULTI-CARD GRID -->
+      <section class="space-y-4 report-section-divider">
+        <div class="border-b border-[var(--border-color)] pb-3">
+          <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[var(--accent-purple)] text-[26px]">summarize</span>
+            Executive Summary
+          </h2>
+          <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Overview of the detected subject and key findings</p>
+        </div>
+
+        <div id="report-exec-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
+          <!-- Summary Card -->
+          <div class="report-card space-y-2 shadow-sm">
+            <div class="flex items-center gap-2 text-[var(--accent-link)] font-semibold font-mono text-xs uppercase tracking-wider">
+              <span class="material-symbols-outlined text-[18px]">overview</span>
+              Summary
+            </div>
+            <p id="exec-card-overview" class="text-[var(--text-secondary)] text-xs leading-relaxed">
+              Empirical visual research brief evaluating spatial geometry, chromatic properties, and physical features of the target subject.
+            </p>
+          </div>
+
+          <!-- Key Findings Card -->
+          <div class="report-card space-y-2 shadow-sm">
+            <div class="flex items-center gap-2 text-[var(--accent-emerald)] font-semibold font-mono text-xs uppercase tracking-wider">
+              <span class="material-symbols-outlined text-[18px]">verified</span>
+              Key Findings
+            </div>
+            <p id="exec-card-findings" class="text-[var(--text-secondary)] text-xs leading-relaxed">
+              High confidence classification confirming primary subject markers. Crisp focal contrast and distinct contour boundaries.
+            </p>
+          </div>
+
+          <!-- Main Observation Card -->
+          <div class="report-card space-y-2 shadow-sm">
+            <div class="flex items-center gap-2 text-[var(--accent-amber)] font-semibold font-mono text-xs uppercase tracking-wider">
+              <span class="material-symbols-outlined text-[18px]">visibility</span>
+              Main Visual Observation
+            </div>
+            <p id="exec-card-observation" class="text-[var(--text-secondary)] text-xs leading-relaxed">
+              Clear spatial organization with well-defined illumination vectors. Balanced natural contrast separation between subject and environment.
+            </p>
+          </div>
+
+          <!-- Research Scope Card -->
+          <div class="report-card space-y-2 shadow-sm">
+            <div class="flex items-center gap-2 text-[var(--accent-purple)] font-semibold font-mono text-xs uppercase tracking-wider">
+              <span class="material-symbols-outlined text-[18px]">psychology</span>
+              Research Scope
+            </div>
+            <p id="exec-card-synthesis" class="text-[var(--text-secondary)] text-xs leading-relaxed">
+              Grounded in multimodal vision intelligence algorithms. Results synthesized into structured citations and verified domain principles.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. STRUCTURED ACADEMIC RESEARCH SECTIONS -->
+      <section class="space-y-10 report-section-divider font-sans">
+        
+        <!-- SECTION 1: DETAILED VISUAL & STRUCTURAL ANALYSIS -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">center_focus_strong</span>
+              1. Visual &amp; Structural Analysis
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Detailed physical attributes, spatial geometry, and focal vectors</p>
+          </div>
+          <div id="report-detailed-analysis-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
+            <p>The visual analysis reveals distinct structural markers across the primary focal region. Geometry, lighting, and chromatic variance demonstrate a well-balanced composition.</p>
+          </div>
+        </div>
+
+        <!-- SECTION 2: SUBJECT IDENTIFICATION & TAXONOMY -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-emerald)] text-[24px]">fingerprint</span>
+              2. Subject Identification &amp; Domain Taxonomy
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Taxonomical classification and evolutionary lineage</p>
+          </div>
+          <div id="report-identification-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
+            <p>The primary subject is classified under domain taxonomy based on physical attributes, spatial positioning, and visual features.</p>
+          </div>
+        </div>
+
+        <!-- SECTION 3: TECHNICAL DATA COMPARISON CARDS -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-purple)] text-[24px]">science</span>
+              3. Scientific &amp; Technical Attributes
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Quantitative benchmarks, material properties, and operational parameters</p>
+          </div>
+          <div id="report-scientific-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3 mb-3">
+            <p>From a domain perspective, the subject exhibits key scientific mechanisms, material properties, and operational parameters.</p>
+          </div>
+
+          <!-- COMPARISON CARDS / ATTRIBUTE BLOCKS -->
+          <div id="specs-comparison-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="report-card space-y-1">
+              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Classification</span>
+              <strong class="text-xs text-[var(--text-primary)] block font-semibold">Domestic Canine</strong>
+            </div>
+            <div class="report-card space-y-1">
+              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Domain</span>
+              <strong class="text-xs text-[var(--accent-purple)] block font-semibold">Veterinary Zoology</strong>
+            </div>
+            <div class="report-card space-y-1">
+              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Detection Fidelity</span>
+              <strong class="text-xs text-[var(--accent-emerald)] block font-semibold">99.4% High</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: HISTORICAL CONTEXT & VERTICAL TIMELINE -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-amber)] text-[24px]">history_edu</span>
+              4. Historical Context &amp; Evolutionary Timeline
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Chronological milestones and evolutionary development</p>
+          </div>
+
+          <!-- VERTICAL TIMELINE COMPONENT -->
+          <div id="report-historical-timeline" class="vertical-timeline space-y-4">
+            <div class="timeline-item">
+              <div class="timeline-node"></div>
+              <div class="timeline-card">
+                <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">~30,000 BCE &bull; Evolutionary Origin</span>
+                <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">Domestication from Ancestral Wolf Lineages</strong>
+                <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">Early divergence of Canis lupus familiaris during the Upper Paleolithic era.</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-node"></div>
+              <div class="timeline-card">
+                <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">19th Century &bull; Modern Classification</span>
+                <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">Formalization of Kennel Standards &amp; Breed Selection</strong>
+                <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">Systematic breed standardization across European and American registries.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 5: PRACTICAL APPLICATIONS -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-purple)] text-[24px]">apps</span>
+              5. Applications &amp; Domain Importance
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Practical utility, institutional research, and clinical relevance</p>
+          </div>
+          <div id="applications-importance-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
+            <div class="report-card space-y-1.5">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-[var(--accent-emerald)] font-mono text-xs font-bold flex items-center justify-center">1</span>
+              <p class="text-[var(--text-secondary)] text-xs leading-relaxed">Academic reference and veterinary research documentation.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 6: KEY FACT FEATURE CARDS -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-amber)] text-[24px]">lightbulb</span>
+              6. Key Fact Highlights
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Essential domain insights and notable attributes</p>
+          </div>
+          <div id="interesting-facts-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
+            <div class="report-card space-y-2">
+              <span class="material-symbols-outlined text-[var(--accent-amber)] text-[20px]">lightbulb</span>
+              <p class="text-[var(--text-secondary)] text-xs leading-relaxed">Key structural feature observed across primary focal regions.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 7: ANALYTICAL LIMITATIONS -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--accent-amber)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[24px]">warning</span>
+              7. Analytical Limitations &amp; Scope
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Physical constraints of 2D visual extraction</p>
+          </div>
+          <div id="limitations-text" class="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/20 text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed font-sans">
+            Visual inference from a 2D image is limited by camera sensor resolution, occlusion, and light spectrum constraints. Sub-surface compositions or precise microscopic physical attributes cannot be determined from visual evidence alone.
+          </div>
+        </div>
+
+        <!-- SECTION 8: ACADEMIC JOURNAL REFERENCES WITH DOIs -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">menu_book</span>
+              8. References &amp; Verified Citations
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">APA 7th Edition journal citations with active DOI links</p>
+          </div>
+          <div id="references-list" class="space-y-3 text-xs font-mono text-[var(--text-secondary)]">
+            <div class="report-card flex items-start gap-3">
+              <span class="text-[var(--accent-link)] font-bold">[1]</span>
+              <div>
+                <p class="leading-relaxed">Smith, J. A., &amp; Davis, R. (2024). Principles of Multimodal Computer Vision and Image Analysis. <em>Journal of Visual Intelligence</em>, 12(3), 145-162.</p>
+                <a href="https://doi.org/10.1038/s41586-024-00001-x" target="_blank" rel="noopener" class="text-[var(--accent-link)] text-[11px] hover:underline mt-1 inline-block">https://doi.org/10.1038/s41586-024-00001-x</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 9: CONCLUDING SYNTHESIS -->
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-emerald)] text-[24px]">task_alt</span>
+              9. Concluding Synthesis
+            </h2>
+            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Final analytical evaluation</p>
+          </div>
+          <div id="conclusion-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
+            <p>In conclusion, the visual research assessment confirms a well-structured artifact with crisp edge contours and grounded domain principles.</p>
+          </div>
+        </div>
+
+        <!-- APPENDIX & TELEMETRY FOOTER -->
+        <div id="appendix-telemetry-box" class="p-5 bg-[var(--bg-card-subtle)] rounded-2xl border border-[var(--border-color)] text-xs font-mono text-[var(--text-muted)] space-y-1.5">
+          <div>Engine: InsightLens Academic Visual Intelligence System</div>
+          <div>Multimodal Model: Gemini 3.6 Flash</div>
+          <div>Validation Status: 13-Section Academic Paper Schema Verified (Passed)</div>
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+
+  <!-- SCREEN 6: ARCHIVE PAGE -->
+  <div id="page-archive" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-8">
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700/50 mb-2.5">
+          Institutional Repository
+        </div>
+        <h1 id="archive-page-title" class="font-display-lg text-2xl md:text-3xl text-on-surface font-serif font-bold">Research History &amp; Archive</h1>
+        <p id="archive-page-subtitle" class="font-body-sm text-on-surface-variant text-xs md:text-sm mt-1">Browse synthesized briefs and your personal visual research history.</p>
+      </div>
+
+      <button id="clear-history-btn" class="hidden text-on-surface-variant hover:text-red-400 text-xs border ghost-border px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer self-start md:self-auto font-medium">
+        <span class="material-symbols-outlined text-[18px]">delete</span>
+        Clear History
+      </button>
+    </header>
+
+    <div id="archive-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    </div>
+  </div>
+
+  <!-- TECHNICAL METHODOLOGY & SYSTEM ARCHITECTURE DOCUMENTATION PAGE -->
+  <div id="page-methodology" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-10">
+    
+    <!-- PAGE HEADER -->
+    <header class="pb-6 border-b ghost-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 text-[11px] font-mono font-medium border border-purple-500/20 mb-2.5">
+          System Architecture &amp; Engineering Specs
+        </div>
+        <h1 class="font-display-lg text-2xl md:text-3xl text-on-surface font-serif font-bold">
+          Technical Methodology &amp; System Architecture
+        </h1>
+        <p class="font-body-md text-on-surface-variant text-xs md:text-sm max-w-[780px] mt-1 leading-relaxed">
+          Detailed technical documentation explaining the end-to-end multi-stage visual research pipeline, client-side telemetry algorithms, Gemini API failover mechanics, local database schema, and future expansion roadmap.
+        </p>
+      </div>
+
+      <button onclick="navigateTo('desk')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-5 py-3 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md self-start md:self-auto">
+        <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+        Launch Workbench
+      </button>
+    </header>
+
+    <!-- SECTION 1: INTERACTIVE RESEARCH PIPELINE -->
+    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b ghost-border pb-4">
+        <div>
+          <span class="text-[11px] font-mono text-indigo-400 font-bold uppercase tracking-wider block">SECTION 01</span>
+          <h2 class="font-serif text-lg text-on-surface font-bold flex items-center gap-2">
+            <span class="material-symbols-outlined text-indigo-400 text-[22px]">account_tree</span>
+            1. Interactive Research Pipeline
+          </h2>
+        </div>
+        <span class="text-xs font-mono text-on-surface-variant bg-surface-container-lowest px-3 py-1.5 rounded-lg border ghost-border">
+          Click Stage to Inspect Specs
+        </span>
+      </div>
+
+      <!-- Pipeline Stage Buttons -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs font-mono">
+        <button type="button" class="pipeline-tab-btn active bg-indigo-600 text-white p-4 rounded-xl border border-indigo-500/30 text-left cursor-pointer transition-all flex flex-col justify-between h-22 shadow-md font-semibold" data-stage="1">
+          <span class="text-[10px] opacity-80">STAGE 01</span>
+          <strong class="text-xs font-sans font-semibold block leading-tight">Image Ingestion &amp; Prep</strong>
+        </button>
+
+        <button type="button" class="pipeline-tab-btn bg-surface-container-lowest hover:bg-white/[0.06] text-on-surface-variant p-4 rounded-xl border ghost-border text-left cursor-pointer transition-all flex flex-col justify-between h-22" data-stage="2">
+          <span class="text-[10px] text-outline">STAGE 02</span>
+          <strong class="text-xs font-sans font-semibold block leading-tight">Canvas Telemetry Extraction</strong>
+        </button>
+
+        <button type="button" class="pipeline-tab-btn bg-surface-container-lowest hover:bg-white/[0.06] text-on-surface-variant p-4 rounded-xl border ghost-border text-left cursor-pointer transition-all flex flex-col justify-between h-22" data-stage="3">
+          <span class="text-[10px] text-outline">STAGE 03</span>
+          <strong class="text-xs font-sans font-semibold block leading-tight">Prompt Matrix Assembly</strong>
+        </button>
+
+        <button type="button" class="pipeline-tab-btn bg-surface-container-lowest hover:bg-white/[0.06] text-on-surface-variant p-4 rounded-xl border ghost-border text-left cursor-pointer transition-all flex flex-col justify-between h-22" data-stage="4">
+          <span class="text-[10px] text-outline">STAGE 04</span>
+          <strong class="text-xs font-sans font-semibold block leading-tight">Gemini Vision Model Inference</strong>
+        </button>
+
+        <button type="button" class="pipeline-tab-btn bg-surface-container-lowest hover:bg-white/[0.06] text-on-surface-variant p-4 rounded-xl border ghost-border text-left cursor-pointer transition-all flex flex-col justify-between h-22" data-stage="5">
+          <span class="text-[10px] text-outline">STAGE 05</span>
+          <strong class="text-xs font-sans font-semibold block leading-tight">Paper Synthesis &amp; PDF Export</strong>
+        </button>
+      </div>
+
+      <!-- Pipeline Stage Detail Card -->
+      <div id="pipeline-stage-detail" class="bg-surface-container-lowest p-6 rounded-xl border ghost-border space-y-4">
+        <div class="flex items-center justify-between border-b ghost-border pb-3.5">
+          <h3 id="stage-detail-title" class="font-serif text-base text-indigo-400 font-bold">Stage 1: Image Ingestion &amp; Data Normalization</h3>
+          <span id="stage-detail-badge" class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[11px] font-mono border border-indigo-500/20 font-bold">Client-Side Reader</span>
+        </div>
+        <p id="stage-detail-desc" class="text-xs text-on-surface-variant leading-relaxed">
+          The pipeline receives binary file inputs via Drag-and-Drop or File API. The FileReader interface converts visual payloads into Base64 Data URL strings. Input validation guarantees constraints under 25MB while verifying image format signatures (PNG, JPEG, WEBP, SVG).
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs font-mono pt-1">
+          <div class="p-3.5 bg-surface-container rounded-xl border ghost-border">
+            <span class="text-[10px] text-outline uppercase block font-bold">Input Format</span>
+            <strong id="stage-detail-input" class="text-on-surface block text-[11px] mt-0.5">File Blob / Data URL</strong>
+          </div>
+          <div class="p-3.5 bg-surface-container rounded-xl border ghost-border">
+            <span class="text-[10px] text-outline uppercase block font-bold">Processing Latency</span>
+            <strong id="stage-detail-latency" class="text-emerald-400 block text-[11px] mt-0.5">&lt; 50 ms Instant</strong>
+          </div>
+          <div class="p-3.5 bg-surface-container rounded-xl border ghost-border">
+            <span class="text-[10px] text-outline uppercase block font-bold">Output Data Payload</span>
+            <strong id="stage-detail-output" class="text-indigo-400 block text-[11px] mt-0.5">Clean Base64 Stream</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: SYSTEM ARCHITECTURE DIAGRAM -->
+    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
+      <div class="border-b ghost-border pb-4">
+        <span class="text-[11px] font-mono text-sky-400 font-bold uppercase tracking-wider block">SECTION 02</span>
+        <h2 class="font-serif text-lg text-on-surface font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-sky-400 text-[22px]">schema</span>
+          2. System Architecture Diagram
+        </h2>
+      </div>
+
+      <!-- Architecture Visualization -->
+      <div class="bg-surface-container-lowest p-6 rounded-2xl border ghost-border space-y-6">
+        <!-- Client Layer -->
+        <div class="border border-indigo-500/30 bg-indigo-500/5 p-6 rounded-xl space-y-4">
+          <div class="flex items-center justify-between text-xs font-mono">
+            <span class="text-indigo-400 font-bold flex items-center gap-2 text-xs">
+              <span class="material-symbols-outlined text-[18px]">desktop_windows</span>
+              CLIENT BROWSER ENVIRONMENT (Single Page Application)
+            </span>
+            <span class="text-[10px] text-outline font-bold">Vite 8.2 • ES2024 JS</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 text-xs">
+            <div class="bg-surface-container p-3.5 rounded-xl border ghost-border space-y-1">
+              <strong class="text-on-surface font-semibold block text-[11px]">UI Router &amp; Navigation</strong>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">Zero-reload view switcher managing Landing, Workbench, Dashboard, History &amp; Settings views.</p>
+            </div>
+
+            <div class="bg-surface-container p-3.5 rounded-xl border ghost-border space-y-1">
+              <strong class="text-on-surface font-semibold block text-[11px]">Canvas 2D Engine</strong>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">Performs pixel Luma calculations, contrast estimates, edge density analysis, and color metrics.</p>
+            </div>
+
+            <div class="bg-surface-container p-3.5 rounded-xl border ghost-border space-y-1">
+              <strong class="text-on-surface font-semibold block text-[11px]">Gemini REST Client</strong>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">Executes HTTPS fetch calls with model failover, AbortController timeouts, and quota handling.</p>
+            </div>
+
+            <div class="bg-surface-container p-3.5 rounded-xl border ghost-border space-y-1">
+              <strong class="text-on-surface font-semibold block text-[11px]">Export Compiler</strong>
+              <p class="text-[10px] text-on-surface-variant leading-relaxed">Compiles PDF documents using html2pdf, formats Markdown briefs, and exports JSON backups.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection Arrow -->
+        <div class="flex items-center justify-center text-xs font-mono text-outline gap-3">
+          <span>▲</span>
+          <span class="border-t border-dashed border-white/20 w-24"></span>
+          <span class="text-indigo-400 font-bold px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-[10px]">HTTPS / REST API Channel</span>
+          <span class="border-t border-dashed border-white/20 w-24"></span>
+          <span>▼</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <!-- External AI Cloud -->
+          <div class="border border-purple-500/30 bg-purple-500/5 p-6 rounded-xl space-y-2.5">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-purple-300 font-bold flex items-center gap-2 text-xs">
+                <span class="material-symbols-outlined text-[18px]">cloud</span>
+                GOOGLE GEMINI AI INFRASTRUCTURE
+              </span>
+              <span class="text-[10px] text-outline font-bold">v1beta Multimodal Endpoint</span>
+            </div>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">
+              Processes multimodal base64 image streams alongside dynamic research prompts. Executes failover across <code class="text-purple-300 bg-purple-950/50 px-1.5 py-0.5 rounded font-mono">gemini-2.5-flash</code>, <code class="text-purple-300 bg-purple-950/50 px-1.5 py-0.5 rounded font-mono">gemini-2.5-flash-lite</code>, and <code class="text-purple-300 bg-purple-950/50 px-1.5 py-0.5 rounded font-mono">gemini-2.5-pro</code>.
+            </p>
+          </div>
+
+          <!-- Local Storage Store -->
+          <div class="border border-emerald-500/30 bg-emerald-500/5 p-6 rounded-xl space-y-2.5">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-emerald-300 font-bold flex items-center gap-2 text-xs">
+                <span class="material-symbols-outlined text-[18px]">hard_drive</span>
+                BROWSER LOCALSTORAGE DATABASE
+              </span>
+              <span class="text-[10px] text-outline font-bold">HTML5 Storage API</span>
+            </div>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">
+              Persists system preferences (<code class="text-emerald-300 bg-emerald-950/50 px-1.5 py-0.5 rounded font-mono">insightlens_preferences</code>), real telemetry metrics (<code class="text-emerald-300 bg-emerald-950/50 px-1.5 py-0.5 rounded font-mono">insightlens_metrics</code>), action logs, and scaled report history entries.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: AI PROCESSING FLOW -->
+    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
+      <div class="border-b ghost-border pb-4">
+        <span class="text-[11px] font-mono text-purple-400 font-bold uppercase tracking-wider block">SECTION 03</span>
+        <h2 class="font-serif text-lg text-on-surface font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-purple-400 text-[22px]">psychology</span>
+          3. AI Processing &amp; Subject Adaptation Flow
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4.5 text-xs">
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="text-[10px] font-mono text-indigo-400 font-bold">STEP 01</div>
+          <h3 class="font-serif text-sm font-semibold text-on-surface">Focal Subject Detection</h3>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">
+            Gemini Vision analyzes the input image to identify the exact focal subject and anchors all research sections to that subject.
+          </p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="text-[10px] font-mono text-sky-400 font-bold">STEP 02</div>
+          <h3 class="font-serif text-sm font-semibold text-on-surface">Domain Adaptation</h3>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">
+            Automatically routes context based on domain: Landmarks emphasize history &amp; engineering; Animals/Plants emphasize species &amp; habitat.
+          </p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="text-[10px] font-mono text-purple-400 font-bold">STEP 03</div>
+          <h3 class="font-serif text-sm font-semibold text-on-surface">JSON Schema Enforcement</h3>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">
+            Requests structured JSON payloads matching strict keys: title, subject, executive summary, bulleted visual analysis, historical background, technical specs, and academic references.
+          </p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="text-[10px] font-mono text-emerald-400 font-bold">STEP 04</div>
+          <h3 class="font-serif text-sm font-semibold text-on-surface">Automatic Model Failover</h3>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">
+            If rate limits or HTTP 429 quota errors occur, the system catches the exception and immediately retries using Lite or Pro model endpoints automatically.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: TECHNOLOGY STACK -->
+    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
+      <div class="border-b ghost-border pb-4">
+        <span class="text-[11px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">SECTION 04</span>
+        <h2 class="font-serif text-lg text-on-surface font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-400 text-[22px]">layers</span>
+          4. Technology Stack &amp; Dependencies
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4.5 text-xs">
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-on-surface text-xs">Vite 8.2 &amp; ES2024 JS</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-mono border border-indigo-500/20 font-bold">Build Core</span>
+          </div>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">Lightweight zero-framework Single Page Application bundling providing fast HMR and sub-second production builds.</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-on-surface text-xs">Tailwind CSS &amp; Icons</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 text-[10px] font-mono border border-purple-500/20 font-bold">UI &amp; Styling</span>
+          </div>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">Utility-first styling paired with Google Material Symbols and dark research UI tokens.</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-on-surface text-xs">Gemini Vision API</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 text-[10px] font-mono border border-sky-500/20 font-bold">AI Inference</span>
+          </div>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">Multimodal REST endpoint (v1beta) providing high-precision feature extraction and subject reasoning.</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-on-surface text-xs">Canvas 2D Telemetry</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 text-[10px] font-mono border border-purple-500/20 font-bold">Client Math</span>
+          </div>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">Client-side image analysis calculating brightness luma, contrast scores, color diversity, and edge matrices.</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-on-surface text-xs">html2pdf.js &amp; canvas</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 text-[10px] font-mono border border-emerald-500/20 font-bold">PDF Compiler</span>
+          </div>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">Client-side document rendering converting DOM report canvases into standalone Letter PDF files.</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-on-surface text-xs">LocalStorage API</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-on-surface-variant text-[10px] font-mono border border-white/10 font-bold">Data Storage</span>
+          </div>
+          <p class="text-on-surface-variant text-[11px] leading-relaxed">Browser-native persistent key-value store maintaining system preferences, activity logs, metrics, and report archives.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: DATABASE SCHEMA -->
+    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
+      <div class="border-b ghost-border pb-4 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-mono text-purple-400 font-bold uppercase tracking-wider block">SECTION 05</span>
+          <h2 class="font-serif text-lg text-on-surface font-bold flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-400 text-[22px]">database</span>
+            5. Local Storage Database Schema
+          </h2>
+        </div>
+        <span class="text-xs font-mono text-on-surface-variant bg-surface-container-lowest px-3 py-1.5 rounded-lg border ghost-border">
+          4 Main JSON Tables
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs font-mono">
+        <!-- Schema Card 1 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2.5">
+          <div class="flex items-center justify-between border-b ghost-border pb-2.5">
+            <strong class="text-indigo-400 text-xs font-bold">1. insightlens_preferences</strong>
+            <span class="text-[10px] text-outline">System Settings Object</span>
+          </div>
+          <pre class="text-[11px] text-on-surface-variant overflow-x-auto p-3.5 bg-surface-container rounded-lg border ghost-border"><code>{
+  "theme": "dark" | "light",
+  "model": "auto" | "gemini-2.5-flash" | ...,
+  "autoModelFallback": boolean,
+  "customApiKey": string,
+  "compactMode": boolean,
+  "fontSize": "small" | "medium" | "large",
+  "animationsOn": boolean,
+  "citationStyle": "APA" | "MLA" | "IEEE" | "Chicago",
+  "exportFormat": "pdf" | "markdown" | "json",
+  "autoSaveReports": boolean
+}</code></pre>
+        </div>
+
+        <!-- Schema Card 2 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2.5">
+          <div class="flex items-center justify-between border-b ghost-border pb-2.5">
+            <strong class="text-purple-300 text-xs font-bold">2. insightlens_metrics</strong>
+            <span class="text-[10px] text-outline">Real App Metrics</span>
+          </div>
+          <pre class="text-[11px] text-on-surface-variant overflow-x-auto p-3.5 bg-surface-container rounded-lg border ghost-border"><code>{
+  "totalImagesAnalyzed": number,
+  "totalReportsGenerated": number,
+  "pdfExportsCount": number,
+  "markdownExportsCount": number,
+  "lastAnalysisTimestamp": number (epoch),
+  "lastSuccessfulModel": string,
+  "lastSuccessfulTime": number (epoch)
+}</code></pre>
+        </div>
+
+        <!-- Schema Card 3 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2.5">
+          <div class="flex items-center justify-between border-b ghost-border pb-2.5">
+            <strong class="text-sky-400 text-xs font-bold">3. insightlens_activity_logs</strong>
+            <span class="text-[10px] text-outline">Action Stream Array</span>
+          </div>
+          <pre class="text-[11px] text-on-surface-variant overflow-x-auto p-3.5 bg-surface-container rounded-lg border ghost-border"><code>[
+  {
+    "id": "ACT-178601294812",
+    "type": "upload" | "generate" | "pdf" | "markdown" | "delete",
+    "details": "Report Generated: Eiffel Tower (gemini-2.5-flash)",
+    "timestamp": number (epoch)
+  }
+]</code></pre>
+        </div>
+
+        <!-- Schema Card 4 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border ghost-border space-y-2.5">
+          <div class="flex items-center justify-between border-b ghost-border pb-2.5">
+            <strong class="text-emerald-400 text-xs font-bold">4. insightlens_history_{email}</strong>
+            <span class="text-[10px] text-outline">Saved Reports Array</span>
+          </div>
+          <pre class="text-[11px] text-on-surface-variant overflow-x-auto p-3.5 bg-surface-container rounded-lg border ghost-border"><code>[
+  {
+    "id": "RPT-178601294812",
+    "title": string,
+    "subject": string,
+    "summaryLead": string,
+    "date": string,
+    "imageDataUrl": string (500px thumbnail),
+    "fullData": reportDataObject
+  }
+]</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: API REQUEST FLOW -->
+    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
+      <div class="border-b ghost-border pb-4">
+        <span class="text-[11px] font-mono text-indigo-400 font-bold uppercase tracking-wider block">SECTION 06</span>
+        <h2 class="font-serif text-lg text-on-surface font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-indigo-400 text-[22px]">swap_horiz</span>
+          6. API Request &amp; Error Handling Flow
+        </h2>
+      </div>
+
+      <div class="space-y-3.5 text-xs font-mono">
+        <div class="p-4.5 bg-surface-container-lowest rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-indigo-400 font-bold text-xs">1. Payload Preparation</span>
+            <span class="text-[10px] text-outline">Client Side</span>
+          </div>
+          <p class="text-on-surface-variant font-sans text-xs leading-relaxed">
+            Encodes the input image into a clean base64 string, strips data URI headers, constructs inline data contents, and appends system prompt instructions requesting structured JSON output.
+          </p>
+        </div>
+
+        <div class="p-4.5 bg-surface-container-lowest rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-purple-300 font-bold text-xs">2. HTTPS POST Dispatch</span>
+            <span class="text-[10px] text-outline">Network Transport</span>
+          </div>
+          <p class="text-on-surface-variant font-sans text-xs leading-relaxed">
+            Dispatches POST request to <code class="text-purple-300 bg-purple-950/50 px-1.5 py-0.5 rounded font-mono">https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}</code> with an AbortController 14s safety timeout.
+          </p>
+        </div>
+
+        <div class="p-4.5 bg-surface-container-lowest rounded-xl border ghost-border space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-sky-400 font-bold text-xs">3. Quota Exception Handling &amp; Model Failover</span>
+            <span class="text-[10px] text-outline">Failover Engine</span>
+          </div>
+          <p class="text-on-surface-variant font-sans text-xs leading-relaxed">
+            If the server returns HTTP 429 (Quota Exceeded) or network failure, the client catches the exception and immediately invokes the next candidate model in the fallback chain (<code class="text-sky-300 bg-sky-950/50 px-1.5 py-0.5 rounded font-mono">gemini-2.5-flash-lite</code> → <code class="text-sky-300 bg-sky-950/50 px-1.5 py-0.5 rounded font-mono">gemini-2.5-pro</code>). If all configured models fail, displays a clean notice offering a retry or offline demonstration report.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7 & SECTION 8: PROJECT LIMITATIONS & FUTURE SCOPE -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- SECTION 7: PROJECT LIMITATIONS -->
+      <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-4">
+        <div class="border-b ghost-border pb-3.5">
+          <span class="text-[11px] font-mono text-purple-400 font-bold uppercase tracking-wider block">SECTION 07</span>
+          <h2 class="font-serif text-base text-on-surface font-bold flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-400 text-[20px]">warning</span>
+            7. System Limitations
+          </h2>
+        </div>
+
+        <ul class="space-y-3 text-xs text-on-surface-variant font-sans">
+          <li class="p-4 bg-surface-container-lowest rounded-xl border ghost-border space-y-1">
+            <strong class="text-purple-300 block font-semibold text-xs">API Free-Tier Rate Limits</strong>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">Public Gemini API keys are subject to shared free-tier RPM/TPM rate limits, requiring fallback mechanisms during peak traffic.</p>
+          </li>
+
+          <li class="p-4 bg-surface-container-lowest rounded-xl border ghost-border space-y-1">
+            <strong class="text-purple-300 block font-semibold text-xs">Browser Storage Quotas</strong>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">HTML5 LocalStorage is capped per domain (~5MB–10MB), requiring thumbnail downscaling (500px JPEG) for saved history entries.</p>
+          </li>
+
+          <li class="p-4 bg-surface-container-lowest rounded-xl border ghost-border space-y-1">
+            <strong class="text-purple-300 block font-semibold text-xs">Client Canvas Memory Usage</strong>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">Processing 4K images on client Canvas 2D context consumes temporary browser RAM during pixel luma array iteration.</p>
+          </li>
+        </ul>
+      </section>
+
+      <!-- SECTION 8: FUTURE SCOPE -->
+      <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-4">
+        <div class="border-b ghost-border pb-3.5">
+          <span class="text-[11px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">SECTION 08</span>
+          <h2 class="font-serif text-base text-on-surface font-bold flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-400 text-[20px]">rocket_launch</span>
+            8. Future Scope &amp; Roadmap
+          </h2>
+        </div>
+
+        <ul class="space-y-3 text-xs text-on-surface-variant font-sans">
+          <li class="p-4 bg-surface-container-lowest rounded-xl border ghost-border space-y-1">
+            <strong class="text-emerald-300 block font-semibold text-xs">Serverless Backend Storage</strong>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">Integration with Firebase / PostgreSQL for persistent cloud storage and cross-device research synchronization.</p>
+          </li>
+
+          <li class="p-4 bg-surface-container-lowest rounded-xl border ghost-border space-y-1">
+            <strong class="text-emerald-300 block font-semibold text-xs">Comparative Multi-Image Analysis</strong>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">Side-by-side multi-artifact ingestion to generate comparative cross-document analytical papers.</p>
+          </li>
+
+          <li class="p-4 bg-surface-container-lowest rounded-xl border ghost-border space-y-1">
+            <strong class="text-emerald-300 block font-semibold text-xs">LaTeX &amp; Docx Source Exports</strong>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">Native LaTeX (<code class="text-emerald-300 bg-emerald-950/50 px-1.5 py-0.5 rounded font-mono">.tex</code>) and Microsoft Word (<code class="text-emerald-300 bg-emerald-950/50 px-1.5 py-0.5 rounded font-mono">.docx</code>) compilation options for journal publishing.</p>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <!-- EXPLAIN THIS REPORT SIDE PANEL -->
+  <div id="explain-side-panel" class="dropdown-transition fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-xs transition-opacity duration-300">
+    <div class="w-full max-w-[500px] h-full bg-[#0e111a] border-l ghost-border shadow-2xl flex flex-col justify-between overflow-y-auto animate-slide-left">
+      
+      <!-- PANEL HEADER -->
+      <div class="p-6 border-b ghost-border flex items-center justify-between sticky top-0 bg-[#0e111a]/95 backdrop-blur-md z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">help</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-base text-slate-100 font-bold">Explain This Report</h3>
+            <p class="text-[11px] text-slate-400 font-mono">AI Visual Research Diagnostic Brief</p>
+          </div>
+        </div>
+        <button id="close-explain-panel-btn" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer" title="Close Panel">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- PANEL BODY (READ-ONLY) -->
+      <div class="p-6 space-y-6 text-xs font-sans text-slate-300 flex-grow">
+        
+        <!-- 1. SUBJECT IDENTIFICATION -->
+        <section class="bg-[#05060a] p-5 rounded-2xl border ghost-border space-y-3">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+            <h4 class="font-serif font-bold text-indigo-300 text-xs flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">center_focus_strong</span>
+              1. Subject Identification
+            </h4>
+            <span id="explain-subject-conf" class="text-[10px] font-mono text-emerald-400 font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">96.8% Conf.</span>
+          </div>
+          
+          <div>
+            <span class="text-[10px] font-mono text-slate-400 uppercase block font-bold">Detected Subject:</span>
+            <strong id="explain-subject-name" class="text-slate-100 font-semibold block text-xs mt-0.5">Visual Subject Artifact</strong>
+          </div>
+
+          <div>
+            <span class="text-[10px] font-mono text-slate-400 uppercase block font-bold">Selection Rationale:</span>
+            <p id="explain-subject-why" class="text-slate-300 text-[11px] leading-relaxed mt-0.5">
+              Selected due to high structural contrast, central vertical axis alignment, and distinctive lattice geometry.
+            </p>
+          </div>
+        </section>
+
+        <!-- 2. VISUAL EVIDENCE -->
+        <section class="bg-[#05060a] p-5 rounded-2xl border ghost-border space-y-3">
+          <h4 class="font-serif font-bold text-sky-300 text-xs flex items-center gap-2 border-b border-white/10 pb-2.5">
+            <span class="material-symbols-outlined text-[18px]">visibility</span>
+            2. Visual Evidence
+          </h4>
+
+          <div>
+            <span class="text-[10px] font-mono text-slate-400 uppercase block font-bold">Main Objects Identified:</span>
+            <div id="explain-objects-list" class="flex flex-wrap gap-1.5 mt-1">
+              <span class="px-2.5 py-0.5 rounded-md bg-sky-500/10 text-sky-300 text-[10px] font-mono border border-sky-500/20">Focal Contours</span>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-[10px] font-mono text-slate-400 uppercase block font-bold">Composition &amp; Visual Features:</span>
+            <p id="explain-visual-features" class="text-slate-300 text-[11px] leading-relaxed mt-0.5">
+              Bilateral visual symmetry, sharp contrast vectors along central focal axis, and distinct tonal luminance separation.
+            </p>
+          </div>
+
+          <div>
+            <span class="text-[10px] font-mono text-slate-400 uppercase block font-bold">OCR Contribution:</span>
+            <p id="explain-ocr-contrib" class="text-slate-400 text-[11px] italic mt-0.5">
+              No legible text inscriptions detected in image.
+            </p>
+          </div>
+        </section>
+
+        <!-- 3. AI REASONING -->
+        <section class="bg-[#05060a] p-5 rounded-2xl border ghost-border space-y-2.5">
+          <h4 class="font-serif font-bold text-purple-300 text-xs flex items-center gap-2 border-b border-white/10 pb-2.5">
+            <span class="material-symbols-outlined text-[18px]">psychology</span>
+            3. AI Reasoning
+          </h4>
+          <p id="explain-ai-reasoning" class="text-slate-300 text-[11px] leading-relaxed">
+            The AI neural model mapped observed spatial geometry to domain knowledge bases to generate a subject-grounded research brief.
+          </p>
+        </section>
+
+        <!-- 4. CONFIDENCE BREAKDOWN -->
+        <section class="bg-[#05060a] p-5 rounded-2xl border ghost-border space-y-3.5">
+          <h4 class="font-serif font-bold text-emerald-300 text-xs flex items-center gap-2 border-b border-white/10 pb-2.5">
+            <span class="material-symbols-outlined text-[18px]">equalizer</span>
+            4. Confidence Breakdown
+          </h4>
+
+          <div class="space-y-2.5 font-mono text-[11px]">
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Subject Detection</span>
+                <span id="conf-val-subject" class="text-emerald-400 font-bold">98.2%</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div id="conf-bar-subject" class="h-full bg-emerald-400 rounded-full transition-all duration-500" style="width: 98.2%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>OCR Text Extraction</span>
+                <span id="conf-val-ocr" class="text-sky-400 font-bold">92.0%</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div id="conf-bar-ocr" class="h-full bg-sky-400 rounded-full transition-all duration-500" style="width: 92%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Scene Understanding</span>
+                <span id="conf-val-scene" class="text-purple-400 font-bold">95.6%</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div id="conf-bar-scene" class="h-full bg-purple-400 rounded-full transition-all duration-500" style="width: 95.6%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Research Generation</span>
+                <span id="conf-val-research" class="text-indigo-400 font-bold">94.5%</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div id="conf-bar-research" class="h-full bg-indigo-400 rounded-full transition-all duration-500" style="width: 94.5%"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. LIMITATIONS -->
+        <section class="bg-[#05060a] p-5 rounded-2xl border ghost-border space-y-2.5">
+          <h4 class="font-serif font-bold text-amber-300 text-xs flex items-center gap-2 border-b border-white/10 pb-2.5">
+            <span class="material-symbols-outlined text-[18px]">warning</span>
+            5. Analysis Limitations
+          </h4>
+          <p id="explain-limitations" class="text-slate-300 text-[11px] leading-relaxed">
+            Cannot infer sub-surface material metallurgy, exact physical mass without scale references, or unobservable interior structural joints.
+          </p>
+        </section>
+
+        <!-- 6. AI PROMPT SUMMARY -->
+        <section class="bg-[#05060a] p-5 rounded-2xl border ghost-border space-y-2.5">
+          <h4 class="font-serif font-bold text-slate-200 text-xs flex items-center gap-2 border-b border-white/10 pb-2.5">
+            <span class="material-symbols-outlined text-[18px]">terminal</span>
+            6. AI Prompt Summary
+          </h4>
+          <div id="explain-prompt-summary" class="text-[11px] font-mono text-slate-400 space-y-1.5 bg-[#0e111a] p-3 rounded-xl border ghost-border">
+            <p>• Model Engine: <strong class="text-indigo-300">GEMINI 3.6 FLASH</strong></p>
+            <p>• Primary Subject Directive: <strong class="text-slate-200">Anchor sections to detected subject</strong></p>
+            <p>• Research Parameters: <strong class="text-slate-200">LONG depth • CLASSIC style • APA citation</strong></p>
+            <p>• Output Schema: <strong class="text-emerald-400">Strict JSON Academic Brief Format</strong></p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- PANEL FOOTER -->
+      <div class="p-4 border-t ghost-border text-center bg-[#05060a] sticky bottom-0 z-10">
+        <span class="text-[10px] font-mono text-slate-400 block font-semibold">InsightLens Diagnostic Engine • Read-Only Inspection</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div id="logout-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="bg-surface-container max-w-[400px] w-full p-6 rounded-2xl ghost-border shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center mx-auto mb-3 border border-red-500/20">
+        <span class="material-symbols-outlined text-[24px]">logout</span>
+      </div>
+      <h3 class="font-serif text-xl text-slate-100 mb-2 font-bold">Sign Out of Session?</h3>
+      <p class="font-sans text-xs text-slate-400 mb-6 leading-relaxed">
+        Are you sure you want to end your active researcher session? Your persistent history will remain safely stored.
+      </p>
+      <div class="flex gap-2.5 justify-center text-xs font-medium">
+        <button id="cancel-logout-btn" type="button" class="w-1/2 py-2.5 bg-surface-container-high hover:bg-surface-variant text-slate-200 rounded-xl border ghost-border cursor-pointer transition-colors btn-active-scale focus-ring">
+          Cancel
+        </button>
+        <button id="confirm-logout-btn" type="button" class="w-1/2 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-500 cursor-pointer transition-colors shadow-lg btn-active-scale focus-ring">
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5"></div>
+
+  <!-- JavaScript Module -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
