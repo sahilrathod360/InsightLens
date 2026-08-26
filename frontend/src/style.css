@@ -647,6 +647,10 @@ footer {
 .hover-3d-wrapper {
   perspective: 1000px;
 }
+/* 3D Hover Lift */
+.hover-3d-wrapper {
+  perspective: 1000px;
+}
 .hover-3d-lift {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
   transform-style: preserve-3d;
@@ -654,8 +658,61 @@ footer {
 }
 .hover-3d-wrapper:hover .hover-3d-lift {
   transform: rotateX(2deg) rotateY(-2deg) scale3d(1.02, 1.02, 1.02);
-  box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.15) !important;
-  border-color: rgba(249, 115, 22, 0.3) !important;
+  box-shadow: 0 20px 40px -10px rgba(75, 44, 199, 0.25) !important;
+  border-color: rgba(139, 108, 255, 0.35) !important;
+}
+
+/* Scanner Laser Beam Animation */
+.scanner-laser {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 123, 170, 0.9) 20%, rgba(139, 108, 255, 1) 50%, rgba(255, 123, 170, 0.9) 80%, transparent 100%);
+  box-shadow: 0 0 14px 2px rgba(139, 108, 255, 0.8), 0 0 24px 6px rgba(255, 123, 170, 0.4);
+  animation: scanLaser 4s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes scanLaser {
+  0% { transform: translateY(8px); opacity: 0.85; }
+  50% { opacity: 1; }
+  100% { transform: translateY(210px); opacity: 0.85; }
+}
+
+/* Drag-and-Drop Active Pulse */
+#upload-drop-area.drag-over,
+#drop-zone.drag-active,
+.drag-active {
+  border-color: rgba(139, 108, 255, 0.8) !important;
+  background-color: rgba(75, 44, 199, 0.08) !important;
+  box-shadow: 0 0 24px -2px rgba(139, 108, 255, 0.35) !important;
+  transform: scale(1.01);
+}
+
+/* Sample Artifact Selection Glow */
+.sample-chip {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sample-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(139, 108, 255, 0.4) !important;
+  box-shadow: 0 8px 20px -4px rgba(13, 11, 30, 0.5) !important;
+}
+.sample-chip.active-chip {
+  border-color: rgba(255, 123, 170, 0.7) !important;
+  box-shadow: 0 0 16px 1px rgba(255, 123, 170, 0.3) !important;
+}
+
+/* Navbar Logo Glow */
+.nav-logo-link img {
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+.nav-logo-link:hover img {
+  filter: drop-shadow(0 0 8px rgba(139, 108, 255, 0.6));
+  transform: scale(1.05);
 }
 
 /* Parallax Layer */
@@ -678,30 +735,6 @@ footer {
   100% { transform: translateY(-30px) translateX(20px); opacity: 0.8; }
 }
 
-/* Workflow Connection Lines */
-.workflow-line-svg {
-  position: absolute;
-  top: 50%;
-  left: 10%;
-  width: 80%;
-  height: 100px;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: -1;
-  overflow: visible;
-}
-.workflow-line-path {
-  fill: none;
-  stroke: rgba(249, 115, 22, 0.3);
-  stroke-width: 2;
-  stroke-dasharray: 8, 8;
-  animation: dashFlow 20s linear infinite;
-}
-@keyframes dashFlow {
-  from { stroke-dashoffset: 1000; }
-  to { stroke-dashoffset: 0; }
-}
-
 /* Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
   .reveal-on-scroll {
@@ -722,8 +755,9 @@ footer {
   .ambient-particle {
     animation: none !important;
   }
-  .workflow-line-path {
+  .scanner-laser {
     animation: none !important;
+    display: none !important;
   }
 }
 
