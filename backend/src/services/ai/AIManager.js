@@ -4,6 +4,7 @@ import OpenRouterService from './OpenRouterService.js';
 import { APIError } from '../../utils/apiUtils.js';
 import { optimizeImage } from '../../utils/imageOptimizer.js';
 import cacheManager from '../../utils/cacheManager.js';
+import { verifyAndCleanCitations } from './CitationVerifier.js';
 
 class AIManager {
   async generateReport(rawInputDataUrl, promptObj = {}) {
@@ -81,8 +82,16 @@ class AIManager {
         }
       });
 
+      // Clean and verify all citation references against live endpoints
+      const validatedReferences = await verifyAndCleanCitations(
+        winner.result.references,
+        winner.result.subject,
+        winner.result.category
+      );
+
       const finalReport = {
         ...winner.result,
+        references: validatedReferences,
         aiProvider: winner.name,
         processingTimeMs: totalDurationMs,
         totalRequestDurationMs: totalDurationMs

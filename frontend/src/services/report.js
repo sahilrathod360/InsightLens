@@ -22,8 +22,7 @@ export function formatReportPayload(data) {
   const keyFacts = data.keyFacts || data.keyCharacteristics || [{ label: 'Primary Subject', detail: subjName }];
   const interestingFacts = data.interestingFacts || [`Distinct visual contrast separation in ${subjName}.`];
   const limitations = data.limitations || 'Physical mass, unobservable sub-surface metallurgy, and internal joints cannot be determined from 2D pixel input alone.';
-  const conclusion = data.conclusion || `Visual research assessment confirms high-fidelity structural framing and clear spatial alignment of ${subjName}.`;
-  const references = data.references || ['Academic Research Library (2026). Analytical Vision Brief.'];
+  const references = Array.isArray(data.references) ? data.references : [];
 
   return {
     header: {

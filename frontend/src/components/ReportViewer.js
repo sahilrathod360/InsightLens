@@ -295,28 +295,59 @@ export function renderResultScreen(data) {
     limEl.textContent = data.limitations || `Visual inference from 2D pixel input is limited by camera sensor resolution, light spectrum, and occlusion. Microscopic properties or internal joins cannot be determined without physical sampling.`;
   }
 
-  // 14. Academic Journal References with DOIs
+  // 14. References & Verified Sources
   const refListEl = document.getElementById('references-list');
+  const refTitleEl = document.getElementById('section-references-title');
   if (refListEl) {
-    const refs = Array.isArray(data.references) && data.references.length > 0 ? data.references : [
-      `Smith, J. A., & Davis, R. (2024). Principles of Multimodal Computer Vision and Image Analysis. Journal of Visual Intelligence, 12(3), 145-162. https://doi.org/10.1038/s41586-024-00001-x`,
-      `Chen, L., & Miller, K. (2023). Empirical Taxonomy Classification in Computer Vision. Academic Press. https://doi.org/10.1016/j.jvis.2023.08.012`
-    ];
-    refListEl.innerHTML = refs.map((ref, i) => {
-      const doiMatch = ref.match(/(https:\/\/doi\.org\/[^\s]+)/);
-      const doiUrl = doiMatch ? doiMatch[1] : `https://doi.org/10.1038/s41586-024-000${i + 1}-x`;
-      const cleanRef = ref.replace(/(https:\/\/doi\.org\/[^\s]+)/, '').trim();
+    const rawRefs = Array.isArray(data.references) ? data.references : [];
+    
+    const validRefs = rawRefs.map(item => {
+      if (typeof item === 'string') {
+        const urlMatch = item.match(/(https?:\/\/[^\s]+)/i);
+        const url = urlMatch ? urlMatch[1].replace(/[.,;)]+$/, '') : null;
+        const textWithoutUrl = item.replace(/(https?:\/\/[^\s]+)/i, '').trim();
+        return {
+          title: textWithoutUrl,
+          source: data.category || 'Reference Archive',
+          year: '',
+          url: url,
+          verified: !!url
+        };
+      } else if (typeof item === 'object' && item !== null) {
+        return {
+          title: item.title || item.name || '',
+          source: item.source || item.publisher || item.organization || '',
+          year: item.year || '',
+          url: item.url || item.doi || null,
+          verified: !!item.verified || !!(item.url || item.doi)
+        };
+      }
+      return null;
+    }).filter(r => r && r.title && !r.title.includes('10.1038/s41586-024-000'));
 
-      return `
-        <div class="report-card flex items-start gap-3">
-          <span class="text-[var(--accent-link)] font-bold font-mono shrink-0">[${i + 1}]</span>
-          <div>
-            <p class="leading-relaxed text-[var(--text-secondary)] font-mono text-xs">${cleanRef}</p>
-            <a href="${doiUrl}" target="_blank" rel="noopener" class="text-[var(--accent-link)] text-[11px] hover:underline mt-1 inline-block">${doiUrl}</a>
-          </div>
+    if (validRefs.length === 0) {
+      if (refTitleEl) refTitleEl.textContent = '8. Sources';
+      refListEl.innerHTML = `
+        <div class="report-card p-4 rounded-xl text-xs text-[var(--text-secondary)] font-mono">
+          No independently verified sources were available for this analysis.
         </div>
       `;
-    }).join('');
+    } else {
+      if (refTitleEl) refTitleEl.textContent = '8. References & Verified Sources';
+      refListEl.innerHTML = validRefs.map((ref, i) => {
+        const cleanUrl = ref.url && ref.url.startsWith('http') ? ref.url : null;
+        return `
+          <div class="report-card flex items-start gap-3">
+            <span class="text-[var(--accent-link)] font-bold font-mono shrink-0">[${i + 1}]</span>
+            <div class="space-y-1">
+              <p class="leading-relaxed text-[var(--text-primary)] text-xs font-semibold">${ref.title}</p>
+              <p class="text-[var(--text-secondary)] text-[11px] font-mono">${ref.source}${ref.year ? ` • ${ref.year}` : ''}</p>
+              ${cleanUrl ? `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-link)] text-[11px] hover:underline inline-flex items-center gap-1 mt-1 font-mono break-all"><span class="material-symbols-outlined text-[12px]">open_in_new</span> ${cleanUrl}</a>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   }
 
   // 15. Appendix Telemetry Box

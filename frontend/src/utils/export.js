@@ -42,7 +42,14 @@ ${(d.sections || []).map(s => `### ${s.heading}\n${s.body}`).join('\n\n')}
 ---
 
 ## Verified References & Sources (${systemPreferences.citationStyle})
-${(d.references || d.realisticSources || []).map((src, i) => `${i + 1}. ${src}`).join('\n')}
+${(Array.isArray(d.references) && d.references.length > 0)
+  ? d.references.map((src, i) => {
+      if (typeof src === 'object' && src !== null) {
+        return `${i + 1}. **${src.title}** - *${src.source}* (${src.year})${src.url ? ` - [Link](${src.url})` : ''}`;
+      }
+      return `${i + 1}. ${src}`;
+    }).join('\n')
+  : 'No independently verified sources were available for this analysis.'}
 
 ---
 

@@ -35,7 +35,7 @@ export function validateAiReportSchema(data) {
   const identification = getStr(data.identification);
   const analysis = getStr(data.detailedAnalysis || data.analysis);
   const applications = Array.isArray(data.applications) ? data.applications : (data.applications ? [getStr(data.applications)] : []);
-  const references = Array.isArray(data.references) ? data.references : (data.references ? [getStr(data.references)] : []);
+  const references = Array.isArray(data.references) ? data.references : (data.references ? [data.references] : []);
   const conclusion = getStr(data.conclusion);
   const confidence = getStr(data.confidenceScore || data.confidence);
 
@@ -47,7 +47,7 @@ export function validateAiReportSchema(data) {
   if (identification.length < 15) return false;
   if (analysis.length < 20) return false;
   if (applications.length === 0) return false;
-  if (references.length === 0) return false;
+  if (!Array.isArray(references)) return false;
   if (conclusion.length < 15) return false;
   if (!confidence) return false;
 
