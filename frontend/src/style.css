@@ -309,9 +309,9 @@ p, span:not(.material-symbols-outlined):not(.badge-text), label {
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 18% 12%, rgba(249, 115, 22, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 82% 38%, rgba(251, 146, 60, 0.06) 0%, transparent 50%),
-    radial-gradient(circle at 50% 85%, rgba(251, 113, 133, 0.05) 0%, transparent 55%);
+    radial-gradient(circle at 18% 12%, rgba(75, 44, 199, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 82% 38%, rgba(255, 123, 170, 0.09) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(139, 108, 255, 0.08) 0%, transparent 55%);
   pointer-events: none;
 }
 
@@ -329,7 +329,7 @@ p, span:not(.material-symbols-outlined):not(.badge-text), label {
   height: 550px;
   top: -150px;
   left: 10%;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.10) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(75, 44, 199, 0.18) 0%, transparent 70%);
   animation: floatOrb1 18s ease-in-out infinite alternate;
 }
 
@@ -338,7 +338,7 @@ p, span:not(.material-symbols-outlined):not(.badge-text), label {
   height: 450px;
   top: 20%;
   right: 5%;
-  background: radial-gradient(circle, rgba(251, 146, 60, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 123, 170, 0.14) 0%, transparent 70%);
   animation: floatOrb2 22s ease-in-out infinite alternate;
 }
 
@@ -347,8 +347,14 @@ p, span:not(.material-symbols-outlined):not(.badge-text), label {
   height: 500px;
   bottom: 10%;
   left: 30%;
-  background: radial-gradient(circle, rgba(251, 113, 133, 0.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(139, 108, 255, 0.12) 0%, transparent 70%);
   animation: floatOrb3 20s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-orb {
+    animation: none !important;
+  }
 }
 
 @keyframes floatOrb1 {

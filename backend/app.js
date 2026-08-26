@@ -24,6 +24,9 @@ import settingsRoutes from './src/routes/settings.routes.js';
 console.log('Creating Express app instance...');
 const app = express();
 
+// Trust reverse proxy (Railway, Cloudflare, Vercel)
+app.set('trust proxy', 1);
+
 // Phase 3 & Phase 15: Disable X-Powered-By header completely
 app.disable('x-powered-by');
 
@@ -44,9 +47,9 @@ app.use(hpp());
 // Phase 12: Enable Compression
 app.use(compression());
 
-// Phase 6: Protect against Oversized Payload Injection (10 MB Ceiling)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Phase 6 & Phase 13: 25 MB Payload Protection
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -69,12 +72,12 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// Health check
+// Health check for Railway & Monitoring
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Backend foundation is running successfully.',
-    data: null,
+    status: 'healthy',
+    message: 'InsightLens Backend is healthy.',
     timestamp: new Date().toISOString()
   });
 });

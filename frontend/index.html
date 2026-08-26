@@ -187,75 +187,113 @@
     </div>
   </nav>
 
-  <!-- SCREEN 1: BRAND NEW LANDING PAGE V2 (PREMIUM SAAS DESIGN) -->
-  <main id="page-landing" class="page-view flex-grow w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-0 pb-10 md:pb-16 space-y-24 md:space-y-32 relative">
+  <!-- SCREEN 1: BRAND NEW LANDING PAGE (PREMIUM AI VISUAL INTELLIGENCE DESIGN) -->
+  <main id="page-landing" class="page-view flex-grow w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-12 space-y-16 md:space-y-20 relative">
     
-    <!-- Pure CSS Ambient Background (No WebGL, No Canvas, Zero Layout Impact) -->
-    <div class="landing-bg-container">
-      <div class="landing-bg-gradient parallax-layer" data-parallax-speed="-10"></div>
-      <div class="landing-orb landing-orb-1 parallax-layer" data-parallax-speed="30"></div>
-      <div class="landing-orb landing-orb-2 parallax-layer" data-parallax-speed="-20"></div>
-      <div class="landing-orb landing-orb-3 parallax-layer" data-parallax-speed="40"></div>
+    <!-- Ambient Glow Background -->
+    <div class="landing-bg-container pointer-events-none">
+      <div class="landing-bg-gradient"></div>
+      <div class="landing-orb landing-orb-1"></div>
+      <div class="landing-orb landing-orb-2"></div>
       <div class="landing-grain-overlay"></div>
     </div>
 
-    <!-- 1. IMMERSIVE HERO SECTION (7:5 ASYMMETRIC GRID) -->
-    <section id="landing-hero" class="min-h-[calc(100vh-4rem)] flex items-center pt-0">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center w-full">
+    <!-- 1. IMMERSIVE HERO SECTION -->
+    <section id="landing-hero" class="pt-4 sm:pt-8 flex items-center">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
         
         <!-- LEFT (7 COLS): HEADLINE & VALUE PROP -->
-        <div class="lg:col-span-7 space-y-6 text-left reveal-on-scroll">
-          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-mono font-semibold">
-            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-            Gemini 3.1 Pro Vision Engine • v3.3 Protocol
+        <div class="lg:col-span-7 space-y-5 text-left reveal-on-scroll">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1A1333] border border-[#8B6CFF]/30 text-purple-300 text-xs font-mono font-medium shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
+            InsightLens • See Deeper. Analyze Smarter.
           </div>
 
-          <h1 id="landing-hero-title" class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-100 tracking-apple leading-[1.1]">
-            Turn Complex Visual Artifacts Into <span class="bg-gradient-to-r from-orange-400 via-amber-300 to-rose-400 bg-clip-text text-transparent italic font-serif">Structured Research Briefs.</span>
+          <h1 id="landing-hero-title" class="font-serif text-3xl sm:text-5xl lg:text-[54px] font-bold text-slate-100 tracking-tight leading-[1.12]">
+            Transform Visual Information Into <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 bg-clip-text text-transparent italic font-serif">Structured Research.</span>
           </h1>
 
-          <p id="landing-hero-subtitle" class="text-slate-400 text-base sm:text-lg max-w-[620px] leading-relaxed font-sans">
-            Empirical spatial tensor parsing, multimodal OCR extraction, and 11-section academic paper synthesis for domain researchers and enterprise analysts.
+          <p id="landing-hero-subtitle" class="text-slate-300 text-sm sm:text-base max-w-[580px] leading-relaxed font-sans">
+            AI-powered image analysis that transforms complex visuals into empirical spatial insights, optical OCR extractions, domain taxonomy, and publication-ready 11-section research papers.
           </p>
           
-          <div id="landing-last-login" class="hidden text-xs font-mono text-slate-500 mt-2"></div>
+          <div id="landing-last-login" class="hidden text-xs font-mono text-slate-500 mt-1"></div>
 
-          <div class="flex flex-wrap items-center gap-4 pt-2">
-            <button id="hero-start-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-[17px] px-7 py-4 rounded-full flex items-center gap-2.5 transition-colors cursor-pointer btn-active-scale">
-              <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-              Open Research Desk
+          <div class="flex flex-wrap items-center gap-3.5 pt-1">
+            <button id="hero-start-btn" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-semibold text-sm sm:text-base px-6 sm:px-7 py-3.5 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer shadow-lg shadow-purple-900/30 btn-active-scale">
+              <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+              Start Analyzing
             </button>
 
-            <button id="hero-demo-btn" class="bg-surface-container hover:bg-surface-container-high text-slate-200 border ghost-border font-normal text-[17px] px-6 py-4 rounded-full flex items-center gap-2.5 transition-colors cursor-pointer btn-active-scale">
-              <span class="material-symbols-outlined text-[20px] text-orange-500">play_circle</span>
+            <button id="hero-demo-btn" class="bg-surface-container hover:bg-surface-container-high text-slate-200 border ghost-border font-medium text-sm sm:text-base px-5 sm:px-6 py-3.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer btn-active-scale">
+              <span class="material-symbols-outlined text-[18px] text-purple-400">explore</span>
               Explore Interactive Demo
             </button>
           </div>
 
-          <div class="pt-6 flex flex-wrap items-center gap-6 text-xs text-slate-400 font-mono">
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-emerald-400">check_circle</span> 100% Client-Side Privacy</span>
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-sky-400">check_circle</span> No Billing Configuration Required</span>
+          <div class="pt-2 flex flex-wrap items-center gap-5 text-[11px] text-slate-400 font-mono">
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-emerald-400">verified</span> Grounded Multi-Spectral Vision</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-purple-400">verified</span> Verified Academic Citations</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-sky-400">verified</span> 1-Click PDF Export</span>
           </div>
         </div>
 
-        <!-- RIGHT (5 COLS): INTERACTIVE 3D/MOCKUP WORKSPACE CANVAS -->
-        <div class="lg:col-span-5 reveal-on-scroll delay-200 parallax-layer" data-parallax-speed="-15">
-          <div class="relative rounded-2xl border ghost-border bg-surface-container p-3 shadow-2xl overflow-hidden card-hover-lift hover-3d-wrapper">
-            <div class="flex items-center justify-between px-3.5 py-2 border-b ghost-border bg-surface-container-lowest rounded-t-xl text-xs hover-3d-lift">
+        <!-- RIGHT (5 COLS): AI VISUAL INTELLIGENCE SCANNER MOCKUP -->
+        <div class="lg:col-span-5 reveal-on-scroll delay-100">
+          <div class="relative rounded-2xl border border-purple-500/20 bg-[#0E0B1A] p-3.5 shadow-2xl overflow-hidden card-hover-lift">
+            <!-- Header bar -->
+            <div class="flex items-center justify-between px-3 py-2 border-b border-white/[0.08] bg-[#07050E] rounded-t-xl text-xs font-mono">
               <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
-                <span class="ml-2 font-mono text-[11px] text-slate-400">insightlens.templates</span>
+                <span class="w-2 h-2 rounded-full bg-red-400/80"></span>
+                <span class="w-2 h-2 rounded-full bg-amber-400/80"></span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400/80"></span>
+                <span class="ml-1 text-[11px] text-slate-400">insightlens.scanner</span>
               </div>
+              <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Live Scanner</span>
             </div>
 
-            <div class="p-3 bg-surface-container-lowest rounded-b-xl space-y-3 hover-3d-lift">
-              <div class="relative h-64 rounded-xl overflow-hidden bg-black/50 border ghost-border group">
-                <img id="demo-preview-img" src="/samples/blueprint.jpg" alt="Template Workspace" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3.5">
-                  <span class="text-[10px] font-mono text-orange-400 font-bold uppercase tracking-wider">Sample Template</span>
-                  <strong id="demo-active-title" class="text-slate-100 font-serif text-sm font-semibold truncate">Gothic Revival Cathedral Vaulting</strong>
+            <!-- Viewfinder Screen Area -->
+            <div class="p-3 bg-[#07050E] rounded-b-xl space-y-3">
+              <div class="relative h-56 sm:h-64 rounded-xl overflow-hidden bg-black/60 border border-purple-500/30 group">
+                <img id="demo-preview-img" src="/samples/blueprint.jpg" alt="Visual Artifact" class="w-full h-full object-cover opacity-85 transition-transform duration-500 group-hover:scale-105" />
+                
+                <!-- Lens Scanner Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-black/80 pointer-events-none"></div>
+                <div class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
+                  <div class="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-purple-500/30 text-[10px] font-mono text-purple-300 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping"></span>
+                    <span>Spatial Grid Active</span>
+                  </div>
+                  <div class="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-emerald-500/30 text-[10px] font-mono text-emerald-300 font-bold">
+                    98.6% Conf.
+                  </div>
+                </div>
+
+                <!-- Bounding Box Annotation -->
+                <div class="absolute inset-8 border border-dashed border-pink-400/60 rounded-lg pointer-events-none flex items-end justify-between p-2">
+                  <span class="bg-purple-900/80 backdrop-blur-sm text-[9px] font-mono text-pink-200 px-1.5 py-0.5 rounded border border-pink-400/30">Target: Structural Vaulting</span>
+                  <span class="bg-indigo-900/80 backdrop-blur-sm text-[9px] font-mono text-indigo-200 px-1.5 py-0.5 rounded border border-indigo-400/30">Aspect: 16:9</span>
+                </div>
+
+                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <strong id="demo-active-title" class="text-slate-100 font-serif text-xs sm:text-sm font-semibold truncate">Gothic Revival Cathedral Vaulting</strong>
+                  <span class="text-[10px] font-mono text-purple-300 uppercase tracking-wide bg-purple-500/20 px-2 py-0.5 rounded border border-purple-500/30">11 Sec Paper</span>
+                </div>
+              </div>
+
+              <!-- Quick Chips -->
+              <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
+                  <span class="text-slate-400 block text-[9px]">OCR Extraction</span>
+                  <strong class="text-purple-300">100% Parsed</strong>
+                </div>
+                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
+                  <span class="text-slate-400 block text-[9px]">Domain Taxonomy</span>
+                  <strong class="text-pink-300">Architecture</strong>
+                </div>
+                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
+                  <span class="text-slate-400 block text-[9px]">Citation Style</span>
+                  <strong class="text-emerald-300">APA 7th</strong>
                 </div>
               </div>
             </div>
@@ -265,256 +303,162 @@
       </div>
     </section>
 
-    <!-- 2. TRUSTED ARCHIVAL & RESEARCH PROOF -->
-    <section class="border-y ghost-border py-8 text-center space-y-4 reveal-on-scroll delay-100">
-      <span class="text-[11px] uppercase tracking-widest font-mono font-semibold text-slate-500 block">Grounding Research Across Institutional Archives &amp; Enterprise Domains</span>
-      <div class="flex flex-wrap justify-center items-center gap-8 md:gap-14 text-xs font-semibold text-slate-400">
-        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-orange-400">school</span> MIT Architecture Lab</span>
-        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-amber-400">biotech</span> Stanford BioEngineering</span>
-        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-yellow-400">history_edu</span> Oxford Archival Research</span>
-        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-emerald-400">show_chart</span> Bessemer Quantitative</span>
-        <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-rose-400">public</span> NASA Planetary Vision</span>
+    <!-- 2. THREE-STEP AI WORKFLOW PIPELINE -->
+    <section class="space-y-6 text-left">
+      <div class="text-center max-w-[580px] mx-auto space-y-1.5 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Transformation Pipeline</div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">How InsightLens Works</h2>
+        <p class="text-slate-400 text-xs sm:text-sm">From raw visual uploads to publication-ready research briefs in three steps.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 relative hover-3d-wrapper">
+        <div class="bg-surface-container p-5 sm:p-6 rounded-2xl border border-white/[0.08] space-y-3 card-hover-lift hover-3d-lift reveal-on-scroll delay-100 relative">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-mono font-bold text-sm border border-purple-500/20">
+            01
+          </div>
+          <h3 class="font-serif font-bold text-slate-100 text-base sm:text-lg">Ingest Visual Artifact</h3>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Upload photographs, technical schematics, biological plates, or architecture up to 25MB via drag &amp; drop or sample presets.
+          </p>
+        </div>
+
+        <div class="bg-surface-container p-5 sm:p-6 rounded-2xl border border-white/[0.08] space-y-3 card-hover-lift hover-3d-lift reveal-on-scroll delay-200 relative">
+          <div class="w-9 h-9 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center font-mono font-bold text-sm border border-pink-500/20">
+            02
+          </div>
+          <h3 class="font-serif font-bold text-slate-100 text-base sm:text-lg">AI Visual Analysis</h3>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Multimodal neural vision parses spatial geometry, extracts optical OCR inscriptions, identifies taxonomy, and evaluates evidence.
+          </p>
+        </div>
+
+        <div class="bg-surface-container p-5 sm:p-6 rounded-2xl border border-white/[0.08] space-y-3 card-hover-lift hover-3d-lift reveal-on-scroll delay-300 relative">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-mono font-bold text-sm border border-emerald-500/20">
+            03
+          </div>
+          <h3 class="font-serif font-bold text-slate-100 text-base sm:text-lg">Structured Research Report</h3>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Review the 11-section academic brief, inspect confidence metrics, and export instantly to clean vector PDF, Markdown, or JSON.
+          </p>
+        </div>
       </div>
     </section>
 
     <!-- 3. BEFORE VS. AFTER COMPARISON SHOWCASE -->
-    <section id="landing-demo-section" class="space-y-8 text-left">
-      <div class="max-w-[620px] space-y-2 reveal-on-scroll">
-        <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">Transformation Impact</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-100 tracking-apple">From Unstructured Pixels to Academic Precision</h2>
-        <p class="text-slate-400 text-xs sm:text-sm">See how InsightLens converts raw image uploads into cited 11-section research papers.</p>
+    <section id="landing-demo-section" class="space-y-6 text-left">
+      <div class="max-w-[580px] space-y-1.5 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Transformation Impact</div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">Unstructured Pixels → Academic Precision</h2>
+        <p class="text-slate-400 text-xs sm:text-sm">See how InsightLens synthesizes unstructured raster visuals into rigorous research papers.</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 hover-3d-wrapper">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 hover-3d-wrapper">
         <!-- BEFORE CARD -->
-        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 relative overflow-hidden hover-3d-lift reveal-on-scroll delay-100">
-          <div class="flex items-center justify-between border-b ghost-border pb-3">
-            <span class="px-3 py-1 rounded-full bg-red-500/10 text-red-400 font-mono text-[11px] font-bold border border-red-500/20">BEFORE: RAW UNSTRUCTURED IMAGE</span>
-            <span class="text-xs font-mono text-slate-500">Traditional OCR &amp; Vision</span>
+        <div class="bg-surface-container p-5 sm:p-6 rounded-2xl border border-white/[0.08] space-y-3.5 relative overflow-hidden hover-3d-lift reveal-on-scroll delay-100">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+            <span class="px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-400 font-mono text-[10px] font-bold border border-red-500/20">BEFORE: RAW UNSTRUCTURED IMAGE</span>
+            <span class="text-[11px] font-mono text-slate-500">Unindexed Raster</span>
           </div>
 
-          <div class="h-52 rounded-xl overflow-hidden bg-black/40 border ghost-border">
-            <img src="/samples/blueprint.jpg" alt="Raw Blueprint Input" class="w-full h-full object-cover opacity-75 grayscale" />
+          <div class="h-44 sm:h-48 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+            <img src="/samples/blueprint.jpg" alt="Raw Input" class="w-full h-full object-cover opacity-70 grayscale" />
           </div>
 
-          <ul class="space-y-2 text-xs text-slate-400 font-mono">
-            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[16px]">close</span> Unformatted raster pixel data</li>
-            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[16px]">close</span> Unreadable text inscriptions and unindexed labels</li>
-            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[16px]">close</span> Zero historical context or verified citations</li>
+          <ul class="space-y-1.5 text-xs text-slate-400 font-mono">
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[15px]">close</span> Unformatted raster pixel data</li>
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[15px]">close</span> Unindexed labels &amp; obscure text inscriptions</li>
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[15px]">close</span> Zero historical context or verified citations</li>
           </ul>
         </div>
 
         <!-- AFTER CARD -->
-        <div class="bg-surface-container-lowest p-6 rounded-2xl border border-orange-500/30 space-y-4 relative overflow-hidden shadow-xl hover-3d-lift reveal-on-scroll delay-200">
-          <div class="flex items-center justify-between border-b ghost-border pb-3">
-            <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[11px] font-bold border border-emerald-500/20">AFTER: INSIGHTLENS SYNTHESIS</span>
-            <span class="text-xs font-mono text-orange-400 font-bold">11-Section Paper Format</span>
+        <div class="bg-[#0D0B1E] p-5 sm:p-6 rounded-2xl border border-purple-500/30 space-y-3.5 relative overflow-hidden shadow-xl hover-3d-lift reveal-on-scroll delay-200">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold border border-emerald-500/20">AFTER: INSIGHTLENS SYNTHESIS</span>
+            <span class="text-[11px] font-mono text-purple-300 font-bold">11-Section Paper Format</span>
           </div>
 
-          <div class="p-4 bg-surface-container rounded-xl border ghost-border space-y-3 font-sans text-xs">
+          <div class="p-3.5 bg-surface-container rounded-xl border border-white/[0.08] space-y-2 font-sans text-xs">
             <div class="flex items-center justify-between font-mono text-[10px] text-slate-400">
               <span>Report ID: <strong class="text-slate-200">RPT-2026-9482</strong></span>
               <span class="text-emerald-400 font-bold">98.4% Confidence</span>
             </div>
             <h4 class="font-serif font-bold text-slate-100 text-sm">Empirical Analysis of Gothic Revival Vaulting</h4>
-            <p class="text-slate-300 text-[11px] leading-relaxed line-clamp-3">
+            <p class="text-slate-300 text-[11px] leading-relaxed line-clamp-2">
               Multimodal evaluation confirming load-bearing stone masonry rib arcades, clerestory window stress distributions, and APA 7th academic citations.
             </p>
           </div>
 
-          <ul class="space-y-2 text-xs text-slate-300 font-mono">
-            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[16px]">check_circle</span> 11 structured sections with side Table of Contents</li>
-            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[16px]">check_circle</span> Extracted OCR tokens &amp; spatial bounding boxes</li>
-            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[16px]">check_circle</span> Exportable to standalone A4 PDF, Markdown &amp; JSON</li>
+          <ul class="space-y-1.5 text-xs text-slate-300 font-mono">
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[15px]">check_circle</span> 11 structured sections with Table of Contents</li>
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[15px]">check_circle</span> Extracted OCR tokens &amp; spatial bounding boxes</li>
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[15px]">check_circle</span> Exportable to standalone A4 PDF, Markdown &amp; JSON</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- 4. WORKFLOW STORYTELLING SECTION -->
-    <section class="space-y-10 text-left">
-      <div class="text-center max-w-[560px] mx-auto space-y-2 reveal-on-scroll">
-        <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">End-to-End Pipeline</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-100 tracking-apple">Three-Step Research Architecture</h2>
-        <p class="text-slate-400 text-xs sm:text-sm">Designed for high-velocity academic research and enterprise documentation.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative hover-3d-wrapper">
-        <svg class="workflow-line-svg hidden md:block" viewBox="0 0 1000 100" preserveAspectRatio="none">
-          <path class="workflow-line-path" d="M 0,50 Q 250,0 500,50 T 1000,50" />
-        </svg>
-
-        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 card-hover-lift hover-3d-lift reveal-on-scroll delay-100 relative">
-          <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center font-mono font-bold text-sm border border-orange-500/20">
-            01
-          </div>
-          <h3 class="font-serif font-bold text-slate-100 text-lg">Ingest Artifact</h3>
-          <p class="text-slate-400 text-xs leading-relaxed font-sans">
-            Upload blueprints, financial charts, bio-medical plates, or historical manuscripts up to 25MB via drag &amp; drop or sample preset selection.
-          </p>
-        </div>
-
-        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 card-hover-lift hover-3d-lift reveal-on-scroll delay-200 relative">
-          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-mono font-bold text-sm border border-amber-500/20">
-            02
-          </div>
-          <h3 class="font-serif font-bold text-slate-100 text-lg">Neural Reasoning</h3>
-          <p class="text-slate-400 text-xs leading-relaxed font-sans">
-            The Gemini multimodal engine parses spatial geometry, extracts optical OCR inscriptions, and synthesizes domain background knowledge.
-          </p>
-        </div>
-
-        <div class="bg-surface-container p-6 rounded-2xl border ghost-border space-y-4 card-hover-lift hover-3d-lift reveal-on-scroll delay-300 relative">
-          <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-mono font-bold text-sm border border-rose-500/20">
-            03
-          </div>
-          <h3 class="font-serif font-bold text-slate-100 text-lg">Publish &amp; Export</h3>
-          <p class="text-slate-400 text-xs leading-relaxed font-sans">
-            Review the 11-section paper canvas, trigger "Explain This Report" insights, and export directly to clean A4 PDF or Markdown format.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. INTERACTIVE FEATURE GRID (ASYMMETRICAL COMPOSITION) -->
-    <section class="space-y-8 text-left">
-      <div class="max-w-[620px] space-y-2 reveal-on-scroll">
-        <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">Engine Capabilities</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-100 tracking-apple">Engineered for Analytical Precision</h2>
-        <p class="text-slate-400 text-xs sm:text-sm">Built to handle complex technical imagery with empirical accuracy.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 hover-3d-wrapper">
-        <!-- 8 COLS CARD: SPATIAL TENSOR ANALYSIS -->
-        <div class="md:col-span-8 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-100">
-          <div class="space-y-3">
-            <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center border border-orange-500/20">
-              <span class="material-symbols-outlined text-[22px]">polyline</span>
-            </div>
-            <h3 class="font-serif font-bold text-slate-100 text-xl">Spatial Tensor Analysis</h3>
-            <p class="text-slate-400 text-xs leading-relaxed max-w-[560px]">
-              Calculates geometric bounding coordinates, detects line contours, and evaluates spatial aspect ratios across multi-resolution raster visuals.
-            </p>
-          </div>
-
-          <div class="p-3 bg-surface-container-lowest rounded-xl border ghost-border flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Tensor Bounding Resolution: <strong class="text-slate-200"><span class="counter-value" data-target="1920">0</span> x <span class="counter-value" data-target="1080">0</span> px</strong></span>
-            <span class="text-orange-400 font-bold">Sub-Pixel Vector Accuracy</span>
-          </div>
-        </div>
-
-        <!-- 4 COLS CARD: OCR TOKENIZER -->
-        <div class="md:col-span-4 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-200">
-          <div class="space-y-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-              <span class="material-symbols-outlined text-[22px]">font_download</span>
-            </div>
-            <h3 class="font-serif font-bold text-slate-100 text-lg">Multimodal OCR Tokenizer</h3>
-            <p class="text-slate-400 text-xs leading-relaxed">
-              Extracts illegible or small text labels, axis legends, and embedded annotations into structured JSON arrays.
-            </p>
-          </div>
-
-          <span class="text-[11px] font-mono text-amber-300 font-bold block pt-2"><span class="counter-value" data-target="100%">0%</span> Inscription Parsing</span>
-        </div>
-
-        <!-- 4 COLS CARD: CITATION SYNTHESIS -->
-        <div class="md:col-span-4 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-300">
-          <div class="space-y-3">
-            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
-              <span class="material-symbols-outlined text-[22px]">menu_book</span>
-            </div>
-            <h3 class="font-serif font-bold text-slate-100 text-lg">Academic Citation Standard</h3>
-            <p class="text-slate-400 text-xs leading-relaxed">
-              Synthesizes verified APA 7th, Chicago, IEEE, and MLA references based on domain knowledge patterns.
-            </p>
-          </div>
-
-          <span class="text-[11px] font-mono text-rose-300 font-bold block pt-2">APA 7th Standard Verified</span>
-        </div>
-
-        <!-- 8 COLS CARD: INSTANT EXPORTS -->
-        <div class="md:col-span-8 bg-surface-container p-7 rounded-2xl border ghost-border space-y-4 card-hover-lift flex flex-col justify-between hover-3d-lift reveal-on-scroll delay-400">
-          <div class="space-y-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <span class="material-symbols-outlined text-[22px]">download_for_offline</span>
-            </div>
-            <h3 class="font-serif font-bold text-slate-100 text-xl">Instant Publication Exports</h3>
-            <p class="text-slate-400 text-xs leading-relaxed max-w-[560px]">
-              Export your structured 11-section paper directly to clean A4 PDF documents, raw Markdown briefs `.md`, or raw JSON data files with a single click.
-            </p>
-          </div>
-
-          <div class="flex items-center gap-3 text-xs font-mono text-slate-300 pt-2">
-            <span class="px-2.5 py-1 rounded bg-surface-container-lowest border ghost-border">A4 PDF (.pdf)</span>
-            <span class="px-2.5 py-1 rounded bg-surface-container-lowest border ghost-border">Markdown (.md)</span>
-            <span class="px-2.5 py-1 rounded bg-surface-container-lowest border ghost-border">JSON Data (.json)</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. SAMPLE RESEARCH BRIEF DEMO CARDS -->
-    <section class="space-y-8 text-left">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b ghost-border pb-4">
+    <!-- 4. SAMPLE RESEARCH DATASET SHOWCASE -->
+    <section class="space-y-6 text-left">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3.5">
         <div>
-          <div class="text-xs font-mono font-semibold text-orange-400 uppercase tracking-wider">Live Sample Preset Showcase</div>
-          <h2 class="font-serif text-2xl md:text-3xl font-bold text-slate-100 tracking-apple">Explore Pre-Analyzed Visual Datasets</h2>
+          <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Live Sample Presets</div>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">Explore Pre-Configured Visual Datasets</h2>
         </div>
-        <button onclick="navigateTo('desk')" class="text-xs font-mono text-orange-500 hover:text-orange-400 flex items-center gap-1.5 cursor-pointer">
-          Open Research Desk <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        <button onclick="navigateTo('desk')" class="text-xs font-mono text-purple-400 hover:text-pink-400 flex items-center gap-1 cursor-pointer">
+          Open Research Desk <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         <!-- DEMO CARD 1: BLUEPRINT -->
-        <div class="landing-demo-card active bg-surface-container rounded-2xl border border-orange-500/50 p-4 space-y-3 cursor-pointer card-hover-lift" data-sample-type="blueprint">
-          <div class="h-44 rounded-xl overflow-hidden bg-black/40 border ghost-border">
-            <img src="/samples/blueprint.jpg" alt="Blueprint Sample" class="w-full h-full object-cover" />
+        <div class="landing-demo-card active bg-surface-container rounded-2xl border border-purple-500/40 p-3.5 space-y-2.5 cursor-pointer card-hover-lift" data-sample-type="blueprint">
+          <div class="h-36 sm:h-40 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+            <img src="/samples/blueprint.jpg" alt="Blueprint Architecture" class="w-full h-full object-cover" />
           </div>
-          <div class="space-y-1.5">
-            <span class="text-[10px] font-mono text-orange-400 font-bold uppercase">Template</span>
-            <h4 class="font-serif font-bold text-slate-100 text-sm">Cathedral Vaulting</h4>
+          <div class="space-y-1">
+            <span class="text-[9px] font-mono text-purple-400 font-bold uppercase">Architecture Preset</span>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Cathedral Vaulting</h4>
           </div>
         </div>
 
         <!-- DEMO CARD 2: CHART -->
-        <div class="landing-demo-card bg-surface-container rounded-2xl border ghost-border p-4 space-y-3 cursor-pointer card-hover-lift" data-sample-type="chart">
-          <div class="h-44 rounded-xl overflow-hidden bg-black/40 border ghost-border">
-            <img src="/samples/chart.jpg" alt="Financial Chart Sample" class="w-full h-full object-cover" />
+        <div class="landing-demo-card bg-surface-container rounded-2xl border border-white/[0.08] p-3.5 space-y-2.5 cursor-pointer card-hover-lift" data-sample-type="chart">
+          <div class="h-36 sm:h-40 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+            <img src="/samples/chart.jpg" alt="Data Visualization" class="w-full h-full object-cover" />
           </div>
-          <div class="space-y-1.5">
-            <span class="text-[10px] font-mono text-amber-400 font-bold uppercase">Template</span>
-            <h4 class="font-serif font-bold text-slate-100 text-sm">SaaS Retention Chart</h4>
+          <div class="space-y-1">
+            <span class="text-[9px] font-mono text-pink-400 font-bold uppercase">Chart Analytics</span>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Quantitative Trend Graph</h4>
           </div>
         </div>
 
         <!-- DEMO CARD 3: INFOGRAPHIC -->
-        <div class="landing-demo-card bg-surface-container rounded-2xl border ghost-border p-4 space-y-3 cursor-pointer card-hover-lift" data-sample-type="infographic">
-          <div class="h-44 rounded-xl overflow-hidden bg-black/40 border ghost-border">
-            <img src="/samples/infographic.jpg" alt="Infographic Sample" class="w-full h-full object-cover" />
+        <div class="landing-demo-card bg-surface-container rounded-2xl border border-white/[0.08] p-3.5 space-y-2.5 cursor-pointer card-hover-lift" data-sample-type="infographic">
+          <div class="h-36 sm:h-40 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+            <img src="/samples/infographic.jpg" alt="Infographic Schema" class="w-full h-full object-cover" />
           </div>
-          <div class="space-y-1.5">
-            <span class="text-[10px] font-mono text-rose-400 font-bold uppercase">Template</span>
-            <h4 class="font-serif font-bold text-slate-100 text-sm">Energy Infographic</h4>
+          <div class="space-y-1">
+            <span class="text-[9px] font-mono text-amber-400 font-bold uppercase">Diagram Taxonomy</span>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Energy Infrastructure</h4>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 7. PREMIUM CTA BANNER -->
-    <section class="bg-surface-container p-8 md:p-12 rounded-3xl border border-orange-500/30 text-center space-y-6 shadow-2xl relative overflow-hidden">
-      <div class="max-w-[600px] mx-auto space-y-3">
-        <h2 class="font-serif text-3xl md:text-4xl text-slate-100 font-bold tracking-apple">Accelerate Your Visual Research Today</h2>
-        <p class="text-slate-400 text-xs sm:text-sm font-sans leading-relaxed">
-          Zero installation. Client-side local execution. Grounded multimodal vision intelligence in seconds.
+    <!-- 5. CALL TO ACTION BANNER -->
+    <section class="bg-gradient-to-b from-[#15102A] to-[#0D0B1E] p-6 sm:p-10 rounded-3xl border border-purple-500/25 text-center space-y-4 shadow-2xl relative overflow-hidden">
+      <div class="max-w-[540px] mx-auto space-y-2">
+        <h2 class="font-serif text-2xl sm:text-3xl text-slate-100 font-bold tracking-tight">Accelerate Your Visual Research</h2>
+        <p class="text-slate-300 text-xs sm:text-sm font-sans leading-relaxed">
+          Upload any image and experience empirical multimodal visual understanding and automated academic brief generation in seconds.
         </p>
       </div>
 
-      <div class="pt-2 flex justify-center">
-        <button onclick="navigateTo('desk')" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-[17px] px-8 py-4 rounded-full inline-flex items-center gap-2.5 transition-colors cursor-pointer btn-active-scale">
-          <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-          Open Research Desk Workspace
+      <div class="pt-1 flex justify-center">
+        <button onclick="navigateTo('desk')" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-semibold text-sm sm:text-base px-7 py-3.5 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-purple-900/40 btn-active-scale">
+          <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+          Open Research Desk
         </button>
       </div>
     </section>
@@ -2026,16 +1970,20 @@
             <p class="text-[11px] text-on-surface-variant leading-relaxed">Native LaTeX (<code class="text-emerald-300 bg-emerald-950/50 px-1.5 py-0.5 rounded font-mono">.tex</code>) and Microsoft Word (<code class="text-emerald-300 bg-emerald-950/50 px-1.5 py-0.5 rounded font-mono">.docx</code>) compilation options for journal publishing.</p>
           </li>
         </ul>
-  <!-- Official Application Footer -->
-  <footer class="border-t border-white/[0.08] bg-[#05060a] py-8 px-6 sm:px-8 mt-16 w-full">
-    <div class="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      </section>
+    </div>
+  </div>
+
+  <!-- PERSISTENT GLOBAL APPLICATION FOOTER -->
+  <footer class="mt-auto border-t border-white/[0.08] bg-[#07050E] py-6 px-6 sm:px-8 w-full z-20">
+    <div class="max-w-[1240px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
       <div class="flex items-center gap-3">
         <img src="/logo.svg" alt="InsightLens Logo" class="w-6 h-6 object-contain" />
         <span class="font-sans font-bold text-slate-200 text-sm">InsightLens</span>
         <span class="text-slate-600">|</span>
         <span class="text-slate-400">AI-Powered Visual Intelligence</span>
       </div>
-      <div class="font-sans text-slate-400 text-[12px] font-medium">
+      <div class="font-sans text-slate-400 text-[12px] font-medium tracking-wide">
         © 2026 InsightLens Team. All Rights Reserved.
       </div>
     </div>
