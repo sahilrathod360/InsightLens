@@ -27,11 +27,19 @@ export function setupLandingPageEvents() {
     const cardHandler = () => {
       const sampleType = card.getAttribute('data-sample-type');
       const imgMap = {
-        blueprint: '/samples/blueprint.jpg',
-        chart: '/samples/chart.jpg',
-        infographic: '/samples/infographic.jpg'
+        urban: '/images/urban-analysis.jpg',
+        mountain: '/images/mountain-analysis.jpg',
+        milkyway: '/images/milky-way-analysis.jpg',
+        comet: '/images/comet-analysis.jpg'
       };
-      const imgSrc = imgMap[sampleType] || imgMap.blueprint;
+      const nameMap = {
+        urban: 'urban_scene_analysis.jpg',
+        mountain: 'mountain_landscape_observation.jpg',
+        milkyway: 'milky_way_astronomical_imaging.jpg',
+        comet: 'comet_deep_space_analysis.jpg'
+      };
+      const imgSrc = imgMap[sampleType] || imgMap.urban;
+      const fileName = nameMap[sampleType] || 'sample_visual.jpg';
       
       navigateTo('desk');
       
@@ -48,8 +56,8 @@ export function setupLandingPageEvents() {
       
       const infoFilename = document.getElementById('info-filename');
       const infoFilesize = document.getElementById('info-filesize');
-      if (infoFilename) infoFilename.textContent = `template-${sampleType}.jpg`;
-      if (infoFilesize) infoFilesize.textContent = 'Template';
+      if (infoFilename) infoFilename.textContent = fileName;
+      if (infoFilesize) infoFilesize.textContent = 'Ready';
     };
     card.addEventListener('click', cardHandler);
     landingCleanupFns.push(() => card.removeEventListener('click', cardHandler));

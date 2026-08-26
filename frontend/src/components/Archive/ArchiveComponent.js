@@ -202,7 +202,7 @@ export function renderArchivePage() {
         <div class="space-y-1.5">
           <h3 class="font-serif text-xl font-bold text-slate-100">No research reports yet.</h3>
           <p class="text-slate-400 text-sm max-w-[380px] mx-auto leading-relaxed">
-            ${rawReports.length === 0 ? 'Upload an architectural blueprint, financial chart, or scientific visual artifact to generate your first AI visual research paper.' : 'No research reports match your active search filter parameters.'}
+            ${rawReports.length === 0 ? 'Upload an image artifact to generate your first AI visual research paper.' : 'No research reports match your active search filter parameters.'}
           </p>
         </div>
         <div class="pt-3">
@@ -224,7 +224,7 @@ export function renderArchivePage() {
               <div>
                 <!-- THUMBNAIL & FAVORITE STAR -->
                 <div class="relative h-44 overflow-hidden bg-black/40 border-b ghost-border">
-                  <img src="${rpt.imageDataUrl || '/samples/blueprint.jpg'}" alt="${rpt.title}" class="w-full h-full object-cover" />
+                  <img src="${rpt.imageDataUrl || '/images/urban-analysis.jpg'}" alt="${rpt.title}" class="w-full h-full object-cover" />
                   
                   <button 
                     type="button" 

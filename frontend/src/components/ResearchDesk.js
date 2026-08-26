@@ -96,9 +96,10 @@ export function handleFileSelected(file, startAnalysisPipeline) {
 
 export async function handleSampleSelected(key, startAnalysisPipeline) {
   const samples = {
-    blueprint: { url: '/samples/blueprint.jpg', name: 'gothic_revival_blueprint.jpg', size: '3.1 MB' },
-    chart: { url: '/samples/chart.jpg', name: 'financial_saas_metrics.jpg', size: '2.4 MB' },
-    infographic: { url: '/samples/infographic.jpg', name: 'clean_energy_decarbonization.jpg', size: '1.8 MB' }
+    urban: { url: '/images/urban-analysis.jpg', name: 'urban_scene_analysis.jpg', size: '2.8 MB' },
+    mountain: { url: '/images/mountain-analysis.jpg', name: 'mountain_landscape_observation.jpg', size: '3.1 MB' },
+    milkyway: { url: '/images/milky-way-analysis.jpg', name: 'milky_way_astronomical_imaging.jpg', size: '2.4 MB' },
+    comet: { url: '/images/comet-analysis.jpg', name: 'comet_deep_space_analysis.jpg', size: '3.3 MB' }
   };
 
   const sample = samples[key];

@@ -184,7 +184,7 @@ export function renderRealDashboard() {
             <div class="space-y-1.5">
               <h3 class="font-serif text-lg font-bold text-slate-100">No research reports yet.</h3>
               <p class="text-slate-400 text-xs max-w-[340px] mx-auto leading-relaxed">
-                Upload your first architectural blueprint, financial chart, or scientific visual artifact to generate real AI research data.
+                Upload your first visual artifact to generate real AI research data.
               </p>
             </div>
             <div class="pt-3">
@@ -205,7 +205,7 @@ export function renderRealDashboard() {
               return `
                 <div class="bg-surface-container-lowest p-3.5 rounded-xl border ghost-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
-                    <img src="${rpt.imageDataUrl || '/samples/blueprint.jpg'}" alt="${rpt.title}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border ghost-border" />
+                    <img src="${rpt.imageDataUrl || '/images/urban-analysis.jpg'}" alt="${rpt.title}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border ghost-border" />
                     <div class="min-w-0 space-y-1">
                       <h4 class="font-serif text-xs font-bold text-slate-100 truncate">${rpt.title}</h4>
                       <div class="flex flex-wrap items-center gap-2 text-[10px] font-mono text-slate-400">

@@ -36,7 +36,7 @@ export function formatReportPayload(data) {
     title: data.title || `Research Analysis: ${subjName}`,
     subject: subjName,
     category: data.category || 'Visual Research',
-    thumbnailUrl: data.imageDataUrl || data.fullImage || '/samples/blueprint.jpg',
+    thumbnailUrl: data.imageDataUrl || data.fullImage || '/images/urban-analysis.jpg',
     sections: {
       executiveSummary,
       identification,
