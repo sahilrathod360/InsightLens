@@ -1,33 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" fill="none">
   <defs>
-    <linearGradient id="il-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1A1333" />
-      <stop offset="100%" stop-color="#0D0B1E" />
-    </linearGradient>
-
-    <linearGradient id="il-iris-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="il-iris-grad-t" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FF7BAA" />
       <stop offset="35%" stop-color="#8B6CFF" />
       <stop offset="70%" stop-color="#4B2CC7" />
       <stop offset="100%" stop-color="#FFB58E" />
     </linearGradient>
 
-    <linearGradient id="il-accent-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="il-accent-grad-t" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#4B2CC7" />
       <stop offset="50%" stop-color="#8B6CFF" />
       <stop offset="100%" stop-color="#FF7BAA" />
     </linearGradient>
 
-    <filter id="il-glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
+    <filter id="il-glow-t" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
 
-  <rect width="512" height="512" rx="112" fill="url(#il-bg-grad)" />
-
   <path d="M 170 120 L 370 120 C 400 120 420 140 420 170 L 420 370 C 420 400 400 420 370 420 L 170 420 C 140 420 120 400 120 370 L 120 170 C 120 140 140 120 170 120 Z" 
-        stroke="url(#il-iris-grad)" stroke-width="24" stroke-linecap="round" fill="none" opacity="0.9" />
+        stroke="url(#il-iris-grad-t)" stroke-width="26" stroke-linecap="round" fill="none" />
 
   <rect x="64" y="128" width="24" height="24" rx="4" fill="#FF7BAA" opacity="0.9" />
   <rect x="96" y="96" width="20" height="20" rx="4" fill="#8B6CFF" opacity="0.85" />
@@ -36,9 +29,9 @@
   <rect x="152" y="56" width="22" height="22" rx="4" fill="#8B6CFF" />
   <rect x="48" y="176" width="16" height="16" rx="3" fill="#FFB58E" opacity="0.75" />
 
-  <circle cx="270" cy="270" r="115" stroke="url(#il-iris-grad)" stroke-width="28" fill="none" filter="url(#il-glow)" />
+  <circle cx="270" cy="270" r="115" stroke="url(#il-iris-grad-t)" stroke-width="28" fill="none" filter="url(#il-glow-t)" />
 
-  <circle cx="270" cy="270" r="62" fill="#0D0B1E" stroke="url(#il-accent-grad)" stroke-width="12" />
+  <circle cx="270" cy="270" r="62" fill="#0D0B1E" stroke="url(#il-accent-grad-t)" stroke-width="12" />
   <circle cx="270" cy="270" r="38" fill="#1A1333" />
   
   <circle cx="254" cy="254" r="14" fill="#FFFFFF" opacity="0.9" />
