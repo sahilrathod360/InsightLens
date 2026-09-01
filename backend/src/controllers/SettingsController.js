@@ -1,4 +1,169 @@
 import { config } from '../config/env.js';
+import pool from '../config/db.js';
+
+export const getPreferences = async (req, res, next) => {
+  try {
+    const userEmail = (req.query.email || req.user?.email || 'guest@insightlens.edu').toLowerCase();
+
+    if (!pool) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          userEmail,
+          theme: 'dark',
+          model: 'auto',
+          autoModelFallback: true,
+          compactMode: false,
+          fontSize: 'medium',
+          animationsOn: true,
+          writingStyle: 'classic',
+          researchLength: 'long',
+          citationStyle: 'APA',
+          language: 'en',
+          exportFormat: 'pdf',
+          autoSaveReports: true
+        }
+      });
+    }
+
+    const result = await pool.query('SELECT * FROM user_preferences WHERE user_email = $1', [userEmail]);
+    if (result.rows.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          userEmail,
+          theme: 'dark',
+          model: 'auto',
+          autoModelFallback: true,
+          compactMode: false,
+          fontSize: 'medium',
+          animationsOn: true,
+          writingStyle: 'classic',
+          researchLength: 'long',
+          citationStyle: 'APA',
+          language: 'en',
+          exportFormat: 'pdf',
+          autoSaveReports: true
+        }
+      });
+    }
+
+    const row = result.rows[0];
+    return res.status(200).json({
+      success: true,
+      data: {
+        userEmail: row.user_email,
+        theme: row.theme,
+        model: row.model,
+        autoModelFallback: row.auto_model_fallback,
+        compactMode: row.compact_mode,
+        fontSize: row.font_size,
+        animationsOn: row.animations_on,
+        writingStyle: row.writing_style,
+        researchLength: row.research_length,
+        citationStyle: row.citation_style,
+        language: row.language,
+        exportFormat: row.export_format,
+        autoSaveReports: row.auto_save_reports
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updatePreferences = async (req, res, next) => {
+  try {
+    const userEmail = (req.body.userEmail || req.user?.email || 'guest@insightlens.edu').toLowerCase();
+    const {
+      theme,
+      model,
+      autoModelFallback,
+      compactMode,
+      fontSize,
+      animationsOn,
+      writingStyle,
+      researchLength,
+      citationStyle,
+      language,
+      exportFormat,
+      autoSaveReports
+    } = req.body;
+
+    if (!pool) {
+      return res.status(200).json({
+        success: true,
+        message: 'Preferences updated locally.',
+        data: req.body
+      });
+    }
+
+    const query = `
+      INSERT INTO user_preferences (
+        user_email, theme, model, auto_model_fallback, compact_mode,
+        font_size, animations_on, writing_style, research_length,
+        citation_style, language, export_format, auto_save_reports, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+      ON CONFLICT (user_email) DO UPDATE SET
+        theme = COALESCE(EXCLUDED.theme, user_preferences.theme),
+        model = COALESCE(EXCLUDED.model, user_preferences.model),
+        auto_model_fallback = COALESCE(EXCLUDED.auto_model_fallback, user_preferences.auto_model_fallback),
+        compact_mode = COALESCE(EXCLUDED.compact_mode, user_preferences.compact_mode),
+        font_size = COALESCE(EXCLUDED.font_size, user_preferences.font_size),
+        animations_on = COALESCE(EXCLUDED.animations_on, user_preferences.animations_on),
+        writing_style = COALESCE(EXCLUDED.writing_style, user_preferences.writing_style),
+        research_length = COALESCE(EXCLUDED.research_length, user_preferences.research_length),
+        citation_style = COALESCE(EXCLUDED.citation_style, user_preferences.citation_style),
+        language = COALESCE(EXCLUDED.language, user_preferences.language),
+        export_format = COALESCE(EXCLUDED.export_format, user_preferences.export_format),
+        auto_save_reports = COALESCE(EXCLUDED.auto_save_reports, user_preferences.auto_save_reports),
+        updated_at = NOW()
+      RETURNING *;
+    `;
+
+    const values = [
+      userEmail,
+      theme || 'dark',
+      model || 'auto',
+      autoModelFallback !== undefined ? autoModelFallback : true,
+      compactMode !== undefined ? compactMode : false,
+      fontSize || 'medium',
+      animationsOn !== undefined ? animationsOn : true,
+      writingStyle || 'classic',
+      researchLength || 'long',
+      citationStyle || 'APA',
+      language || 'en',
+      exportFormat || 'pdf',
+      autoSaveReports !== undefined ? autoSaveReports : true
+    ];
+
+    const result = await pool.query(query, values);
+    const row = result.rows[0];
+
+    return res.status(200).json({
+      success: true,
+      message: 'System preferences saved to database.',
+      data: {
+        userEmail: row.user_email,
+        theme: row.theme,
+        model: row.model,
+        autoModelFallback: row.auto_model_fallback,
+        compactMode: row.compact_mode,
+        fontSize: row.font_size,
+        animationsOn: row.animations_on,
+        writingStyle: row.writing_style,
+        researchLength: row.research_length,
+        citationStyle: row.citation_style,
+        language: row.language,
+        exportFormat: row.export_format,
+        autoSaveReports: row.auto_save_reports
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const testProviderConnection = async (req, res, next) => {
   const { provider, apiKey } = req.body;

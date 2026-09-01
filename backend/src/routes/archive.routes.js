@@ -1,12 +1,9 @@
 import express from 'express';
+import { listReports, deleteReport } from '../controllers/ReportController.js';
+
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.status(501).json({ success: false, message: 'Not Implemented', data: null, timestamp: new Date().toISOString() });
-});
-
-router.delete('/:id', (req, res) => {
-  res.status(501).json({ success: false, message: 'Not Implemented', data: null, timestamp: new Date().toISOString() });
-});
+router.get('/', listReports);
+router.delete('/:id', deleteReport);
 
 export default router;

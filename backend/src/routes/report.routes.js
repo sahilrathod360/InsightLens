@@ -1,12 +1,10 @@
 import express from 'express';
+import { getReportById, saveReport, toggleFavorite } from '../controllers/ReportController.js';
+
 const router = express.Router();
 
-router.get('/:id', (req, res) => {
-  res.status(501).json({ success: false, message: 'Not Implemented', data: null, timestamp: new Date().toISOString() });
-});
-
-router.post('/save', (req, res) => {
-  res.status(501).json({ success: false, message: 'Not Implemented', data: null, timestamp: new Date().toISOString() });
-});
+router.get('/:id', getReportById);
+router.post('/save', saveReport);
+router.put('/:id/favorite', toggleFavorite);
 
 export default router;

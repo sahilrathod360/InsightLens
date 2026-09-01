@@ -1,8 +1,8 @@
 import express from 'express';
+import { getDashboardStats } from '../controllers/DashboardController.js';
+
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.status(501).json({ success: false, message: 'Not Implemented', data: null, timestamp: new Date().toISOString() });
-});
+router.get('/', getDashboardStats);
 
 export default router;
