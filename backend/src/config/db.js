@@ -6,13 +6,26 @@ const { Pool } = pg;
 /**
  * PostgreSQL Connection Pool for Aiven PostgreSQL / Production Database.
  * Securely uses process.env.DATABASE_URL.
- * Aiven PostgreSQL mandates SSL encryption; configured with rejectUnauthorized: false for cloud compatibility.
+ *
+ * Aiven PostgreSQL mandates SSL encryption.
+ * We strip any ?sslmode=... or &sslmode=... from the connection URI to prevent
+ * pg-connection-string from overriding our explicit rejectUnauthorized: false setting,
+ * which resolves the SELF_SIGNED_CERT_IN_CHAIN error on cloud containers.
  */
 let pool = null;
 
-if (config.databaseUrl) {
+const rawDbUrl = (process.env.DATABASE_URL || config.databaseUrl || '').trim().replace(/^["']|["']$/g, '');
+
+if (rawDbUrl) {
+  // Strip ?sslmode=... or &sslmode=... from URI cleanly
+  const cleanDbUrl = rawDbUrl
+    .replace(/([?&])sslmode=[^&]*(&?)/gi, (match, prefix, suffix) => {
+      return prefix === '?' && suffix === '&' ? '?' : '';
+    })
+    .replace(/[?&]$/, '');
+
   pool = new Pool({
-    connectionString: config.databaseUrl,
+    connectionString: cleanDbUrl,
     ssl: {
       rejectUnauthorized: false
     },
