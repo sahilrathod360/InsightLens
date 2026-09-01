@@ -10,6 +10,7 @@ import hpp from 'hpp';
 import { config } from './src/config/env.js';
 import { corsOptions } from './src/config/cors.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
+import pool from './src/config/db.js';
 
 // Import routes
 import authRoutes from './src/routes/auth.routes.js';
@@ -85,6 +86,41 @@ app.get('/api/health', (req, res) => {
     message: 'InsightLens Backend is healthy.',
     timestamp: new Date().toISOString()
   });
+});
+
+// =========================================================================
+// [TEMPORARY DEV-ONLY ENDPOINT] Database Connectivity Verification
+// Target file: backend/app.js (lines 90-117)
+// Remove immediately after Render -> Aiven PostgreSQL verification is complete.
+// =========================================================================
+app.get('/api/db-test', async (req, res) => {
+  if (!pool) {
+    return res.status(500).json({
+      success: false,
+      database: 'disconnected'
+    });
+  }
+
+  try {
+    const client = await pool.connect();
+    try {
+      const result = await client.query('SELECT NOW() AS server_time');
+      const serverTime = result.rows[0]?.server_time;
+      return res.status(200).json({
+        success: true,
+        database: 'connected',
+        server_time: serverTime ? new Date(serverTime).toISOString() : new Date().toISOString()
+      });
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('[DB Test Error]', err.message);
+    return res.status(500).json({
+      success: false,
+      database: 'disconnected'
+    });
+  }
 });
 
 console.log('Registering routes...');
