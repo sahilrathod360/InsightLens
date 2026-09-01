@@ -15,8 +15,8 @@ process.on('unhandledRejection', (reason, promise) => {
 console.log('Starting server...');
 const PORT = config.port;
 
-const server = app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server listening on 0.0.0.0:${PORT}`);
   console.log(`[Backend Foundation] Server is running on port ${PORT}`);
   console.log(`[Backend Foundation] AI Provider configured as: ${config.aiProvider}`);
   console.log(`[Backend Foundation] Environment: ${process.env.NODE_ENV || 'development'}`);

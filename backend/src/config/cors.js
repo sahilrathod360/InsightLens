@@ -26,12 +26,27 @@ if (process.env.ALLOWED_ORIGINS) {
 
 export const corsOptions = {
   origin: function (origin, callback) {
-    const cleanOrigin = origin ? origin.replace(/\/+$/, '') : null;
-    if (!cleanOrigin || allowedOrigins.includes(cleanOrigin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS error: Origin ${origin} is not allowed.`));
+    if (!origin) {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      return callback(null, true);
     }
+    const cleanOrigin = origin.replace(/\/+$/, '');
+    
+    // Explicit matches
+    if (allowedOrigins.includes(cleanOrigin)) {
+      return callback(null, true);
+    }
+
+    // Dynamic matches: any Vercel deployment (*.vercel.app), Render deployment (*.onrender.com), or localhost port
+    const isVercelDomain = /^https:\/\/[a-z0-9-]+(\.vercel\.app)$/i.test(cleanOrigin) || /^https:\/\/insight-?lens.*\.vercel\.app$/i.test(cleanOrigin);
+    const isRenderDomain = /^https:\/\/[a-z0-9-]+(\.onrender\.com)$/i.test(cleanOrigin);
+    const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleanOrigin);
+
+    if (isVercelDomain || isRenderDomain || isLocalhost) {
+      return callback(null, true);
+    }
+
+    callback(new Error(`CORS error: Origin ${origin} is not allowed.`));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

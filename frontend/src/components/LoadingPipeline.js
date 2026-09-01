@@ -94,11 +94,11 @@ export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
     if (apiFailureCard) {
       apiFailureCard.classList.remove('hidden');
       const p = apiFailureCard.querySelector('p');
-      if (p) p.textContent = 'Backend AI inference request timed out.';
+      if (p) p.textContent = 'Analysis service temporarily unavailable. Please try again.';
     }
     
     const statusTitle = document.getElementById('status-title');
-    if (statusTitle) statusTitle.textContent = 'Inference Timed Out.';
+    if (statusTitle) statusTitle.textContent = 'Analysis Temporarily Unavailable';
   }, 120000);
 
   setGlobalSafetyTimer(safetyTimer);
@@ -107,6 +107,7 @@ export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
   const heroTitleEl = document.getElementById('report-hero-title');
   if (heroTitleEl) heroTitleEl.textContent = safeFilename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
 
+  setLastAnalysisPayload({ dataUrl, filename: safeFilename, filesizeStr: safeFilesize, researchLength, writingStyle });
   runLoadingProgressionWithGemini(dataUrl, researchLength, writingStyle, thisAnalysisId);
 }
 
@@ -139,7 +140,6 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
   const apiFailureCard = document.getElementById('api-failure-card');
 
   if (apiFailureCard) apiFailureCard.classList.add('hidden');
-  setLastAnalysisPayload({ dataUrl, researchLength, writingStyle });
 
   let currentProgress = 0;
   let heartbeatTimer = null;

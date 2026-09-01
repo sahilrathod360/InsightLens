@@ -10,6 +10,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 export const config = {
   port: process.env.PORT || 3000,
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  databaseUrl: process.env.DATABASE_URL || '',
   jwtSecret: process.env.JWT_SECRET || 'super_secret_jwt_key_replace_me_in_production',
   aiProvider: process.env.AI_PROVIDER || 'gemini',
   aiProviders: (process.env.AI_PROVIDERS || 'gemini,openrouter').split(',').map(s => s.trim().toLowerCase()),

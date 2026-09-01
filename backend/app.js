@@ -24,7 +24,7 @@ import settingsRoutes from './src/routes/settings.routes.js';
 console.log('Creating Express app instance...');
 const app = express();
 
-// Trust reverse proxy (Railway, Cloudflare, Vercel)
+// Trust reverse proxy (Render, Cloudflare, Vercel)
 app.set('trust proxy', 1);
 
 // Phase 3 & Phase 15: Disable X-Powered-By header completely
@@ -47,12 +47,17 @@ app.use(hpp());
 // Phase 12: Enable Compression
 app.use(compression());
 
-// Phase 6 & Phase 13: 25 MB Payload Protection
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+// Phase 6 & Phase 13: 35 MB Payload Protection (Accommodates 25MB raw file Base64 expansion)
+app.use(express.json({ limit: '35mb' }));
+app.use(express.urlencoded({ extended: true, limit: '35mb' }));
 
 app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// Standard Render Health Check Route
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Phase 5: Rate Limiting on API Routes (100 requests per 15 mins)
 const apiLimiter = rateLimit({
@@ -72,7 +77,7 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// Health check for Railway & Monitoring
+// API Health Check for Frontend & Monitoring
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,

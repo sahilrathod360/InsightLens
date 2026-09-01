@@ -450,9 +450,9 @@ export function setupReportActions(startAnalysisPipeline) {
   setupExplainReportPanel();
 
   const retryHandler = () => {
-    const lastAnalysisPayload = getLastAnalysisPayload();
-    if (lastAnalysisPayload && typeof startAnalysisPipeline === 'function') {
-      startAnalysisPipeline(lastAnalysisPayload.dataUrl, lastAnalysisPayload.researchLength, lastAnalysisPayload.writingStyle);
+    const lastPayload = getLastAnalysisPayload();
+    if (lastPayload && lastPayload.dataUrl && typeof startAnalysisPipeline === 'function') {
+      startAnalysisPipeline(lastPayload.dataUrl, lastPayload.filename, lastPayload.filesizeStr);
     } else {
       navigateTo('desk');
     }

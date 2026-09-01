@@ -29,12 +29,18 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, o
 
     if (!response.ok) {
       const errJson = await response.json().catch(() => ({}));
-      throw new Error(errJson.message || `Backend Error ${response.status}`);
+      if (response.status === 429) {
+        throw new Error('Analysis rate limit reached. Please wait a moment before trying again.');
+      }
+      if (response.status === 413) {
+        throw new Error('Image size is too large. Please select an image under 20MB.');
+      }
+      throw new Error(errJson.message || `Analysis temporarily unavailable (Server response ${response.status}). Please try again.`);
     }
     
     const json = await response.json();
-    if (!json.success) {
-      throw new Error(json.message || 'Analysis failed');
+    if (!json.success || !json.data) {
+      throw new Error(json.message || 'Analysis could not be completed. Please try again.');
     }
     
     const elapsedMs = Date.now() - startMs;
@@ -43,6 +49,9 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, o
     return finalData;
   } catch (err) {
     console.error('[InsightLens API] Analysis error:', err.message);
+    if (err.message && err.message.includes('Failed to fetch')) {
+      throw new Error('Unable to connect to the analysis service. Please check your internet connection or try again.');
+    }
     throw err;
   }
 }

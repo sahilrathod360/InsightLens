@@ -70,26 +70,33 @@ export function setupUploadEvents(startAnalysisPipeline) {
 }
 
 export function handleFileSelected(file, startAnalysisPipeline) {
-  if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-    showToast('Please select a valid file (PNG, JPG, WEBP, SVG, PDF)', 'warning');
+  if (!file) return;
+
+  const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml', 'application/pdf'];
+  const isImageOrPdf = file.type ? (file.type.startsWith('image/') || file.type === 'application/pdf') : /\.(png|jpe?g|webp|svg|pdf)$/i.test(file.name);
+
+  if (!isImageOrPdf) {
+    showToast('Please select a supported image file (PNG, JPG, WEBP, SVG)', 'warning');
     return;
   }
 
   if (file.size > 25 * 1024 * 1024) {
-    showToast('File size exceeds the 25MB maximum limit.', 'warning');
+    showToast('File size exceeds the 25MB limit. Please choose a smaller image.', 'warning');
     return;
   }
 
   setActiveFile(file);
   const reader = new FileReader();
   reader.onload = (e) => {
-    const dataUrl = e.target.result;
-    if (typeof startAnalysisPipeline === 'function') {
+    const dataUrl = e.target?.result;
+    if (dataUrl && typeof startAnalysisPipeline === 'function') {
       startAnalysisPipeline(dataUrl, file.name, formatBytes(file.size));
+    } else {
+      showToast('Could not process image data. Please try another image.', 'warning');
     }
   };
   reader.onerror = () => {
-    showToast('Error reading image file.', 'warning');
+    showToast('Error reading image file from this device. Please try again.', 'warning');
   };
   reader.readAsDataURL(file);
 }
