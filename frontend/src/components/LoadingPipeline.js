@@ -43,7 +43,15 @@ export function render9StepContainer() {
   `).join('');
 }
 
+let isAnalysisInProgress = false;
+
 export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
+  if (isAnalysisInProgress) {
+    console.warn('[LoadingPipeline] Analysis already running. Duplicate trigger blocked.');
+    return;
+  }
+  isAnalysisInProgress = true;
+
   clearTimeouts();
   const thisAnalysisId = incrementAnalysisId();
 
@@ -271,6 +279,9 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
         p.textContent = `${errorMsg}`;
       }
     }
+  } finally {
+    isAnalysisInProgress = false;
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
   }
 }
 

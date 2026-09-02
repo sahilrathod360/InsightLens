@@ -26,6 +26,7 @@ export function setupUploadEvents(startAnalysisPipeline) {
   fileInput?.addEventListener('change', (e) => {
     if (e.target.files && e.target.files[0]) {
       handleFileSelected(e.target.files[0], startAnalysisPipeline);
+      e.target.value = ''; // Reset input to allow selecting the same file again
     }
   });
 
@@ -72,16 +73,26 @@ export function setupUploadEvents(startAnalysisPipeline) {
 export function handleFileSelected(file, startAnalysisPipeline) {
   if (!file) return;
 
-  const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml', 'application/pdf'];
-  const isImageOrPdf = file.type ? (file.type.startsWith('image/') || file.type === 'application/pdf') : /\.(png|jpe?g|webp|svg|pdf)$/i.test(file.name);
+  // Validate supported image MIME and extensions (Strictly JPEG, PNG, WebP)
+  const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const ext = (file.name || '').split('.').pop().toLowerCase();
+  const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
 
-  if (!isImageOrPdf) {
-    showToast('Please select a supported image file (PNG, JPG, WEBP, SVG)', 'warning');
+  const isMimeOk = file.type ? allowedMimes.includes(file.type.toLowerCase()) : false;
+  const isExtOk = allowedExts.includes(ext);
+
+  if (!isMimeOk && !isExtOk) {
+    showToast('Unsupported image format. Please upload JPG, PNG or WebP.', 'warning');
     return;
   }
 
-  if (file.size > 25 * 1024 * 1024) {
-    showToast('File size exceeds the 25MB limit. Please choose a smaller image.', 'warning');
+  if (file.size === 0) {
+    showToast('The selected file is empty (0 bytes). Please choose a valid image.', 'warning');
+    return;
+  }
+
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('File size exceeds the 20MB limit. Please choose a smaller image.', 'warning');
     return;
   }
 

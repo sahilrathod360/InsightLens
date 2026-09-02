@@ -22,9 +22,12 @@ class AIManager {
       const totalDuration = Date.now() - startTime;
       console.log(`[AIManager] Returning CACHED report instantly in ${totalDuration} ms`);
       console.log('==================================================\n');
+      const cloned = JSON.parse(JSON.stringify(cachedResult));
+      delete cloned.id;
       return {
-        ...cachedResult,
+        ...cloned,
         cached: true,
+        processingTimeMs: totalDuration,
         totalRequestDurationMs: totalDuration
       };
     }
