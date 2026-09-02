@@ -1,18 +1,47 @@
-// Real Data Dashboard Component Implementation
+// Real Data Dashboard Component Implementation (Backed by Aiven PostgreSQL)
 
 import { getUserSession, getSystemPreferences, setActiveReportData, navigateTo } from '../../state.js';
-import { computeRealDashboardStats } from '../../services/history.js';
+import { getReportsHistory, computeRealDashboardStats } from '../../services/history.js';
 import { formatBytes } from '../../utils/toast.js';
 import { renderResultScreen } from '../ReportViewer.js';
 import { exportPreferencesFile } from '../../services/preferences.js';
+import { API_BASE, getAuthHeaders } from '../../utils/api.js';
 
-export function renderRealDashboard() {
+export async function renderRealDashboard() {
   const dashboardContainer = document.getElementById('page-dashboard');
   if (!dashboardContainer) return;
 
-  const stats = computeRealDashboardStats();
-  const systemPreferences = getSystemPreferences();
+  // Render quick loading state while fetching from PostgreSQL
+  if (!dashboardContainer.querySelector('#dash-loaded-content')) {
+    dashboardContainer.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-24 space-y-4 text-center">
+        <div class="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs font-mono text-slate-400">Synchronizing analytics from PostgreSQL database...</p>
+      </div>
+    `;
+  }
 
+  const session = getUserSession();
+  const email = session ? session.email : 'guest@insightlens.edu';
+
+  let backendDashboardData = null;
+  try {
+    const res = await fetch(`${API_BASE}/api/dashboard?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) backendDashboardData = json.data;
+    }
+  } catch (err) {
+    console.warn('[Dashboard] /api/dashboard fetch fallback:', err.message);
+  }
+
+  // Fetch reports from PostgreSQL
+  const reports = await getReportsHistory();
+  const stats = computeRealDashboardStats(reports, backendDashboardData?.metrics || {});
+  const systemPreferences = getSystemPreferences();
   const isOnline = navigator.onLine;
 
   // Build HTML for Real Dashboard
@@ -148,8 +177,8 @@ export function renderRealDashboard() {
           <span>Storage Used</span>
           <span class="material-symbols-outlined text-sky-400 text-[20px]">hard_drive</span>
         </div>
-        <div class="font-sans text-sm font-bold text-sky-300 truncate mt-1">${formatBytes(stats.storageUsedBytes)}</div>
-        <span class="text-[10px] text-on-surface-variant">HTML5 LocalStorage</span>
+        <div class="font-sans text-sm font-bold text-sky-300 truncate mt-1">PostgreSQL</div>
+        <span class="text-[10px] text-on-surface-variant">Cloud Database</span>
       </div>
 
       <div class="bg-surface-container p-5 rounded-2xl ghost-border space-y-1">
@@ -406,42 +435,8 @@ export function renderRealDashboard() {
   });
 }
 
+// Deprecated stub: persistence is handled directly by PostgreSQL /api/analyze
 export async function saveReportToHistory(imageDataUrl, reportData) {
-  const userSession = getUserSession();
-  if (!reportData) return;
-  const email = userSession ? userSession.email : 'guest@insightlens.edu';
-
-  try {
-    const historyKey = `insightlens_history_${email}`;
-    let history = JSON.parse(localStorage.getItem(historyKey)) || [];
-
-    let thumbDataUrl = imageDataUrl;
-    if (typeof imageDataUrl === 'string' && imageDataUrl.length > 50000) {
-      try {
-        const { generateScaledThumbnail } = await import('../../utils/canvas.js');
-        thumbDataUrl = await generateScaledThumbnail(imageDataUrl, 500);
-      } catch (tErr) {
-        console.warn('Thumbnail scaling fallback:', tErr);
-      }
-    }
-
-    const newEntry = {
-      id: `RPT-${Date.now()}`,
-      title: reportData.title || 'Image Research Brief',
-      subject: reportData.subject || 'Visual Subject Assessment',
-      summaryLead: reportData.executiveSummary || reportData.summaryLead || '',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      timestamp: Date.now(),
-      imageDataUrl: thumbDataUrl,
-      fullData: reportData
-    };
-
-    history.unshift(newEntry);
-    if (history.length > 50) history.pop();
-
-    localStorage.setItem(historyKey, JSON.stringify(history));
-  } catch (err) {
-    console.error('Failed to save report to history:', err);
-  }
+  return null;
 }
 

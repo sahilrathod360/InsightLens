@@ -1,7 +1,8 @@
-// Backend API Integration
+// Backend API Integration (Backed by Render Backend & Aiven PostgreSQL)
 
 import { systemPreferences, loadPreferences } from './storage.js';
-import { API_BASE } from '../utils/api.js';
+import { API_BASE, getAuthHeaders } from '../utils/api.js';
+import { getUserSession } from '../state.js';
 
 export async function callGemini25Flash(dataUrl, researchLength, writingStyle, onAttemptModel = null, onRetryNotice = null) {
   const startMs = Date.now();
@@ -14,16 +15,21 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, o
   const selectedProvider = systemPreferences.provider || 'auto';
   const lang = systemPreferences.language || 'en';
 
+  const session = getUserSession();
+  const userEmail = session && session.email ? session.email : null;
+
   const targetUrl = `${API_BASE}/api/analyze`;
   const payload = {
     dataUrl: dataUrl,
     promptObj: { researchLength, language: lang },
-    preferredProvider: selectedProvider !== 'auto' ? selectedProvider : null
+    preferredProvider: selectedProvider !== 'auto' ? selectedProvider : null,
+    userEmail: userEmail
   };
+
   try {
     const response = await fetch(targetUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
 
@@ -34,6 +40,9 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, o
       }
       if (response.status === 413) {
         throw new Error('Image size is too large. Please select an image under 20MB.');
+      }
+      if (response.status === 500) {
+        throw new Error(errJson.message || 'Database persistence or server error during analysis. Please try again.');
       }
       throw new Error(errJson.message || `Analysis temporarily unavailable (Server response ${response.status}). Please try again.`);
     }

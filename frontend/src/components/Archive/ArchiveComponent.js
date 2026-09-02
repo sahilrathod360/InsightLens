@@ -2,16 +2,16 @@
 
 import { setActiveReportData, navigateTo } from '../../state.js';
 import { 
-  getSavedReportsHistory, 
-  deleteReportFromHistory, 
-  duplicateReportInHistory, 
-  toggleFavoriteReport, 
+  getArchive, 
+  deleteReport, 
+  toggleFavorite, 
   filterAndSortReports 
 } from '../../services/history.js';
 import { getActivityLogs, formatTimeAgo, saveAppMetrics, getAppMetrics, logUserActivity } from '../../services/storage.js';
 import { renderResultScreen } from '../ReportViewer.js';
-import { exportCleanPDF, exportMarkdownFile, downloadBlob } from '../../utils/export.js';
+import { exportCleanPDF, exportMarkdownFile, downloadBlob, recordExportMetricToBackend } from '../../utils/export.js';
 import { showToast } from '../../utils/toast.js';
+import { API_BASE, getAuthHeaders } from '../../utils/api.js';
 
 function exportReportToMarkdown(d) {
   if (!d) return;
@@ -92,11 +92,20 @@ export function setupArchiveEvents() {
   renderArchivePage();
 }
 
-export function renderArchivePage() {
+export async function renderArchivePage() {
   const archiveContainer = document.getElementById('page-archive');
   if (!archiveContainer) return;
 
-  const rawReports = getSavedReportsHistory();
+  if (!archiveContainer.querySelector('#archive-header-loaded')) {
+    archiveContainer.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-24 space-y-4 text-center">
+        <div class="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs font-mono text-slate-400">Loading research archive from PostgreSQL database...</p>
+      </div>
+    `;
+  }
+
+  const rawReports = await getArchive();
   const filteredReports = filterAndSortReports(rawReports, currentFilters);
   const activityLogs = getActivityLogs();
 
@@ -104,6 +113,7 @@ export function renderArchivePage() {
   const uniqueCategories = Array.from(new Set(rawReports.map(r => r.category || 'General Research')));
 
   archiveContainer.innerHTML = `
+    <div id="archive-header-loaded" class="hidden"></div>
     <!-- ARCHIVE HEADER -->
     <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
       <div>
@@ -397,30 +407,50 @@ export function renderArchivePage() {
   });
 
   document.querySelectorAll('.btn-toggle-fav').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
-      toggleFavoriteReport(id);
-      renderArchivePage();
+      await toggleFavorite(id);
+      await renderArchivePage();
     };
   });
 
   document.querySelectorAll('.btn-del-report').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
-      if (confirm('Delete this research report permanently from your local archive?')) {
-        deleteReportFromHistory(id);
-        renderArchivePage();
-        showToast('Report deleted from archive.', 'info');
+      if (confirm('Delete this research report permanently from the database archive?')) {
+        await deleteReport(id);
+        await renderArchivePage();
+        showToast('Report deleted from database archive.', 'info');
       }
     };
   });
 
   document.querySelectorAll('.btn-dup-report').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
-      duplicateReportInHistory(id);
-      renderArchivePage();
-      showToast('Report duplicated successfully!', 'success');
+      const target = rawReports.find(r => r.id === id);
+      if (target) {
+        try {
+          const userEmail = target.userEmail || 'guest@insightlens.edu';
+          const res = await fetch(`${API_BASE}/api/report/save`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+              ...target,
+              id: `RPT-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+              title: `${target.title} (Copy)`,
+              userEmail,
+              favorite: false
+            })
+          });
+          if (res.ok) {
+            await renderArchivePage();
+            showToast('Report duplicated successfully in database!', 'success');
+          }
+        } catch (err) {
+          showToast('Failed to duplicate report.', 'error');
+        }
+      }
     };
   });
 
@@ -445,6 +475,7 @@ export function renderArchivePage() {
         exportReportToMarkdown(target.fullData);
         saveAppMetrics({ markdownExportsCount: (getAppMetrics().markdownExportsCount || 0) + 1 });
         logUserActivity('markdown', `Exported Markdown: ${target.title}`);
+        recordExportMetricToBackend('markdown');
         showToast('Markdown downloaded.', 'success');
       }
     };

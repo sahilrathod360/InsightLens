@@ -10,6 +10,7 @@ import hpp from 'hpp';
 import { config } from './src/config/env.js';
 import { corsOptions } from './src/config/cors.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
+import { requireAuth } from './src/middleware/auth.js';
 import pool from './src/config/db.js';
 
 // Import routes
@@ -78,17 +79,36 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// API Health Check for Frontend & Monitoring
-app.get('/api/health', (req, res) => {
+// API Health Check for Frontend & Monitoring (Checks Server + PostgreSQL)
+app.get('/api/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  if (pool) {
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query('SELECT 1');
+        dbStatus = 'connected';
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error('[Health Check DB Notice]', err.message);
+      dbStatus = 'error';
+    }
+  }
+
   res.status(200).json({
     success: true,
     status: 'healthy',
+    database: dbStatus,
     message: 'InsightLens Backend is healthy.',
     timestamp: new Date().toISOString()
   });
 });
 
 console.log('Registering routes...');
+app.use('/api', requireAuth);
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);

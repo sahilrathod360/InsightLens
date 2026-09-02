@@ -3,6 +3,7 @@
 import { 
   getStoredPreferences, 
   saveStoredPreferences, 
+  fetchPreferencesFromBackend,
   exportPreferencesFile, 
   importPreferencesFile, 
   resetPreferencesToDefault,
@@ -397,77 +398,17 @@ export function setupSettingsEvents() {
     const userSession = getUserSession();
     if (!userSession) return;
 
-    let users = {};
-    try {
-      users = JSON.parse(localStorage.getItem('insightlens_users')) || {};
-    } catch (err) {}
-
-    const originalEmailKey = Object.keys(users).find(u => u.toLowerCase() === userSession.email.toLowerCase());
-    const activeUser = users[originalEmailKey];
-    if (!activeUser) {
-      showToast('Account data not found.', 'error');
-      return;
-    }
-
     const fName = document.getElementById('settings-first-name')?.value.trim();
     const lName = document.getElementById('settings-last-name')?.value.trim();
     const newEmail = document.getElementById('settings-email')?.value.trim().toLowerCase();
-    
-    const currentPwd = document.getElementById('settings-current-password')?.value;
-    const newPwd = document.getElementById('settings-new-password')?.value;
 
     if (!fName || !lName || !newEmail) {
       showToast('First Name, Last Name, and Email are required.', 'warning');
       return;
     }
 
-    // Check email uniqueness if it changed
-    if (newEmail !== activeUser.email.toLowerCase()) {
-      const emailExists = Object.keys(users).find(u => u.toLowerCase() === newEmail);
-      if (emailExists) {
-        showToast('This email is already in use by another account.', 'warning');
-        return;
-      }
-    }
-
-    // Handle password change if requested
-    let finalPasswordHash = activeUser.passwordHash;
-    if (newPwd) {
-      if (!currentPwd) {
-        showToast('Current password is required to change password.', 'warning');
-        return;
-      }
-      if (newPwd.length < 8) {
-        showToast('New password must be at least 8 characters long.', 'warning');
-        return;
-      }
-      const hashedCurrent = await hashPassword(currentPwd);
-      if (hashedCurrent !== activeUser.passwordHash) {
-        showToast('Incorrect current password.', 'error');
-        return;
-      }
-      finalPasswordHash = await hashPassword(newPwd);
-    }
-
-    // Update user record
     const newName = `${fName} ${lName}`;
     const newInitials = newName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-    
-    // Create new object, delete old if email changed
-    const updatedUser = {
-      ...activeUser,
-      name: newName,
-      email: newEmail, // update to original casing from input
-      initials: newInitials,
-      passwordHash: finalPasswordHash
-    };
-    
-    if (newEmail !== originalEmailKey) {
-      delete users[originalEmailKey];
-    }
-    users[newEmail] = updatedUser;
-    
-    localStorage.setItem('insightlens_users', JSON.stringify(users));
 
     // Update session
     const updatedSession = {
@@ -668,11 +609,16 @@ export function setupSettingsEvents() {
   renderSettingsPage();
 }
 
-export function renderSettingsPage() {
+export async function renderSettingsPage() {
   ensureSettingsDOM();
-  const prefs = getStoredPreferences();
+  let prefs = getStoredPreferences();
   
   const userSession = getUserSession();
+  if (userSession) {
+    try {
+      prefs = await fetchPreferencesFromBackend();
+    } catch (e) {}
+  }
   const authBarrier = document.getElementById('account-settings-auth-barrier');
   if (userSession) {
     if (authBarrier) authBarrier.classList.add('hidden');

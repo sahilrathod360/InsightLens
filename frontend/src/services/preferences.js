@@ -1,6 +1,7 @@
-// InsightLens Preferences & Diagnostic Service
+// InsightLens Preferences & Diagnostic Service (Backed by Aiven PostgreSQL)
 
-import { API_BASE } from '../utils/api.js';
+import { API_BASE, getAuthHeaders } from '../utils/api.js';
+import { getUserSession } from '../state.js';
 
 export const DEFAULT_PREFERENCES = {
   theme: 'dark', // 'dark' | 'light' | 'system'
@@ -37,7 +38,66 @@ export function saveStoredPreferences(newPrefs) {
   localStorage.setItem('insightlens_preferences', JSON.stringify(updated));
   localStorage.setItem('insightlens_theme', updated.theme);
   applyPreferencesToDOM(updated);
+
+  // Sync to PostgreSQL backend asynchronously
+  syncPreferencesToBackend(updated).catch(() => {});
+
   return updated;
+}
+
+export async function fetchPreferencesFromBackend() {
+  const session = getUserSession();
+  const email = session ? session.email : 'guest@insightlens.edu';
+  try {
+    const res = await fetch(`${API_BASE}/api/settings?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        const backendPrefs = {
+          theme: json.data.theme || 'dark',
+          model: json.data.model || 'auto',
+          autoModelFallback: json.data.autoModelFallback ?? true,
+          compactMode: json.data.compactMode ?? false,
+          fontSize: json.data.fontSize || 'medium',
+          animationsOn: json.data.animationsOn ?? true,
+          writingStyle: json.data.writingStyle || 'classic',
+          researchLength: json.data.researchLength || 'long',
+          citationStyle: json.data.citationStyle || 'APA',
+          language: json.data.language || 'en',
+          exportFormat: json.data.exportFormat || 'pdf',
+          autoSaveReports: json.data.autoSaveReports ?? true
+        };
+        const merged = { ...getStoredPreferences(), ...backendPrefs };
+        localStorage.setItem('insightlens_preferences', JSON.stringify(merged));
+        localStorage.setItem('insightlens_theme', merged.theme);
+        applyPreferencesToDOM(merged);
+        return merged;
+      }
+    }
+  } catch (err) {
+    console.warn('[Preferences] Error fetching preferences from database:', err.message);
+  }
+  return getStoredPreferences();
+}
+
+export async function syncPreferencesToBackend(prefs) {
+  const session = getUserSession();
+  const email = session ? session.email : 'guest@insightlens.edu';
+  try {
+    await fetch(`${API_BASE}/api/settings`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        ...prefs,
+        userEmail: email
+      })
+    });
+  } catch (err) {
+    console.warn('[Preferences] Error syncing preferences to database:', err.message);
+  }
 }
 
 export function applyPreferencesToDOM(prefs = getStoredPreferences()) {
@@ -135,6 +195,7 @@ export function resetPreferencesToDefault() {
   localStorage.setItem('insightlens_preferences', JSON.stringify(DEFAULT_PREFERENCES));
   localStorage.setItem('insightlens_theme', DEFAULT_PREFERENCES.theme);
   applyPreferencesToDOM(DEFAULT_PREFERENCES);
+  syncPreferencesToBackend(DEFAULT_PREFERENCES).catch(() => {});
   return { ...DEFAULT_PREFERENCES };
 }
 
@@ -153,7 +214,7 @@ export function clearAllApplicationData() {
   const keysToRemove = [];
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k && k.startsWith('insightlens')) {
+    if (k && (k.startsWith('insightlens_history_') || k.startsWith('insightlens_users'))) {
       keysToRemove.push(k);
     }
   }

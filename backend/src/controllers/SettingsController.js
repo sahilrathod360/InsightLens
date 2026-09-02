@@ -3,26 +3,14 @@ import pool from '../config/db.js';
 
 export const getPreferences = async (req, res, next) => {
   try {
-    const userEmail = (req.query.email || req.user?.email || 'guest@insightlens.edu').toLowerCase();
+    const userEmail = (req.user?.email || req.query.email || 'guest@insightlens.edu').toLowerCase().trim();
 
     if (!pool) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          userEmail,
-          theme: 'dark',
-          model: 'auto',
-          autoModelFallback: true,
-          compactMode: false,
-          fontSize: 'medium',
-          animationsOn: true,
-          writingStyle: 'classic',
-          researchLength: 'long',
-          citationStyle: 'APA',
-          language: 'en',
-          exportFormat: 'pdf',
-          autoSaveReports: true
-        }
+      console.error('[SettingsController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.',
+        data: null
       });
     }
 
@@ -74,7 +62,7 @@ export const getPreferences = async (req, res, next) => {
 
 export const updatePreferences = async (req, res, next) => {
   try {
-    const userEmail = (req.body.userEmail || req.user?.email || 'guest@insightlens.edu').toLowerCase();
+    const userEmail = (req.user?.email || req.body.userEmail || 'guest@insightlens.edu').toLowerCase().trim();
     const {
       theme,
       model,
@@ -91,10 +79,11 @@ export const updatePreferences = async (req, res, next) => {
     } = req.body;
 
     if (!pool) {
-      return res.status(200).json({
-        success: true,
-        message: 'Preferences updated locally.',
-        data: req.body
+      console.error('[SettingsController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.',
+        data: null
       });
     }
 
@@ -104,7 +93,22 @@ export const updatePreferences = async (req, res, next) => {
         font_size, animations_on, writing_style, research_length,
         citation_style, language, export_format, auto_save_reports, updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+      VALUES (
+        $1,
+        COALESCE($2, 'dark'),
+        COALESCE($3, 'auto'),
+        COALESCE($4, TRUE),
+        COALESCE($5, FALSE),
+        COALESCE($6, 'medium'),
+        COALESCE($7, TRUE),
+        COALESCE($8, 'classic'),
+        COALESCE($9, 'long'),
+        COALESCE($10, 'APA'),
+        COALESCE($11, 'en'),
+        COALESCE($12, 'pdf'),
+        COALESCE($13, TRUE),
+        NOW()
+      )
       ON CONFLICT (user_email) DO UPDATE SET
         theme = COALESCE(EXCLUDED.theme, user_preferences.theme),
         model = COALESCE(EXCLUDED.model, user_preferences.model),
@@ -124,18 +128,18 @@ export const updatePreferences = async (req, res, next) => {
 
     const values = [
       userEmail,
-      theme || 'dark',
-      model || 'auto',
-      autoModelFallback !== undefined ? autoModelFallback : true,
-      compactMode !== undefined ? compactMode : false,
-      fontSize || 'medium',
-      animationsOn !== undefined ? animationsOn : true,
-      writingStyle || 'classic',
-      researchLength || 'long',
-      citationStyle || 'APA',
-      language || 'en',
-      exportFormat || 'pdf',
-      autoSaveReports !== undefined ? autoSaveReports : true
+      theme !== undefined ? theme : null,
+      model !== undefined ? model : null,
+      autoModelFallback !== undefined ? autoModelFallback : null,
+      compactMode !== undefined ? compactMode : null,
+      fontSize !== undefined ? fontSize : null,
+      animationsOn !== undefined ? animationsOn : null,
+      writingStyle !== undefined ? writingStyle : null,
+      researchLength !== undefined ? researchLength : null,
+      citationStyle !== undefined ? citationStyle : null,
+      language !== undefined ? language : null,
+      exportFormat !== undefined ? exportFormat : null,
+      autoSaveReports !== undefined ? autoSaveReports : null
     ];
 
     const result = await pool.query(query, values);

@@ -5,7 +5,6 @@ import { computeImageStatistics } from '../utils/canvas.js';
 import { exportMarkdownFile, exportJSONFile, exportCleanPDF } from '../utils/export.js';
 
 import { showToast } from '../utils/toast.js';
-import { saveReportToHistory } from './Dashboard.js';
 import { updateTelemetryUI } from './LoadingPipeline.js';
 import { mountInlineExplainPanel, renderUpgradedReportCanvas } from './Report/ReportViewer.js';
 
@@ -364,8 +363,6 @@ export function renderResultScreen(data) {
   }
 
   setActiveReportData(data);
-  saveReportToHistory(actualImgSrc, data);
-
   navigateTo('result');
   showToast(`Visual Research Report rendered (${activeModelStr})`, 'success');
 }

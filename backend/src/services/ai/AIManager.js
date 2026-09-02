@@ -73,7 +73,6 @@ class AIManager {
       });
 
       clearTimeout(globalTimeoutId);
-      const totalDurationMs = Date.now() - startTime;
 
       // Abort the losing request immediately!
       tasks.forEach(task => {
@@ -83,11 +82,15 @@ class AIManager {
       });
 
       // Clean and verify all citation references against live endpoints
+      const citStart = Date.now();
       const validatedReferences = await verifyAndCleanCitations(
         winner.result.references,
         winner.result.subject,
         winner.result.category
       );
+      const citationDurationMs = Date.now() - citStart;
+
+      const totalDurationMs = Date.now() - startTime;
 
       const finalReport = {
         ...winner.result,
@@ -111,6 +114,7 @@ class AIManager {
       console.log(`Total Inference Time:   ${finalReport.totalInferenceTimeMs || 0} ms`);
       console.log(`JSON Parsing Time:      ${finalReport.jsonParsingTimeMs || 0} ms`);
       console.log(`Schema Validation Time: ${finalReport.schemaValidationTimeMs || 0} ms`);
+      console.log(`Citation Verification:  ${citationDurationMs} ms`);
       console.log(`Total Request Duration: ${totalDurationMs} ms (${(totalDurationMs / 1000).toFixed(2)}s)`);
       console.log('==================================================\n');
 

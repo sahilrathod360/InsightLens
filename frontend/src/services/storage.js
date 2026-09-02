@@ -84,14 +84,31 @@ export function applyTheme(theme) {
 
 export function initPersistentSession(updateAuthUI) {
   try {
+    const token = localStorage.getItem('insightlens_token');
     const storedSession = localStorage.getItem('insightlens_session');
-    if (storedSession) {
+
+    // Only restore authenticated session if valid JWT token is present
+    if (token && storedSession) {
       const parsed = JSON.parse(storedSession);
-      setUserSession(parsed);
-      if (typeof updateAuthUI === 'function') updateAuthUI();
+      if (parsed && parsed.email && parsed.email !== 'guest@insightlens.edu') {
+        setUserSession(parsed);
+      } else {
+        localStorage.removeItem('insightlens_session');
+        localStorage.removeItem('insightlens_token');
+        setUserSession(null);
+      }
+    } else {
+      localStorage.removeItem('insightlens_session');
+      localStorage.removeItem('insightlens_token');
+      setUserSession(null);
     }
+
+    if (typeof updateAuthUI === 'function') updateAuthUI();
   } catch (err) {
     console.error('Failed to parse persistent session:', err);
+    localStorage.removeItem('insightlens_session');
+    localStorage.removeItem('insightlens_token');
+    setUserSession(null);
   }
 }
 

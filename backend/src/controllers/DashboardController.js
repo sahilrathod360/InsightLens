@@ -2,25 +2,21 @@ import pool from '../config/db.js';
 
 export const getDashboardStats = async (req, res, next) => {
   try {
-    const email = (req.query.email || req.user?.email || 'guest@insightlens.edu').toLowerCase();
+    const email = (req.user?.email || req.query.email || 'guest@insightlens.edu').toLowerCase().trim();
 
     if (!pool) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          totalAnalyses: 0,
-          totalReports: 0,
-          activeModels: ['gemini-2.5-flash', 'gemini-2.5-pro', 'openrouter/free'],
-          categoryDistribution: {},
-          recentActivity: []
-        }
+      console.error('[DashboardController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.',
+        data: null
       });
     }
 
     // 1. Total counts
     const totalReportsRes = await pool.query(
-      'SELECT COUNT(*) as count FROM reports WHERE user_email = $1 OR user_email = $2',
-      [email, 'guest@insightlens.edu']
+      'SELECT COUNT(*) as count FROM reports WHERE user_email = $1',
+      [email]
     );
     const totalReports = parseInt(totalReportsRes.rows[0]?.count || '0', 10);
 
@@ -28,9 +24,9 @@ export const getDashboardStats = async (req, res, next) => {
     const categoryRes = await pool.query(
       `SELECT category, COUNT(*) as count
        FROM reports
-       WHERE user_email = $1 OR user_email = $2
+       WHERE user_email = $1
        GROUP BY category`,
-      [email, 'guest@insightlens.edu']
+      [email]
     );
     const categoryDistribution = {};
     categoryRes.rows.forEach(r => {
@@ -41,9 +37,9 @@ export const getDashboardStats = async (req, res, next) => {
     const modelRes = await pool.query(
       `SELECT model_used, COUNT(*) as count
        FROM reports
-       WHERE user_email = $1 OR user_email = $2
+       WHERE user_email = $1
        GROUP BY model_used`,
-      [email, 'guest@insightlens.edu']
+      [email]
     );
     const modelDistribution = {};
     modelRes.rows.forEach(r => {
@@ -54,9 +50,9 @@ export const getDashboardStats = async (req, res, next) => {
     const recentRes = await pool.query(
       `SELECT id, title, subject, category, date_formatted, timestamp, model_used, confidence_score, favorite
        FROM reports
-       WHERE user_email = $1 OR user_email = $2
+       WHERE user_email = $1
        ORDER BY timestamp DESC LIMIT 10`,
-      [email, 'guest@insightlens.edu']
+      [email]
     );
 
     // 5. App telemetry

@@ -4,6 +4,19 @@ import { getActiveReportData, getSystemPreferences, navigateTo } from '../state.
 import { saveAppMetrics, logUserActivity } from '../services/storage.js';
 import { getAppMetrics } from '../services/storage.js';
 import { showToast } from './toast.js';
+import { API_BASE, getAuthHeaders } from './api.js';
+
+export async function recordExportMetricToBackend(format) {
+  try {
+    await fetch(`${API_BASE}/api/report/export-metric`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ format })
+    });
+  } catch (err) {
+    console.warn(`[Export Metric] Failed to record ${format} export to PostgreSQL:`, err.message);
+  }
+}
 
 export function exportMarkdownFile() {
   const activeReportData = getActiveReportData();
@@ -60,6 +73,7 @@ ${(d.relatedTopics || []).map(t => `- ${t}`).join('\n')}
   downloadBlob(md, `InsightLens_Research_Report_${Date.now()}.md`, 'text/markdown');
   saveAppMetrics({ markdownExportsCount: (getAppMetrics().markdownExportsCount || 0) + 1 });
   logUserActivity('markdown', `Markdown Exported: ${activeReportData?.title || 'Research Brief'}`);
+  recordExportMetricToBackend('markdown');
   showToast('Downloaded Markdown research brief (.md)', 'success');
 }
 
@@ -91,6 +105,7 @@ export function exportCleanPDF() {
 
   saveAppMetrics({ pdfExportsCount: (getAppMetrics().pdfExportsCount || 0) + 1 });
   logUserActivity('pdf', `PDF Export Triggered: ${cleanSubject}`);
+  recordExportMetricToBackend('pdf');
 
   // Trigger native browser print dialog for selectable, native A4 PDF generation
   window.print();

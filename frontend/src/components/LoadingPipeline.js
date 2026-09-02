@@ -14,7 +14,6 @@ import { saveAppMetrics, logUserActivity, getAppMetrics } from '../services/stor
 import { computeImageStatistics } from '../utils/canvas.js';
 import { callGemini25Flash } from '../services/api.js';
 import { showToast } from '../utils/toast.js';
-import { saveReportToHistory } from './Dashboard.js';
 import { renderResultScreen } from './ReportViewer.js';
 
 export const PIPELINE_STEPS = [
@@ -229,14 +228,8 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
     setProgress(100);
 
     setActiveReportData(reportData);
-    saveReportToHistory(dataUrl, reportData);
-    
-    saveAppMetrics({
-      totalReportsGenerated: (getAppMetrics().totalReportsGenerated || 0) + 1,
-      lastAnalysisTimestamp: Date.now(),
-      lastSuccessfulModel: reportData.actualModel,
-      lastSuccessfulTime: Date.now()
-    });
+    // Note: Report is already persisted in PostgreSQL by /api/analyze as the authoritative source of truth.
+    // reportData.id contains the persisted reportId.
     logUserActivity('generate', `Report Generated: ${reportData.title || 'Visual Research Brief'}`);
 
     renderResultScreen(reportData);

@@ -5,6 +5,36 @@ export const API_BASE = (
   'https://insightlens-backend.onrender.com'
 ).replace(/\/+$/, '');
 
+export function getAuthToken() {
+  try {
+    return localStorage.getItem('insightlens_token') || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function setAuthToken(token) {
+  try {
+    if (token) {
+      localStorage.setItem('insightlens_token', token);
+    } else {
+      localStorage.removeItem('insightlens_token');
+    }
+  } catch (e) {}
+}
+
+export function getAuthHeaders(customHeaders = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...customHeaders
+  };
+  const token = getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export class ApiError extends Error {
   constructor(message, status, type, isRetryable = false) {
     super(message);

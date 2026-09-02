@@ -26,6 +26,15 @@ export const register = async (req, res, next) => {
       });
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+        data: null
+      });
+    }
+
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -35,15 +44,11 @@ export const register = async (req, res, next) => {
     }
 
     if (!pool) {
-      // Fallback if database is unavailable
-      const initials = getInitials(fullName || 'User');
-      return res.status(200).json({
-        success: true,
-        message: 'User registered (local session)',
-        data: {
-          user: { email: cleanEmail, name: fullName || cleanEmail, initials, role: 'Researcher' },
-          token: jwt.sign({ email: cleanEmail }, config.jwtSecret, { expiresIn: '7d' })
-        }
+      console.error('[AuthController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.',
+        data: null
       });
     }
 
@@ -69,11 +74,11 @@ export const register = async (req, res, next) => {
 
     const newUser = insertUser.rows[0];
 
-    // Initialize default preferences
+    // Initialize default preferences in PostgreSQL
     await pool.query(
       `INSERT INTO user_preferences (user_email) VALUES ($1) ON CONFLICT (user_email) DO NOTHING`,
       [cleanEmail]
-    ).catch(() => {});
+    );
 
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email, name: newUser.name },
@@ -108,13 +113,11 @@ export const login = async (req, res, next) => {
     }
 
     if (!pool) {
-      return res.status(200).json({
-        success: true,
-        message: 'Sign in successful (local session)',
-        data: {
-          user: { email: cleanEmail, name: cleanEmail, initials: getInitials(cleanEmail), role: 'Researcher' },
-          token: jwt.sign({ email: cleanEmail }, config.jwtSecret, { expiresIn: '7d' })
-        }
+      console.error('[AuthController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database authentication failed: Database connection pool is unavailable.',
+        data: null
       });
     }
 
@@ -192,9 +195,11 @@ export const getMe = async (req, res, next) => {
     }
 
     if (!pool) {
-      return res.status(200).json({
-        success: true,
-        data: { email: userEmail, name: userEmail, initials: getInitials(userEmail), role: 'Researcher' }
+      console.error('[AuthController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database query failed: Database connection pool is unavailable.',
+        data: null
       });
     }
 

@@ -21,15 +21,17 @@ export const saveReport = async (req, res, next) => {
     } = req.body;
 
     const reportId = id || `RPT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-    const email = (userEmail || req.user?.email || 'guest@insightlens.edu').toLowerCase();
+    const email = (req.user?.email || userEmail || req.body?.userEmail || 'guest@insightlens.edu').toLowerCase().trim();
     const nowTime = timestamp || Date.now();
     const formattedDate = date || new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     if (!pool) {
-      return res.status(200).json({
-        success: true,
-        message: 'Report saved (local mode)',
-        data: { id: reportId, ...req.body }
+      const errMsg = 'Database connection pool is uninitialized. Report cannot be persisted.';
+      console.error('[ReportController Error]', errMsg);
+      return res.status(500).json({
+        success: false,
+        message: `Database persistence failed: ${errMsg}`,
+        data: null
       });
     }
 
@@ -153,17 +155,22 @@ export const getReportById = async (req, res, next) => {
 
 export const listReports = async (req, res, next) => {
   try {
-    const email = (req.query.email || req.user?.email || 'guest@insightlens.edu').toLowerCase();
+    const email = (req.user?.email || req.query.email || 'guest@insightlens.edu').toLowerCase().trim();
     const category = req.query.category;
     const queryTerm = req.query.q;
     const favoriteOnly = req.query.favorites === 'true';
 
     if (!pool) {
-      return res.status(200).json({ success: true, data: [] });
+      console.error('[ReportController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.',
+        data: []
+      });
     }
 
-    let sql = 'SELECT * FROM reports WHERE (user_email = $1 OR user_email = $2)';
-    const params = [email, 'guest@insightlens.edu'];
+    let sql = 'SELECT * FROM reports WHERE user_email = $1';
+    const params = [email];
 
     if (category && category !== 'all') {
       params.push(category);
@@ -212,11 +219,28 @@ export const listReports = async (req, res, next) => {
 export const deleteReport = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const email = (req.user?.email || req.query.email || 'guest@insightlens.edu').toLowerCase().trim();
+
     if (!pool) {
-      return res.status(200).json({ success: true, message: 'Deleted locally.' });
+      console.error('[ReportController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.'
+      });
     }
 
-    await pool.query('DELETE FROM reports WHERE id = $1', [id]);
+    const result = await pool.query(
+      'DELETE FROM reports WHERE id = $1 AND (user_email = $2 OR user_email = $3) RETURNING id',
+      [id, email, 'guest@insightlens.edu']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report not found or not owned by user.'
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: `Report ${id} deleted successfully.`
@@ -230,7 +254,11 @@ export const toggleFavorite = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!pool) {
-      return res.status(200).json({ success: true, message: 'Toggled favorite locally.' });
+      console.error('[ReportController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.'
+      });
     }
 
     const result = await pool.query(
@@ -250,3 +278,48 @@ export const toggleFavorite = async (req, res, next) => {
     next(err);
   }
 };
+
+export const trackExportMetric = async (req, res, next) => {
+  try {
+    const { format } = req.body;
+    const email = (req.user?.email || req.body?.userEmail || 'guest@insightlens.edu').toLowerCase().trim();
+
+    if (!pool) {
+      console.error('[ReportController Error] PostgreSQL pool is uninitialized.');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection pool is unavailable.'
+      });
+    }
+
+    if (format === 'pdf') {
+      await pool.query(`
+        INSERT INTO app_metrics (metric_key, user_email, pdf_exports_count)
+        VALUES ('global_metrics', $1, 1)
+        ON CONFLICT (metric_key) DO UPDATE SET
+          pdf_exports_count = app_metrics.pdf_exports_count + 1,
+          updated_at = NOW()
+      `, [email]);
+      console.log(`[Export Metrics] Incremented pdf_exports_count for ${email}`);
+    } else if (format === 'markdown') {
+      await pool.query(`
+        INSERT INTO app_metrics (metric_key, user_email, markdown_exports_count)
+        VALUES ('global_metrics', $1, 1)
+        ON CONFLICT (metric_key) DO UPDATE SET
+          markdown_exports_count = app_metrics.markdown_exports_count + 1,
+          updated_at = NOW()
+      `, [email]);
+      console.log(`[Export Metrics] Incremented markdown_exports_count for ${email}`);
+    } else {
+      return res.status(400).json({ success: false, message: 'Invalid export format specified.' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Export metric recorded: ${format}`
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+

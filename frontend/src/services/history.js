@@ -1,120 +1,161 @@
-// History & Real Application Data Analytics Service
+// History & Visual Intelligence Data Service (Backed by Aiven PostgreSQL)
 
 import { getUserSession } from '../state.js';
-import { getAppMetrics, logUserActivity } from './storage.js';
+import { logUserActivity } from './storage.js';
+import { API_BASE, getAuthHeaders } from '../utils/api.js';
 
-export function getSavedReportsHistory() {
+/**
+ * Fetch all reports from PostgreSQL history endpoint.
+ */
+export async function getReportsHistory(filters = {}) {
   const session = getUserSession();
   const email = session ? session.email : 'guest@insightlens.edu';
+  
+  const params = new URLSearchParams({ email });
+  if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+  if (filters.q && filters.q.trim()) params.append('q', filters.q.trim());
+  if (filters.favoritesOnly) params.append('favorites', 'true');
+
+  const targetUrl = `${API_BASE}/api/history?${params.toString()}`;
+
   try {
-    return JSON.parse(localStorage.getItem(`insightlens_history_${email}`)) || [];
+    const res = await fetch(targetUrl, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    if (!res.ok) {
+      console.warn(`[History Service] /api/history returned HTTP ${res.status}`);
+      return [];
+    }
+
+    const json = await res.json();
+    return json.success && Array.isArray(json.data) ? json.data : [];
   } catch (err) {
+    console.error('[History Service] Error fetching reports from database:', err.message);
     return [];
   }
 }
 
-export function saveReportsHistory(history) {
+/**
+ * Fetch all archived reports from PostgreSQL archive endpoint.
+ */
+export async function getArchive(filters = {}) {
   const session = getUserSession();
   const email = session ? session.email : 'guest@insightlens.edu';
+  
+  const params = new URLSearchParams({ email });
+  if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+  if (filters.q && filters.q.trim()) params.append('q', filters.q.trim());
+  if (filters.favoritesOnly) params.append('favorites', 'true');
+
+  const targetUrl = `${API_BASE}/api/archive?${params.toString()}`;
+
   try {
-    localStorage.setItem(`insightlens_history_${email}`, JSON.stringify(history));
-  } catch (err) {
-    console.error('Failed to save reports history to localStorage:', err);
-  }
-}
+    const res = await fetch(targetUrl, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
 
-export async function saveReportToHistory(imageDataUrl, reportData) {
-  if (!reportData) return;
-  const history = getSavedReportsHistory();
-
-  let thumbDataUrl = imageDataUrl;
-  if (typeof imageDataUrl === 'string' && imageDataUrl.length > 50000) {
-    try {
-      const { generateScaledThumbnail } = await import('../utils/canvas.js');
-      thumbDataUrl = await generateScaledThumbnail(imageDataUrl, 500);
-    } catch (tErr) {
-      console.warn('Thumbnail scaling fallback:', tErr);
+    if (!res.ok) {
+      console.warn(`[History Service] /api/archive returned HTTP ${res.status}`);
+      return [];
     }
+
+    const json = await res.json();
+    return json.success && Array.isArray(json.data) ? json.data : [];
+  } catch (err) {
+    console.error('[History Service] Error fetching archive from database:', err.message);
+    return [];
   }
-
-  const nowStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-
-  const newEntry = {
-    id: `RPT-${Date.now()}-${Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] % 10000)}`,
-    title: reportData.title || 'Image Research Brief',
-    subject: reportData.subject || 'Visual Subject Assessment',
-    category: reportData.category || 'General Research',
-    summaryLead: reportData.executiveSummary || reportData.summaryLead || '',
-    date: nowStr,
-    timestamp: Date.now(),
-    imageDataUrl: thumbDataUrl,
-    fullImage: imageDataUrl,
-    modelUsed: reportData.actualModel || reportData.modelUsed || 'gemini-2.5-flash',
-    processingTimeMs: reportData.processingTimeMs || 2000,
-    confidenceScore: reportData.confidenceScore || '96.8%',
-    fullData: reportData,
-    pdfAvailable: true,
-    markdownAvailable: true,
-    favorite: false
-  };
-
-  history.unshift(newEntry);
-  if (history.length > 50) history.pop();
-  saveReportsHistory(history);
-  return newEntry;
 }
 
-export function deleteReportFromHistory(reportId) {
-  let history = getSavedReportsHistory();
-  const target = history.find(r => r.id === reportId);
-  history = history.filter(r => r.id !== reportId);
-  saveReportsHistory(history);
-  logUserActivity('delete', `Deleted report: ${target ? target.title : reportId}`);
-  return history;
-}
+/**
+ * Fetch a single report by ID from PostgreSQL.
+ */
+export async function getReportById(reportId) {
+  if (!reportId) return null;
+  const targetUrl = `${API_BASE}/api/report/${encodeURIComponent(reportId)}`;
 
-export function duplicateReportInHistory(reportId) {
-  const history = getSavedReportsHistory();
-  const target = history.find(r => r.id === reportId);
-  if (!target) return history;
+  try {
+    const res = await fetch(targetUrl, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
 
-  const nowStr = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-
-  const copyEntry = {
-    ...target,
-    id: `RPT-${Date.now()}-${Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] % 10000)}`,
-    title: `${target.title} (Copy)`,
-    date: nowStr,
-    timestamp: Date.now(),
-    favorite: false
-  };
-
-  history.unshift(copyEntry);
-  saveReportsHistory(history);
-  logUserActivity('duplicate', `Duplicated report: ${target.title}`);
-  return history;
-}
-
-export function toggleFavoriteReport(reportId) {
-  const history = getSavedReportsHistory();
-  const target = history.find(r => r.id === reportId);
-  if (target) {
-    target.favorite = !target.favorite;
-    saveReportsHistory(history);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.success ? json.data : null;
+  } catch (err) {
+    console.error(`[History Service] Error fetching report ${reportId}:`, err.message);
+    return null;
   }
-  return history;
 }
 
-export function filterAndSortReports(reports, { query = '', dateFilter = 'all', modelFilter = 'all', categoryFilter = 'all', favoritesOnly = false, sortBy = 'newest' } = {}) {
-  let result = [...reports];
+/**
+ * Delete a report by ID from PostgreSQL.
+ */
+export async function deleteReport(reportId) {
+  if (!reportId) return false;
+  const targetUrl = `${API_BASE}/api/archive/${encodeURIComponent(reportId)}`;
 
-  // 1. Search Query (Title, Category, Keywords, Executive Summary)
+  try {
+    const res = await fetch(targetUrl, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+
+    if (res.ok) {
+      logUserActivity('delete', `Deleted report: ${reportId}`);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error(`[History Service] Error deleting report ${reportId}:`, err.message);
+    return false;
+  }
+}
+
+/**
+ * Toggle favorite status of a report in PostgreSQL.
+ */
+export async function toggleFavorite(reportId) {
+  if (!reportId) return null;
+  const targetUrl = `${API_BASE}/api/report/${encodeURIComponent(reportId)}/favorite`;
+
+  try {
+    const res = await fetch(targetUrl, {
+      method: 'PUT',
+      headers: getAuthHeaders()
+    });
+
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.success ? json.data : null;
+  } catch (err) {
+    console.error(`[History Service] Error toggling favorite for ${reportId}:`, err.message);
+    return null;
+  }
+}
+
+// Backward-compatible named exports
+export const deleteReportFromHistory = deleteReport;
+export const toggleFavoriteReport = toggleFavorite;
+export const getSavedReportsHistory = getReportsHistory;
+
+/**
+ * Filter and sort a list of reports in memory.
+ */
+export function filterAndSortReports(reports = [], { query = '', dateFilter = 'all', modelFilter = 'all', categoryFilter = 'all', favoritesOnly = false, sortBy = 'newest' } = {}) {
+  let result = Array.isArray(reports) ? [...reports] : [];
+
+  // 1. Search Query (Title, Category, Keywords, Summary)
   if (query.trim()) {
     const q = query.toLowerCase().trim();
     result = result.filter(r => {
       const title = (r.title || '').toLowerCase();
       const cat = (r.category || '').toLowerCase();
-      const summary = (r.summaryLead || '').toLowerCase();
+      const summary = (r.summaryLead || r.summary || '').toLowerCase();
       const kw = (r.fullData?.generatedKeywords || []).join(' ').toLowerCase();
       return title.includes(q) || cat.includes(q) || summary.includes(q) || kw.includes(q);
     });
@@ -170,9 +211,11 @@ export function filterAndSortReports(reports, { query = '', dateFilter = 'all', 
   return result;
 }
 
-export function computeRealDashboardStats() {
-  const reports = getSavedReportsHistory();
-  const metrics = getAppMetrics();
+/**
+ * Compute dashboard statistics from an array of reports.
+ */
+export function computeRealDashboardStats(reports = [], metrics = {}) {
+  const reportList = Array.isArray(reports) ? reports : [];
 
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -180,10 +223,8 @@ export function computeRealDashboardStats() {
 
   let reportsTodayCount = 0;
   let reportsThisWeekCount = 0;
-
   let totalProcessingMs = 0;
   let reportsWithTimeCount = 0;
-
   let totalConfidenceSum = 0;
   let reportsWithConfidenceCount = 0;
 
@@ -191,8 +232,8 @@ export function computeRealDashboardStats() {
   const categoryCounts = {};
   const dayCounts = {};
 
-  reports.forEach(rpt => {
-    const timestamp = rpt.timestamp || (rpt.id ? parseInt(rpt.id.replace('RPT-', ''), 10) : 0);
+  reportList.forEach(rpt => {
+    const timestamp = Number(rpt.timestamp) || (rpt.id ? parseInt(rpt.id.replace('RPT-', ''), 10) : 0);
 
     if (timestamp >= startOfToday) reportsTodayCount++;
     if (timestamp >= startOfWeek) reportsThisWeekCount++;
@@ -209,7 +250,7 @@ export function computeRealDashboardStats() {
     categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
 
     if (rpt.processingTimeMs) {
-      totalProcessingMs += rpt.processingTimeMs;
+      totalProcessingMs += Number(rpt.processingTimeMs);
       reportsWithTimeCount++;
     }
 
@@ -240,15 +281,6 @@ export function computeRealDashboardStats() {
     }
   }
 
-  let storageBytes = 0;
-  try {
-    for (let k in localStorage) {
-      if (localStorage.hasOwnProperty(k) && k.startsWith('insightlens')) {
-        storageBytes += (localStorage[k] || '').length * 2;
-      }
-    }
-  } catch (e) {}
-
   const avgProcessingTime = reportsWithTimeCount > 0 
     ? (totalProcessingMs / reportsWithTimeCount / 1000).toFixed(1) + 's' 
     : '0s';
@@ -259,24 +291,23 @@ export function computeRealDashboardStats() {
 
   const lastAnalysisDate = metrics.lastAnalysisTimestamp 
     ? new Date(metrics.lastAnalysisTimestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : (reports.length > 0 ? (reports[0].date || 'Recently') : 'Never');
+    : (reportList.length > 0 ? (reportList[0].date || 'Recently') : 'Never');
 
   return {
-    totalReports: reports.length,
+    totalReports: reportList.length,
     reportsToday: reportsTodayCount,
     reportsThisWeek: reportsThisWeekCount,
-    totalImagesAnalyzed: metrics.totalImagesAnalyzed || reports.length,
+    totalImagesAnalyzed: metrics.totalImagesAnalyzed || reportList.length,
     pdfExports: metrics.pdfExportsCount || 0,
     markdownExports: metrics.markdownExportsCount || 0,
     avgProcessingTime,
     avgConfidenceScore,
     mostUsedModel: mostUsedModel !== 'None' ? mostUsedModel : (metrics.lastSuccessfulModel || 'gemini-2.5-flash'),
     mostUsedCategory,
-    storageUsedBytes: storageBytes,
     lastAnalysisDate,
     dayCounts,
     categoryCounts,
     modelCounts,
-    reportsList: reports
+    reportsList: reportList
   };
 }

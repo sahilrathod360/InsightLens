@@ -1,9 +1,8 @@
-// Top Navigation Bar, User Auth Dropdown & Modal Events
-
 import { navigateTo, getUserSession, setUserSession, getAuthMode, setAuthModeState } from '../state.js';
 import { applyAppearancePreferences, savePreferences, hashPassword, getInitials } from '../services/storage.js';
 import { exportCleanPDF } from '../utils/export.js';
 import { showToast } from '../utils/toast.js';
+import { API_BASE, setAuthToken, getAuthHeaders } from '../utils/api.js';
 
 export function setupNavigation() {
   document.getElementById('nav-brand')?.addEventListener('click', () => navigateTo('landing'));
@@ -214,72 +213,79 @@ export function setupAuthEvents(renderArchivePage, renderDashboard) {
     }
 
     try {
-      // Simulate network latency for loading state
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      const hashedPassword = await hashPassword(password);
-      let users = {};
-      try {
-        users = JSON.parse(localStorage.getItem('insightlens_users')) || {};
-      } catch (err) {
-        users = {};
-      }
-
       if (authMode === 'signup') {
-        const name = `${firstName} ${lastName}`;
-        // Case-insensitive duplicate check
-        const existingEmail = Object.keys(users).find(u => u.toLowerCase() === email);
-        if (existingEmail) {
-          showToast('An account with this email already exists. Please Sign In.', 'warning');
-          setAuthMode('signin');
+        const name = `${firstName} ${lastName}`.trim();
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name, firstName, lastName })
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          showToast(json.message || 'Registration failed. Please try again.', 'warning');
           return;
         }
 
-        const initials = getInitials(name);
-        users[email] = { name, email, initials, passwordHash: hashedPassword, createdAt: new Date().toISOString() };
-        localStorage.setItem('insightlens_users', JSON.stringify(users));
+        const { user, token } = json.data;
+        setAuthToken(token);
 
-        const newSession = { name, email, initials, loginTime: Date.now() };
+        const newSession = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          initials: user.initials || getInitials(user.name),
+          role: user.role || 'Researcher',
+          loginTime: Date.now()
+        };
         setUserSession(newSession);
         localStorage.setItem('insightlens_session', JSON.stringify(newSession));
 
         updateAuthUI();
         if (typeof renderArchivePage === 'function') renderArchivePage();
-        showToast(`Welcome, ${firstName}! You're now signed in.`, 'success');
+        if (typeof renderDashboard === 'function') renderDashboard();
+        showToast(`Welcome, ${firstName || user.name}! You're now registered and signed in.`, 'success');
         closeLoginModal();
         navigateTo('landing');
 
       } else {
-        const existingEmail = Object.keys(users).find(u => u.toLowerCase() === email);
-        const activeUser = users[existingEmail];
-        
-        if (!activeUser) {
-          showToast('No account found for this email. Please Create an Account first.', 'warning');
-          setAuthMode('signup');
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          showToast(json.message || 'Invalid email or password.', 'warning');
           return;
         }
 
-        if (activeUser.passwordHash !== hashedPassword) {
-          showToast('Incorrect password. Please try again.', 'warning');
-          return;
-        }
+        const { user, token } = json.data;
+        setAuthToken(token);
 
-        const sessionObj = { 
-          name: activeUser.name, 
-          email: activeUser.email, 
-          initials: activeUser.initials || getInitials(activeUser.name),
-          loginTime: Date.now() 
+        const sessionObj = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          initials: user.initials || getInitials(user.name),
+          role: user.role || 'Researcher',
+          loginTime: Date.now()
         };
         setUserSession(sessionObj);
         localStorage.setItem('insightlens_session', JSON.stringify(sessionObj));
 
         updateAuthUI();
         if (typeof renderArchivePage === 'function') renderArchivePage();
-        const first = activeUser.name.split(' ')[0];
+        if (typeof renderDashboard === 'function') renderDashboard();
+        const first = user.name.split(' ')[0];
         showToast(`Welcome, ${first}! You're now signed in.`, 'success');
         closeLoginModal();
         navigateTo('landing');
       }
+    } catch (authErr) {
+      console.error('[Auth Error]', authErr);
+      showToast('Authentication network error. Please try again.', 'error');
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -290,14 +296,8 @@ export function setupAuthEvents(renderArchivePage, renderDashboard) {
   });
 
   guestBtn?.addEventListener('click', () => {
-    const guestSession = { name: 'Guest Researcher', email: 'guest@insightlens.edu', initials: 'GR', loginTime: Date.now() };
-    setUserSession(guestSession);
-    localStorage.setItem('insightlens_session', JSON.stringify(guestSession));
-    updateAuthUI();
-    if (typeof renderArchivePage === 'function') renderArchivePage();
-    showToast('Entered Research Portal as Guest Researcher.', 'info');
-    closeLoginModal();
-    navigateTo('dashboard');
+    setAuthMode('signup');
+    showToast('Please create an account or sign in to access your PostgreSQL Researcher Portal.', 'info');
   });
 }
 
@@ -419,9 +419,11 @@ export function setupLogoutModal(renderArchivePage) {
   confirmBtn?.addEventListener('click', () => {
     modal?.classList.remove('show');
     setUserSession(null);
+    setAuthToken(null);
     localStorage.removeItem('insightlens_session');
     updateAuthUI();
     if (typeof renderArchivePage === 'function') renderArchivePage();
+    if (typeof renderDashboard === 'function') renderDashboard();
     showToast('Signed out of researcher session.', 'info');
     navigateTo('landing');
   });
