@@ -21,8 +21,21 @@ export async function recordExportMetricToBackend(format) {
 export function exportMarkdownFile() {
   const activeReportData = getActiveReportData();
   if (!activeReportData) return;
-  const d = activeReportData;
-  const systemPreferences = getSystemPreferences();
+  let diagramSection = '';
+  if (d.visualType === 'diagram' && d.diagramStructure) {
+    const s = d.diagramStructure;
+    const nodeMap = new Map((s.nodes || []).map(n => [n.id, n.label]));
+    const nodesList = (s.nodes || []).map(n => `- ${n.label || 'Unlabelled Node'}${n.type && n.type !== 'unknown' ? ` (${n.type})` : ''}`).join('\n');
+    const edgesList = (s.edges || []).map(e => {
+      const src = nodeMap.get(e.source) || e.source || 'Node';
+      const tgt = nodeMap.get(e.target) || e.target || 'Node';
+      const arrow = e.direction === 'bidirectional' ? '↔' : '→';
+      return `- ${src} ${arrow} ${tgt}${e.label ? ` (${e.label})` : ''}`;
+    }).join('\n');
+
+    diagramSection = `\n---\n\n## Visual Structure\n\nDiagram Type: ${(s.diagramType || 'diagram').replace(/_/g, ' ').toUpperCase()}\n\n### Nodes\n${nodesList || '- No explicit nodes detected.'}\n\n### Connections\n${edgesList || '- No explicit connections detected.'}\n`;
+  }
+
   const md = `# ${d.title}
 *Synthesized by InsightLens AI Visual Research Engine (${systemPreferences.model})*
 
@@ -48,7 +61,7 @@ ${d.summaryLead || d.executiveSummary || ''}
 \`\`\`
 ${d.extractedOCR || 'No textual inscriptions detected.'}
 \`\`\`
-
+${diagramSection}
 ---
 
 ## Detailed Analytical Report

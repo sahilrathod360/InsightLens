@@ -52,6 +52,18 @@ export function buildJsonSchemaPrompt() {
   "conclusion": "75-100 word conclusion.",
   "limitations": "Specific visual inference limitations based on the visual type.",
   "detectedObjects": ["Subject", "Background", "Focal Region"],
-  "extractedOCR": "Extracted text OR 'None detected'"
+  "extractedOCR": "Extracted text OR 'None detected'",
+  "diagramStructure": {
+    "diagramType": "flowchart | dfd | uml | er_diagram | architecture | generic diagram",
+    "classificationReason": "[Visual rationale for diagram archetype]",
+    "nodes": [
+      { "id": "node_1", "label": "[Node Label]", "type": "process | external_entity | database | component | class | entity | decision | system | unknown" }
+    ],
+    "edges": [
+      { "id": "edge_1", "source": "node_1", "target": "node_2", "label": "[Connector Label or null]", "type": "directed | association | dependency | data_flow | inheritance | unknown", "direction": "forward" }
+    ],
+    "groups": [],
+    "visibleLabels": ["[Visible Labels]"]
+  }
 }`;
 }

@@ -377,9 +377,96 @@ export function renderResultScreen(data) {
     `;
   }
 
+  // Phase 4: Compact Visual Structure Extraction for Diagrams
+  renderDiagramStructure(data);
+
   setActiveReportData(data);
   navigateTo('result');
   showToast(`Visual Research Report rendered (${activeModelStr})`, 'success');
+}
+
+export function renderDiagramStructure(data) {
+  const container = document.getElementById('diagram-structure-container');
+  if (!container) return;
+
+  const isDiagram = data && (data.visualType === 'diagram' || (data.diagramStructure && Array.isArray(data.diagramStructure.nodes) && data.diagramStructure.nodes.length > 0));
+  const structure = data?.diagramStructure;
+
+  if (!isDiagram || !structure) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+
+  const rawType = structure.diagramType || 'generic diagram';
+  const diagramType = rawType.replace(/_/g, ' ').toUpperCase();
+  const nodes = Array.isArray(structure.nodes) ? structure.nodes : [];
+  const edges = Array.isArray(structure.edges) ? structure.edges : [];
+
+  const typePill = document.getElementById('diagram-type-pill');
+  if (typePill) typePill.textContent = diagramType;
+
+  const statType = document.getElementById('diagram-stat-type');
+  if (statType) statType.textContent = rawType.replace(/_/g, ' ');
+
+  const statNodes = document.getElementById('diagram-stat-nodes');
+  if (statNodes) statNodes.textContent = `${nodes.length} Nodes`;
+
+  const statEdges = document.getElementById('diagram-stat-edges');
+  if (statEdges) statEdges.textContent = `${edges.length} Connections`;
+
+  const nodesBadge = document.getElementById('diagram-nodes-count-badge');
+  if (nodesBadge) nodesBadge.textContent = `${nodes.length} items`;
+
+  const edgesBadge = document.getElementById('diagram-edges-count-badge');
+  if (edgesBadge) edgesBadge.textContent = `${edges.length} links`;
+
+  // Render Nodes List
+  const nodesList = document.getElementById('diagram-nodes-list');
+  if (nodesList) {
+    if (nodes.length === 0) {
+      nodesList.innerHTML = '<li class="text-[var(--text-muted)] italic font-mono text-xs py-1">No explicit node entities observed.</li>';
+    } else {
+      nodesList.innerHTML = nodes.map(n => `
+        <li class="flex items-start gap-2 py-1.5 border-b border-[var(--border-color)]/40 last:border-none">
+          <span class="text-indigo-400 mt-0.5 select-none">•</span>
+          <div class="flex-1 min-w-0 flex items-center justify-between gap-2">
+            <span class="font-medium text-[var(--text-primary)] truncate">${n.label || 'Unlabelled Node'}</span>
+            ${n.type && n.type !== 'unknown' ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 whitespace-nowrap">${n.type}</span>` : ''}
+          </div>
+        </li>
+      `).join('');
+    }
+  }
+
+  // Render Connections List
+  const edgesList = document.getElementById('diagram-edges-list');
+  if (edgesList) {
+    if (edges.length === 0) {
+      edgesList.innerHTML = '<li class="text-[var(--text-muted)] italic font-mono text-xs py-1">No directional connectors observed.</li>';
+    } else {
+      const nodeMap = new Map(nodes.map(n => [n.id, n.label]));
+      edgesList.innerHTML = edges.map(e => {
+        const srcLabel = nodeMap.get(e.source) || e.source || 'Node';
+        const tgtLabel = nodeMap.get(e.target) || e.target || 'Node';
+        const arrow = e.direction === 'bidirectional' ? '↔' : '→';
+        return `
+          <li class="flex items-start gap-2 py-1.5 border-b border-[var(--border-color)]/40 last:border-none">
+            <span class="text-emerald-400 mt-0.5 select-none">•</span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center flex-wrap gap-1 font-sans">
+                <span class="font-medium text-[var(--text-primary)] truncate">${srcLabel}</span>
+                <span class="text-emerald-400 font-bold px-1">${arrow}</span>
+                <span class="font-medium text-[var(--text-primary)] truncate">${tgtLabel}</span>
+              </div>
+              ${e.label ? `<span class="text-[10px] font-mono text-[var(--text-muted)] block mt-0.5">Label: ${e.label}</span>` : ''}
+            </div>
+          </li>
+        `;
+      }).join('');
+    }
+  }
 }
 
 export function setupReportActions(startAnalysisPipeline) {

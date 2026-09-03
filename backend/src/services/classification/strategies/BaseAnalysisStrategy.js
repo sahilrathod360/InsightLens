@@ -17,7 +17,8 @@ export class BaseAnalysisStrategy {
       ...report,
       visualType: this.visualType,
       analysisPipeline: this.visualType,
-      specializedPipeline: this.label
+      specializedPipeline: this.label,
+      diagramStructure: null
     };
   }
 }
