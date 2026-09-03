@@ -32,13 +32,13 @@ export function resolveDynamicCategory(subject = '', rawCategory = '') {
 }
 
 export function formatReportTitle(subject = '', rawTitle = '') {
-  if (subject && subject.length > 2) {
-    const cleanSub = subject.replace(/^(Research Analysis of|Visual Analysis of|Analysis of|Visual Intelligence Report:|Visual Research Report:)\s+/i, '').trim();
-    return cleanSub.charAt(0).toUpperCase() + cleanSub.slice(1);
-  }
   if (rawTitle && rawTitle.length > 2) {
     const cleanTitle = rawTitle.replace(/^(Research Analysis of|Visual Analysis of|Analysis of|Visual Intelligence Report:|Visual Research Report:)\s+/i, '').trim();
     return cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+  }
+  if (subject && subject.length > 2) {
+    const cleanSub = subject.replace(/^(Research Analysis of|Visual Analysis of|Analysis of|Visual Intelligence Report:|Visual Research Report:)\s+/i, '').trim();
+    return cleanSub.charAt(0).toUpperCase() + cleanSub.slice(1);
   }
   return 'Visual Artifact Analysis';
 }

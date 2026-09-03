@@ -1,7 +1,7 @@
 // API Utility Functions: Error Handling, Classification & Retry Logic
 export const API_BASE = (
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_BACKEND_URL ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) ||
   'https://insightlens-backend.onrender.com'
 ).replace(/\/+$/, '');
 

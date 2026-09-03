@@ -5,14 +5,28 @@ export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectConte
 
   const userContextBlock = subjectContext && subjectContext.trim() ? `
 USER-PROVIDED SUBJECT CONTEXT:
-The user has provided the following domain/subject context for this visual: "${subjectContext.trim()}".
-- This identity/context is provided directly by the user as domain metadata, NOT determined by automated facial recognition.
-- Integrate the name "${subjectContext.trim()}" naturally throughout the generated report.
-- Format the report title as: "${subjectContext.trim()} — [Descriptive Role / Context / Visual Summary]" (e.g. "${subjectContext.trim()} — Professional Cricket Player").
-- Set the "subject" property in the JSON to "${subjectContext.trim()}".
-- Seamlessly reference "${subjectContext.trim()}" across Executive Summary, Key Findings, Subject Identification, relevant observations, and Conclusion where appropriate.
-- Preserve objective visual observations (attire, equipment, postures, colors, textures, lighting) anchored to this context.
-` : '';
+The user has specified that the subject of this visual is: "${subjectContext.trim()}".
+CRITICAL RULES FOR USER-PROVIDED SUBJECT CONTEXT:
+1. Treat "${subjectContext.trim()}" as user-provided context/premise, NOT as an identification made through facial recognition.
+2. The JSON "subject" property MUST be exactly "${subjectContext.trim()}".
+3. The JSON "title" property MUST be formatted as: "${subjectContext.trim()} — [Concise Descriptive Role / Sport / Context / Title]" (e.g. "${subjectContext.trim()} — Professional Indian Cricketer" or "${subjectContext.trim()} — Athletic Portrait").
+4. Seamlessly and naturally integrate "${subjectContext.trim()}" throughout relevant report sections:
+   - title
+   - executiveSummary / executiveInsight.summary
+   - keyFinding
+   - visual/structural analysis & observations
+   - subject identification & domain taxonomy
+   - relevant domain importance
+   - conclusion
+5. For person/athlete subjects, prioritize analysis of the individual, their athletic discipline, stance, equipment, team context, and domain impact, rather than filling the report with generic background/camera noise.
+6. Do NOT invent unsupported biographical claims. Only include factual claims supported by the supplied context, visible image evidence, or verified domain facts.
+7. NEVER use generic image filenames (such as "images (2)", "image.jpeg", "photo.jpg") as the subject. The subject is "${subjectContext.trim()}".
+` : `
+NO USER SUBJECT CONTEXT PROVIDED:
+- Do NOT guess, assert, or claim the identity of real individuals from facial appearance alone.
+- NEVER use generic filenames (e.g., "images (2)", "photo.jpg", "IMG_1234") as the subject or title.
+- Describe observable visual features, attire, objects, and setting objectively (e.g., "Professional Cricket Player in Indian National Kit").
+`;
 
   return `You are InsightLens Visual Intelligence Engine.
 Analyze the provided visual artifact and synthesize a structured empirical research report in ${lang} (${researchLength} depth).
@@ -22,6 +36,7 @@ ${userContextBlock}
 MANDATORY IDENTITY SAFETY & OBSERVATION DISCIPLINE:
 - Prioritize concrete, structured visual observations over generic demographic phrasing.
 - For human subjects: When no user-provided subject context is given, NEVER assert or guess the name or identity of any real individual from facial appearance alone. When the user explicitly supplies subject context, treat it as user-provided metadata (not facial recognition) and use it throughout the report while describing observable visual evidence objectively.
+- NEVER use image filenames or camera file numbering as the subject name.
 
 IMPORTANT CITATION INSTRUCTION:
 Never invent, fabricate, or hallucinate citations, DOIs, fake academic papers, or non-existent URLs.
