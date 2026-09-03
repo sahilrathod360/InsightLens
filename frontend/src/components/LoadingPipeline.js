@@ -132,6 +132,7 @@ export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
   const systemPreferences = getSystemPreferences();
   const researchLength = document.getElementById('select-length')?.value || systemPreferences.researchLength || 'long';
   const writingStyle = document.getElementById('select-style')?.value || systemPreferences.writingStyle || 'classic';
+  const subjectContext = document.getElementById('input-subject-context')?.value?.trim() || '';
 
   // Global Pipeline Safety Net Timer (120s to allow sequential multi-provider AI backend generation)
   const safetyTimer = setTimeout(() => {
@@ -148,10 +149,12 @@ export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
 
   // Progressive Pre-Render: Prepare Hero Image & Initial Canvas
   const heroTitleEl = document.getElementById('report-hero-title');
-  if (heroTitleEl) heroTitleEl.textContent = safeFilename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+  if (heroTitleEl) {
+    heroTitleEl.textContent = subjectContext || safeFilename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+  }
 
-  setLastAnalysisPayload({ dataUrl, filename: safeFilename, filesizeStr: safeFilesize, researchLength, writingStyle });
-  runLoadingProgressionWithGemini(dataUrl, researchLength, writingStyle, thisAnalysisId);
+  setLastAnalysisPayload({ dataUrl, filename: safeFilename, filesizeStr: safeFilesize, researchLength, writingStyle, subjectContext });
+  runLoadingProgressionWithGemini(dataUrl, researchLength, writingStyle, subjectContext, thisAnalysisId);
 }
 
 export function updateTelemetryUI(stats) {
@@ -176,7 +179,7 @@ export function updateTelemetryUI(stats) {
   setEl('telemetry-ai-confidence', stats.aiConfidence);
 }
 
-export async function runLoadingProgressionWithGemini(dataUrl, researchLength, writingStyle, thisAnalysisId) {
+export async function runLoadingProgressionWithGemini(dataUrl, researchLength, writingStyle, subjectContext, thisAnalysisId) {
   const progressFill = document.getElementById('progress-fill');
   const progressPercentage = document.getElementById('progress-percentage');
   const statusTitle = document.getElementById('status-title');
@@ -235,7 +238,7 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
       if (statusTitle) statusTitle.textContent = `Switching provider model (${attempt}/${maxRetries})...`;
     };
 
-    const apiPromise = callGemini25Flash(dataUrl, researchLength, writingStyle, onModelAttempt, onRetryNotice);
+    const apiPromise = callGemini25Flash(dataUrl, researchLength, writingStyle, subjectContext, onModelAttempt, onRetryNotice);
 
     // Smooth Progress Heartbeat (60% -> 92%)
     let stepProgress = 60;

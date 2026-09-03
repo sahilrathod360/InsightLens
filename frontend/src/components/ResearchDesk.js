@@ -70,6 +70,19 @@ export function setupUploadEvents(startAnalysisPipeline) {
   });
 }
 
+export function extractSuggestedSubjectFromFilename(filename) {
+  if (!filename) return '';
+  const base = filename.replace(/\.[^/.]+$/, '').trim();
+  // Filter out generic camera/screenshot names like IMG_1234, Screenshot_2026, Photo_123, document, etc.
+  if (/^(img|dsc|photo|image|screenshot|scan|pic|document|file)[-_0-9]*$/i.test(base)) {
+    return '';
+  }
+  // Convert hyphens and underscores to spaces and capitalize words
+  const clean = base.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (clean.length < 3) return '';
+  return clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
 export function handleFileSelected(file, startAnalysisPipeline) {
   if (!file) return;
 
@@ -94,6 +107,15 @@ export function handleFileSelected(file, startAnalysisPipeline) {
   if (file.size > 20 * 1024 * 1024) {
     showToast('File size exceeds the 20MB limit. Please choose a smaller image.', 'warning');
     return;
+  }
+
+  // Suggest context from filename if subject input is empty
+  const subjectInput = document.getElementById('input-subject-context');
+  if (subjectInput && !subjectInput.value.trim()) {
+    const suggested = extractSuggestedSubjectFromFilename(file.name);
+    if (suggested) {
+      subjectInput.value = suggested;
+    }
   }
 
   setActiveFile(file);

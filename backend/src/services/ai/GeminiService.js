@@ -13,7 +13,7 @@ class GeminiService {
     const startTime = Date.now();
     console.log('[AIManager] Gemini started');
 
-    const { researchLength = 'long', language = 'en' } = promptObj;
+    const { researchLength = 'long', language = 'en', subjectContext = '' } = promptObj;
     
     // Extract base64 and mimetype
     let mimeType = 'image/jpeg';
@@ -26,7 +26,7 @@ class GeminiService {
       }
     }
 
-    const promptText = buildAiPrompt(language, researchLength);
+    const promptText = buildAiPrompt(language, researchLength, subjectContext);
     const schemaText = buildJsonSchemaPrompt();
     const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite'];
     let lastError = null;

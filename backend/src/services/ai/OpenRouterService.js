@@ -14,14 +14,14 @@ class OpenRouterService {
     const startTime = Date.now();
     console.log('[AIManager] OpenRouter started');
 
-    const { researchLength = 'long', language = 'en' } = promptObj;
+    const { researchLength = 'long', language = 'en', subjectContext = '' } = promptObj;
     
     let imageUrl = dataUrl;
     if (typeof dataUrl === 'string' && !dataUrl.startsWith('data:')) {
        imageUrl = `data:image/jpeg;base64,${dataUrl}`;
     }
 
-    const promptText = buildAiPrompt(language, researchLength);
+    const promptText = buildAiPrompt(language, researchLength, subjectContext);
     const schemaText = buildJsonSchemaPrompt();
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
 

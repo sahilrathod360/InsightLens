@@ -1,16 +1,27 @@
 import { AnalysisStrategyFactory } from '../services/classification/AnalysisStrategyFactory.js';
 
-export function buildAiPrompt(lang = 'en', researchLength = 'long') {
+export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '') {
   const strategyGuide = AnalysisStrategyFactory.buildPromptInstructions();
+
+  const userContextBlock = subjectContext && subjectContext.trim() ? `
+USER-PROVIDED SUBJECT CONTEXT:
+The user has provided the following domain/subject context for this visual: "${subjectContext.trim()}".
+- This identity/context is provided directly by the user as domain metadata, NOT determined by automated facial recognition.
+- Integrate the name "${subjectContext.trim()}" naturally throughout the generated report.
+- Format the report title as: "${subjectContext.trim()} — [Descriptive Role / Context / Visual Summary]" (e.g. "${subjectContext.trim()} — Professional Cricket Player").
+- Set the "subject" property in the JSON to "${subjectContext.trim()}".
+- Seamlessly reference "${subjectContext.trim()}" across Executive Summary, Key Findings, Subject Identification, relevant observations, and Conclusion where appropriate.
+- Preserve objective visual observations (attire, equipment, postures, colors, textures, lighting) anchored to this context.
+` : '';
 
   return `You are InsightLens Visual Intelligence Engine.
 Analyze the provided visual artifact and synthesize a structured empirical research report in ${lang} (${researchLength} depth).
 
 ${strategyGuide}
-
+${userContextBlock}
 MANDATORY IDENTITY SAFETY & OBSERVATION DISCIPLINE:
 - Prioritize concrete, structured visual observations over generic demographic phrasing.
-- For human subjects: NEVER assert or guess the name or identity of any real individual from facial appearance alone. Describe observable clothing, posture, grooming, lighting, and composition objectively without making named-person claims.
+- For human subjects: When no user-provided subject context is given, NEVER assert or guess the name or identity of any real individual from facial appearance alone. When the user explicitly supplies subject context, treat it as user-provided metadata (not facial recognition) and use it throughout the report while describing observable visual evidence objectively.
 
 IMPORTANT CITATION INSTRUCTION:
 Never invent, fabricate, or hallucinate citations, DOIs, fake academic papers, or non-existent URLs.
