@@ -983,21 +983,39 @@ input, select, textarea, .input-transition {
 }
 
 /* ==========================================================
-   REPORT 2.0: PROFESSIONAL STANDALONE PRINT & PDF EXPORT
+   RESEARCH REPORT: PROFESSIONAL STANDALONE PRINT & PDF EXPORT
    ========================================================== */
 @media print {
-  /* 0. Disable all animations and enforce full opacity */
-  *, *::before, *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-  #paper-canvas {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
+  /* 0. Reset All Theme Variables and Global Elements to Pure White Document */
+  :root, html, html.dark, body, #app, main, .page-view, #page-result, #paper-canvas {
+    --bg-canvas: #ffffff !important;
+    --bg-card: #f8fafc !important;
+    --bg-card-subtle: #f8fafc !important;
+    --text-primary: #0f172a !important;
+    --text-secondary: #334155 !important;
+    --text-muted: #64748b !important;
+    --border-color: #cbd5e1 !important;
+    --accent-emerald: #059669 !important;
+    --accent-purple: #4f46e5 !important;
+    --accent-link: #2563eb !important;
+    --accent-amber: #d97706 !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10pt !important;
+    line-height: 1.45 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* 1. Eliminate all application chrome and interactive UI */
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+
+  /* 1. Eliminate all interactive and application chrome */
   nav,
   header.sticky,
   footer,
@@ -1026,25 +1044,11 @@ input, select, textarea, .input-transition {
     display: none !important;
   }
 
-  /* 2. Reset Page Canvas to Clean Professional White Document */
-  html, body {
-    background-color: #ffffff !important;
-    color: #0f172a !important;
-    font-size: 11pt !important;
-    line-height: 1.5 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  @page {
-    size: A4 portrait;
-    margin: 15mm 15mm 18mm 15mm;
-  }
-
+  /* 2. Full Width Clean Canvas */
   #page-result {
     display: block !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
@@ -1052,6 +1056,8 @@ input, select, textarea, .input-transition {
   }
 
   #paper-canvas {
+    display: block !important;
+    background-color: #ffffff !important;
     background: #ffffff !important;
     color: #0f172a !important;
     border: none !important;
@@ -1060,51 +1066,72 @@ input, select, textarea, .input-transition {
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    animation: none !important;
+    transform: none !important;
   }
 
-  /* 3. High-Contrast Print Card Styling (No dark-on-dark) */
-  .report-card, 
-  div[class*="report-card"],
-  div[class*="bg-surface"] {
-    background-color: #f8fafc !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
-    box-shadow: none !important;
+  #paper-canvas header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+    margin-bottom: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+    border-bottom: 2px solid #0f172a !important;
+    background: transparent !important;
   }
 
-  /* 4. Headings & Typography */
-  h1, h2, h3, h4, h5, h6, strong, b {
+  /* 3. High-Contrast Typography */
+  *, *::before, *::after {
+    text-shadow: none !important;
+  }
+
+  h1, h2, h3, h4, h5, h6, strong, b, .font-serif, .font-bold {
     color: #0f172a !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
   }
 
-  p, span, li, figcaption {
+  p, span, li, figcaption, td, th, div {
     color: #1e293b !important;
   }
 
-  /* 5. Badges & Accents in Print */
-  span[class*="text-indigo"],
-  span[class*="text-emerald"],
-  span[class*="text-amber"],
-  span[class*="text-purple"],
-  span[class*="text-sky"] {
-    color: #1e1b4b !important;
-    font-weight: 600 !important;
+  /* 4. Cards & Grids (No dark backgrounds, clean borders) */
+  .report-card, 
+  .report-card-subtle,
+  .timeline-card,
+  .timeline-item,
+  div[class*="report-card"],
+  div[class*="bg-surface"],
+  div[class*="rounded"] {
+    background-color: #f8fafc !important;
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    position: static !important;
   }
 
-  span[class*="bg-indigo"],
-  span[class*="bg-emerald"],
-  span[class*="bg-amber"] {
-    background-color: #f1f5f9 !important;
-    border: 1px solid #cbd5e1 !important;
+  .report-card *,
+  .report-card-subtle *,
+  .timeline-card * {
+    color: #0f172a !important;
+  }
+
+  /* 5. Telemetry Boxes & Appendix */
+  #appendix-telemetry-box,
+  #appendix-telemetry-box * {
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    border-color: #cbd5e1 !important;
   }
 
   /* 6. Image & Figure Hygiene */
   #report-source-img {
-    max-height: 320px !important;
+    max-height: 260px !important;
     width: auto !important;
     object-fit: contain !important;
     display: block !important;
@@ -1118,17 +1145,26 @@ input, select, textarea, .input-transition {
     page-break-inside: avoid !important;
   }
 
-  /* 7. Avoid awkward section splits */
-  .report-2-section,
+  /* 7. Section Page-Break Discipline */
   section {
     break-inside: auto !important;
     page-break-inside: auto !important;
+    margin-top: 1.5rem !important;
     margin-bottom: 1.5rem !important;
   }
 
-  .report-section-header {
-    break-after: avoid !important;
-    page-break-after: avoid !important;
+  header {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+    border-bottom: 2px solid #0f172a !important;
+  }
+
+  .timeline-item {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1rem !important;
   }
 }
 

@@ -27,7 +27,6 @@ class OpenRouterService {
 
     const models = [
       'google/gemini-3.5-flash-lite',
-      'qwen/qwen-2.5-vl-72b-instruct',
       'google/gemini-3.7-flash'
     ];
 
@@ -50,7 +49,7 @@ class OpenRouterService {
 
       const body = {
         model: model,
-        max_tokens: 400,
+        max_tokens: 280,
         messages: [
           {
             role: "user",

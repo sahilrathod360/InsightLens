@@ -51,9 +51,9 @@ class GeminiService {
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.warn(`[Gemini] 30-second timeout triggered for model ${model}`);
+        console.warn(`[Gemini] 28-second timeout triggered for model ${model}`);
         controller.abort();
-      }, 30000);
+      }, 28000);
 
       const onParentAbort = () => controller.abort();
       if (parentSignal) {
@@ -75,14 +75,8 @@ class GeminiService {
 
         if (!response.ok) {
           const errorText = await response.text().catch(() => '');
-          console.log(`[Gemini] Model ${model} status ${response.status}. ${response.status === 429 ? 'Quota exhausted.' : ''}`);
-          lastError = new APIError(`Gemini status ${response.status}: ${errorText}`, response.status, 'Gemini');
-          
-          if (response.status === 429) {
-            // Stop trying Gemini models on 429 Quota Exhausted!
-            console.log('[Gemini] Quota exhausted (429). Fast-failover to OpenRouter immediately.');
-            throw lastError;
-          }
+          console.log(`[Gemini] Model ${model} status ${response.status}. Proceeding to fallback candidate...`);
+          lastError = new APIError(`Gemini model ${model} status ${response.status}: ${errorText}`, response.status, 'Gemini');
           continue;
         }
 

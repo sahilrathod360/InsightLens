@@ -32,12 +32,12 @@ class AIManager {
       };
     }
 
-    // Step 3: Hard 45-second global timeout ceiling
+    // Step 3: Hard 80-second global timeout ceiling
     const globalAbortController = new AbortController();
     const globalTimeoutId = setTimeout(() => {
-      console.warn('[AIManager] 45-second global safety ceiling reached. Terminating analysis pipeline.');
+      console.warn('[AIManager] 80-second global safety ceiling reached. Terminating analysis pipeline.');
       globalAbortController.abort();
-    }, 45000);
+    }, 80000);
 
     let winner = null;
     const providerDiagnostics = [];
@@ -49,9 +49,9 @@ class AIManager {
       console.log('[AIManager] Executing Provider A: Google Gemini API...');
       const geminiController = new AbortController();
       const geminiTimeoutId = setTimeout(() => {
-        console.warn('[AIManager] Gemini 32-second bounded ceiling triggered.');
+        console.warn('[AIManager] Gemini 60-second bounded ceiling triggered.');
         geminiController.abort();
-      }, 32000);
+      }, 60000);
 
       const onGlobalAbortGemini = () => geminiController.abort();
       globalAbortController.signal.addEventListener('abort', onGlobalAbortGemini);

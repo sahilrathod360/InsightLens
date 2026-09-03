@@ -8,15 +8,45 @@ function repairJsonString(str) {
     .replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1') // strip comments
     .replace(/,\s*([\]}])/g, '$1')                        // remove trailing commas
     .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')  // quote unquoted keys
+    .replace(/[\u201C\u201D]/g, '"')                      // replace curly double quotes
+    .replace(/[\u2018\u2019]/g, "'")                      // replace curly single quotes
     .trim();
   return cleaned;
 }
 
-function extractFirstJsonObject(str) {
+function extractBalancedJsonObject(str) {
+  if (typeof str !== 'string') return null;
   const firstBrace = str.indexOf('{');
-  const lastBrace = str.lastIndexOf('}');
-  if (firstBrace !== -1 && lastBrace > firstBrace) {
-    return str.substring(firstBrace, lastBrace + 1);
+  if (firstBrace === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = firstBrace; i < str.length; i++) {
+    const char = str[i];
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+    if (char === '\\') {
+      escapeNext = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === '{') {
+        depth++;
+      } else if (char === '}') {
+        depth--;
+        if (depth === 0) {
+          return str.substring(firstBrace, i + 1);
+        }
+      }
+    }
   }
   return null;
 }
@@ -69,28 +99,32 @@ export function parseAIResponse(rawText, provider, model) {
   try {
     parsedData = JSON.parse(cleanText);
   } catch (e1) {
-    // Stage 2: Fenced Code Block Extraction
-    const fencedMatch = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    if (fencedMatch && fencedMatch[1]) {
+    // Stage 2: Balanced Object Extraction from main text
+    const extractedDirect = extractBalancedJsonObject(cleanText);
+    if (extractedDirect) {
       try {
-        parsedData = JSON.parse(fencedMatch[1].trim());
+        parsedData = JSON.parse(extractedDirect);
       } catch (e2) {
-        const extracted = extractFirstJsonObject(fencedMatch[1]);
-        if (extracted) {
-          try {
-            parsedData = JSON.parse(repairJsonString(extracted));
-          } catch (e3) {}
-        }
+        try {
+          parsedData = JSON.parse(repairJsonString(extractedDirect));
+        } catch (e3) {}
       }
     }
 
     if (!parsedData) {
-      // Stage 3: Embedded JSON Object Extraction & Repair
-      const extractedMain = extractFirstJsonObject(cleanText);
-      if (extractedMain) {
+      // Stage 3: Fenced Code Block Extraction
+      const fencedMatch = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (fencedMatch && fencedMatch[1]) {
         try {
-          parsedData = JSON.parse(repairJsonString(extractedMain));
-        } catch (e4) {}
+          parsedData = JSON.parse(fencedMatch[1].trim());
+        } catch (e4) {
+          const extractedFenced = extractBalancedJsonObject(fencedMatch[1]);
+          if (extractedFenced) {
+            try {
+              parsedData = JSON.parse(repairJsonString(extractedFenced));
+            } catch (e5) {}
+          }
+        }
       }
     }
   }
@@ -98,6 +132,9 @@ export function parseAIResponse(rawText, provider, model) {
   const jsonParsingTimeMs = Date.now() - parseStartTime;
 
   if (!parsedData || typeof parsedData !== 'object') {
+    console.error(`[aiParser Error] Failed to parse JSON from ${provider} (${model}). Raw length: ${cleanText.length}`);
+    console.error(`[aiParser Error] Head:\n${cleanText.slice(0, 300)}`);
+    console.error(`[aiParser Error] Tail:\n${cleanText.slice(-300)}`);
     throw new APIError(`[${provider}] Failed to parse JSON response from ${model}.`, 422, provider, 'JSON_PARSING_FAILED');
   }
 
