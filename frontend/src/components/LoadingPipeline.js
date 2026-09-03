@@ -7,6 +7,7 @@ import {
   getCurrentAnalysisId, 
   setGlobalSafetyTimer, 
   setLastAnalysisPayload, 
+  getLastAnalysisPayload,
   setActiveReportData, 
   getSystemPreferences 
 } from '../state.js';
@@ -15,6 +16,7 @@ import { computeImageStatistics } from '../utils/canvas.js';
 import { callGemini25Flash } from '../services/api.js';
 import { showToast } from '../utils/toast.js';
 import { renderResultScreen } from './ReportViewer.js';
+import { SAMPLE_DEMO_REPORT } from '../services/demoReport.js';
 
 export const PIPELINE_STEPS = [
   { id: 'step-1', label: '1. Uploading image', weight: 10 },
@@ -45,6 +47,43 @@ export function render9StepContainer() {
 
 let isAnalysisInProgress = false;
 
+export function setupLoadingFailureActions() {
+  const retryBtn = document.getElementById('retry-live-analysis-btn');
+  const demoBtn = document.getElementById('view-demo-report-btn');
+
+  if (retryBtn && !retryBtn.dataset.bound) {
+    retryBtn.dataset.bound = 'true';
+    retryBtn.addEventListener('click', () => {
+      if (isAnalysisInProgress) return;
+
+      const lastPayload = getLastAnalysisPayload();
+      if (lastPayload && lastPayload.dataUrl) {
+        // Prevent double click
+        retryBtn.disabled = true;
+        retryBtn.classList.add('opacity-50', 'pointer-events-none');
+        setTimeout(() => {
+          retryBtn.disabled = false;
+          retryBtn.classList.remove('opacity-50', 'pointer-events-none');
+        }, 2000);
+
+        showToast('Retrying live AI analysis with uploaded visual...', 'info');
+        startAnalysisPipeline(lastPayload.dataUrl, lastPayload.filename, lastPayload.filesizeStr);
+      } else {
+        navigateTo('desk');
+      }
+    });
+  }
+
+  if (demoBtn && !demoBtn.dataset.bound) {
+    demoBtn.dataset.bound = 'true';
+    demoBtn.addEventListener('click', () => {
+      showToast('Rendering sample demonstration report (offline fixture)...', 'info');
+      setActiveReportData(SAMPLE_DEMO_REPORT);
+      renderResultScreen(SAMPLE_DEMO_REPORT);
+    });
+  }
+}
+
 export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
   if (isAnalysisInProgress) {
     console.warn('[LoadingPipeline] Analysis already running. Duplicate trigger blocked.');
@@ -57,6 +96,11 @@ export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
 
   navigateTo('loading');
   render9StepContainer();
+  setupLoadingFailureActions();
+
+  // Reset Failure UI
+  const apiFailureCard = document.getElementById('api-failure-card');
+  if (apiFailureCard) apiFailureCard.classList.add('hidden');
 
   const stageImg = document.getElementById('stage-image');
   const reportSourceImg = document.getElementById('report-source-img');
@@ -89,23 +133,15 @@ export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
   const researchLength = document.getElementById('select-length')?.value || systemPreferences.researchLength || 'long';
   const writingStyle = document.getElementById('select-style')?.value || systemPreferences.writingStyle || 'classic';
 
-  // Global Pipeline Safety Net Timer (120s to allow multi-provider AI backend generation)
+  // Global Pipeline Safety Net Timer (120s to allow sequential multi-provider AI backend generation)
   const safetyTimer = setTimeout(() => {
     if (thisAnalysisId !== getCurrentAnalysisId()) return;
     console.warn('Pipeline: Global timeout safety net triggered.');
     showToast('Analysis request timed out after 120 seconds.', 'error');
     clearTimeouts();
     
-    // Show failure UI
-    const apiFailureCard = document.getElementById('api-failure-card');
-    if (apiFailureCard) {
-      apiFailureCard.classList.remove('hidden');
-      const p = apiFailureCard.querySelector('p');
-      if (p) p.textContent = 'Analysis service temporarily unavailable. Please try again.';
-    }
-    
-    const statusTitle = document.getElementById('status-title');
-    if (statusTitle) statusTitle.textContent = 'Analysis Temporarily Unavailable';
+    // Stop all pipeline steps cleanly
+    stopPipelineOnFailure(thisAnalysisId, 'Analysis request timed out after 120 seconds.');
   }, 120000);
 
   setGlobalSafetyTimer(safetyTimer);
@@ -201,10 +237,7 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
 
     const apiPromise = callGemini25Flash(dataUrl, researchLength, writingStyle, onModelAttempt, onRetryNotice);
 
-    setStepActive('step-6');
-    if (statusTitle) statusTitle.textContent = 'Synthesizing multi-spectral research paper...';
-
-    // Start Smooth Progress Heartbeat (55% -> 92%)
+    // Smooth Progress Heartbeat (60% -> 92%)
     let stepProgress = 60;
     heartbeatTimer = setInterval(() => {
       if (thisAnalysisId !== getCurrentAnalysisId()) {
@@ -224,6 +257,8 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
     if (thisAnalysisId !== getCurrentAnalysisId()) return;
 
     setStepComplete('step-5');
+
+    setStepActive('step-6');
     setStepComplete('step-6');
 
     // Finalizing Progress to 100%
@@ -236,8 +271,6 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
     setProgress(100);
 
     setActiveReportData(reportData);
-    // Note: Report is already persisted in PostgreSQL by /api/analyze as the authoritative source of truth.
-    // reportData.id contains the persisted reportId.
     logUserActivity('generate', `Report Generated: ${reportData.title || 'Visual Research Brief'}`);
 
     renderResultScreen(reportData);
@@ -247,42 +280,77 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
     if (thisAnalysisId !== getCurrentAnalysisId()) return;
 
     clearTimeouts();
-    
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
+
     const errorMsg = err.type === 'INVALID_KEY'
       ? 'Invalid API Key. Please verify your Gemini API key in Settings.'
       : err.type === 'QUOTA_EXCEEDED'
       ? 'API Quota Exceeded (HTTP 429). Public rate limits reached.'
-      : err.message || 'AI service temporarily unavailable.';
+      : err.message || 'All AI providers failed to generate a valid research report within timeout bounds.';
 
-    if (statusTitle) statusTitle.textContent = errorMsg;
+    stopPipelineOnFailure(thisAnalysisId, errorMsg);
 
-    const activeStepId = ['step-5', 'step-6', 'step-7'].find(id => document.getElementById(id)?.classList.contains('opacity-100')) || 'step-5';
-    const errorStep = document.getElementById(activeStepId);
+  } finally {
+    isAnalysisInProgress = false;
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
+  }
+}
 
-    if (errorStep) {
-      const icon = errorStep.querySelector('.step-icon');
-      const status = errorStep.querySelector('.step-status');
+export function stopPipelineOnFailure(thisAnalysisId, errorMsg) {
+  if (thisAnalysisId !== getCurrentAnalysisId()) return;
+
+  const statusTitle = document.getElementById('status-title');
+  const apiFailureCard = document.getElementById('api-failure-card');
+
+  // Clear running animation states: No step remains 'In Progress'
+  const failedStepId = 'step-5';
+  let hasFailed = false;
+
+  PIPELINE_STEPS.forEach(step => {
+    const el = document.getElementById(step.id);
+    if (!el) return;
+    const icon = el.querySelector('.step-icon');
+    const status = el.querySelector('.step-status');
+
+    if (step.id === failedStepId) {
+      hasFailed = true;
+      el.className = 'flex items-center justify-between text-xs opacity-100 transition-all bg-amber-500/10 p-2 rounded-lg border border-amber-500/20';
       if (icon) {
         icon.textContent = 'warning';
         icon.className = 'step-icon material-symbols-outlined text-[17px] text-amber-400';
       }
       if (status) {
-        status.textContent = err.type || 'Failed';
-        status.className = 'step-status text-[11px] font-mono text-amber-400 font-semibold';
+        status.textContent = 'Failed';
+        status.className = 'step-status text-[11px] font-mono text-amber-400 font-bold';
+      }
+    } else if (hasFailed) {
+      // Steps after failure are cleanly marked Stopped / Cancelled
+      el.className = 'flex items-center justify-between text-xs opacity-30 transition-all';
+      if (icon) {
+        icon.textContent = 'block';
+        icon.className = 'step-icon material-symbols-outlined text-[17px] text-slate-500';
+      }
+      if (status) {
+        status.textContent = 'Stopped';
+        status.className = 'step-status text-[10px] font-mono text-slate-500';
       }
     }
+  });
 
-    if (apiFailureCard) {
-      apiFailureCard.classList.remove('hidden');
-      const p = apiFailureCard.querySelector('p');
-      if (p) {
-        p.textContent = `${errorMsg}`;
-      }
-    }
-  } finally {
-    isAnalysisInProgress = false;
-    if (heartbeatTimer) clearInterval(heartbeatTimer);
+  if (statusTitle) {
+    statusTitle.textContent = 'Analysis stopped — Live AI unavailable';
   }
+
+  if (apiFailureCard) {
+    apiFailureCard.classList.remove('hidden');
+    const p = apiFailureCard.querySelector('p');
+    if (p) {
+      p.textContent = errorMsg;
+    }
+  }
+
+  // Ensure action buttons are ready and clickable
+  setupLoadingFailureActions();
 }
 
 export function resetStepIcons() {

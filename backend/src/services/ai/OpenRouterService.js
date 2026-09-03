@@ -50,7 +50,7 @@ class OpenRouterService {
 
       const body = {
         model: model,
-        max_tokens: 1500,
+        max_tokens: 400,
         messages: [
           {
             role: "user",
@@ -64,9 +64,9 @@ class OpenRouterService {
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.warn(`[OpenRouter] 15-second per-model timeout triggered for ${model}`);
+        console.warn(`[OpenRouter] 10-second per-model timeout triggered for ${model}`);
         controller.abort();
-      }, 15000);
+      }, 10000);
 
       const onParentAbort = () => controller.abort();
       if (parentSignal) {
@@ -88,8 +88,13 @@ class OpenRouterService {
 
         if (!response.ok) {
           const responseText = await response.text().catch(() => '');
-          console.log(`[OpenRouter] Model ${model} status ${response.status}. Trying next fallback model...`);
+          console.warn(`[OpenRouter] Model ${model} status ${response.status}: ${responseText.slice(0, 100)}`);
           lastError = new APIError(`OpenRouter status ${response.status}: ${responseText}`, response.status, 'OpenRouter');
+          
+          if (response.status === 402 || response.status === 401) {
+            console.warn(`[OpenRouter] HTTP ${response.status} (billing/credit exhaustion). Terminating OpenRouter fallback immediately.`);
+            break;
+          }
           continue;
         }
 
@@ -122,12 +127,12 @@ class OpenRouterService {
 
       } catch (error) {
         clearTimeout(timeoutId);
-        if (error.name === 'AbortError') {
-          console.log(`[OpenRouter] Model ${model} aborted/cancelled`);
+        if (parentSignal && parentSignal.aborted) {
+          console.log(`[OpenRouter] Parent signal aborted pipeline.`);
           lastError = error;
           break;
         } else {
-          console.log(`[OpenRouter] Model ${model} error: ${error.message}. Trying next fallback model...`);
+          console.log(`[OpenRouter] Model ${model} failed/timed out: ${error.message}. Trying next fallback model...`);
           lastError = error;
         }
       } finally {

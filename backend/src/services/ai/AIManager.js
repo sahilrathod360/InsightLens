@@ -32,57 +32,81 @@ class AIManager {
       };
     }
 
-    const geminiController = new AbortController();
-    const openrouterController = new AbortController();
-
-    // Step 3: Hard 20-second global timeout ceiling (Max 30s ceiling requirement)
+    // Step 3: Hard 45-second global timeout ceiling
+    const globalAbortController = new AbortController();
     const globalTimeoutId = setTimeout(() => {
-      console.warn('[AIManager] 20-second global ceiling triggered. Aborting all pending requests.');
-      geminiController.abort();
-      openrouterController.abort();
-    }, 20000);
+      console.warn('[AIManager] 45-second global safety ceiling reached. Terminating analysis pipeline.');
+      globalAbortController.abort();
+    }, 45000);
 
-    const tasks = [
-      {
-        name: 'Gemini',
-        controller: geminiController,
-        promise: GeminiService.generate(optResult.dataUrl, promptObj, geminiController.signal)
-      },
-      {
-        name: 'OpenRouter',
-        controller: openrouterController,
-        promise: OpenRouterService.generate(optResult.dataUrl, promptObj, openrouterController.signal)
-      }
-    ];
+    let winner = null;
+    const providerDiagnostics = [];
 
     try {
-      const winner = await new Promise((resolve, reject) => {
-        let rejectedCount = 0;
-        const errors = [];
+      // -------------------------------------------------------------
+      // PRIMARY ATTEMPT: Provider A (Direct Gemini Multimodal API)
+      // -------------------------------------------------------------
+      console.log('[AIManager] Executing Provider A: Google Gemini API...');
+      const geminiController = new AbortController();
+      const geminiTimeoutId = setTimeout(() => {
+        console.warn('[AIManager] Gemini 32-second bounded ceiling triggered.');
+        geminiController.abort();
+      }, 32000);
 
-        tasks.forEach(task => {
-          task.promise
-            .then(result => {
-              resolve({ name: task.name, result });
-            })
-            .catch(err => {
-              errors.push({ name: task.name, error: err.message });
-              rejectedCount++;
-              if (rejectedCount === tasks.length) {
-                reject(errors);
-              }
-            });
-        });
-      });
+      const onGlobalAbortGemini = () => geminiController.abort();
+      globalAbortController.signal.addEventListener('abort', onGlobalAbortGemini);
+
+      try {
+        const geminiResult = await GeminiService.generate(optResult.dataUrl, promptObj, geminiController.signal);
+        clearTimeout(geminiTimeoutId);
+        globalAbortController.signal.removeEventListener('abort', onGlobalAbortGemini);
+        winner = { name: 'Gemini', result: geminiResult };
+        console.log('[AIManager] Provider A (Gemini) generated valid report successfully.');
+      } catch (geminiErr) {
+        clearTimeout(geminiTimeoutId);
+        globalAbortController.signal.removeEventListener('abort', onGlobalAbortGemini);
+        const errMsg = geminiErr.message || 'Gemini request failed';
+        console.warn(`[AIManager] Provider A (Gemini) failed: ${errMsg}`);
+        providerDiagnostics.push({ provider: 'Gemini', error: errMsg });
+      }
+
+      // -------------------------------------------------------------
+      // FALLBACK ATTEMPT: Provider B (OpenRouter API)
+      // -------------------------------------------------------------
+      if (!winner && !globalAbortController.signal.aborted) {
+        console.log('[AIManager] Executing Provider B: OpenRouter API Fallback...');
+        const openrouterController = new AbortController();
+        const openrouterTimeoutId = setTimeout(() => {
+          console.warn('[AIManager] OpenRouter 12-second bounded ceiling triggered.');
+          openrouterController.abort();
+        }, 12000);
+
+        const onGlobalAbortOR = () => openrouterController.abort();
+        globalAbortController.signal.addEventListener('abort', onGlobalAbortOR);
+
+        try {
+          const openrouterResult = await OpenRouterService.generate(optResult.dataUrl, promptObj, openrouterController.signal);
+          clearTimeout(openrouterTimeoutId);
+          globalAbortController.signal.removeEventListener('abort', onGlobalAbortOR);
+          winner = { name: 'OpenRouter', result: openrouterResult };
+          console.log('[AIManager] Provider B (OpenRouter) generated valid report successfully.');
+        } catch (openrouterErr) {
+          clearTimeout(openrouterTimeoutId);
+          globalAbortController.signal.removeEventListener('abort', onGlobalAbortOR);
+          const errMsg = openrouterErr.message || 'OpenRouter request failed';
+          console.warn(`[AIManager] Provider B (OpenRouter) failed: ${errMsg}`);
+          providerDiagnostics.push({ provider: 'OpenRouter', error: errMsg });
+        }
+      }
 
       clearTimeout(globalTimeoutId);
 
-      // Abort the losing request immediately!
-      tasks.forEach(task => {
-        if (task.name !== winner.name) {
-          task.controller.abort();
-        }
-      });
+      // If no provider generated a report, raise controlled failure
+      if (!winner) {
+        const failureSummary = providerDiagnostics.map(d => `${d.provider}: ${d.error}`).join(' | ');
+        console.error(`[AIManager] Controlled Failure — All AI providers exhausted: ${failureSummary}`);
+        throw new APIError('All AI providers failed to generate a valid research report within timeout bounds.', 502, 'AIManager', 'AI_PROVIDERS_FAILED');
+      }
 
       // Clean and verify all citation references against live endpoints
       const citStart = Date.now();
@@ -123,11 +147,12 @@ class AIManager {
 
       return finalReport;
 
-    } catch (allErrors) {
+    } catch (finalErr) {
       clearTimeout(globalTimeoutId);
       const totalDurationMs = Date.now() - startTime;
-      console.log(`[AIManager] All AI providers failed in ${totalDurationMs} ms:`, allErrors);
+      console.log(`[AIManager] Pipeline ended in ${totalDurationMs} ms:`, finalErr.message);
       console.log('==================================================\n');
+      if (finalErr instanceof APIError) throw finalErr;
       throw new APIError('All AI providers failed to generate a valid research report within timeout bounds.', 502, 'AIManager', 'AI_PROVIDERS_FAILED');
     }
   }

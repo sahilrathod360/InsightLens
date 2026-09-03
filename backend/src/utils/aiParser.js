@@ -34,25 +34,23 @@ export function validateAiReportSchema(data) {
   const title = getStr(data.title);
   const subject = getStr(data.subject);
   const category = getStr(data.category);
-  const executiveSummary = getStr(data.executiveSummary);
-  const identification = getStr(data.identification);
-  const analysis = getStr(data.detailedAnalysis || data.analysis);
-  const applications = Array.isArray(data.applications) ? data.applications : (data.applications ? [getStr(data.applications)] : []);
-  const references = Array.isArray(data.references) ? data.references : (data.references ? [data.references] : []);
-  const conclusion = getStr(data.conclusion);
+  const summary = getStr(data.executiveInsight?.summary || data.executiveSummary);
+  const keyFinding = getStr(data.executiveInsight?.keyFinding || data.detectionSummary);
   const confidence = getStr(data.confidenceScore || data.confidence);
 
-  // Check required non-empty fields
+  // Check required non-empty identification fields
   if (!title || /unknown|placeholder|demo|to be replaced/i.test(title)) return false;
   if (!subject || /unknown|placeholder|demo|to be replaced/i.test(subject)) return false;
   if (!category || /unknown|placeholder|demo|to be replaced/i.test(category)) return false;
-  if (executiveSummary.length < 20) return false;
-  if (identification.length < 15) return false;
-  if (analysis.length < 20) return false;
-  if (applications.length === 0) return false;
-  if (!Array.isArray(references)) return false;
-  if (conclusion.length < 15) return false;
+  if (!summary || summary.length < 15) return false;
+  if (!keyFinding || keyFinding.length < 5) return false;
   if (!confidence) return false;
+
+  // Check evidence/observations
+  const hasEvidence = Array.isArray(data.visualEvidence) && data.visualEvidence.length > 0;
+  const hasObservations = Array.isArray(data.observations) && data.observations.length > 0;
+  const hasDetailedAnalysis = getStr(data.detailedAnalysis || data.analysis).length >= 15;
+  if (!hasEvidence && !hasObservations && !hasDetailedAnalysis) return false;
 
   return true;
 }

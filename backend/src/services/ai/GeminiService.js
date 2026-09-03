@@ -51,9 +51,9 @@ class GeminiService {
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.warn(`[Gemini] 15-second timeout triggered for model ${model}`);
+        console.warn(`[Gemini] 30-second timeout triggered for model ${model}`);
         controller.abort();
-      }, 15000);
+      }, 30000);
 
       const onParentAbort = () => controller.abort();
       if (parentSignal) {
@@ -106,14 +106,14 @@ class GeminiService {
 
       } catch (error) {
         clearTimeout(timeoutId);
-        if (error.name === 'AbortError') {
-          console.log(`[Gemini] Model ${model} aborted/cancelled`);
+        if (parentSignal && parentSignal.aborted) {
+          console.log(`[Gemini] Parent aborted pipeline execution.`);
           lastError = error;
           break;
         } else if (error.status === 429) {
           throw error;
         } else {
-          console.log(`[Gemini] Model ${model} error: ${error.message}`);
+          console.log(`[Gemini] Model ${model} failed/timed out: ${error.message}. Proceeding to fallback candidate...`);
           lastError = error;
         }
       } finally {

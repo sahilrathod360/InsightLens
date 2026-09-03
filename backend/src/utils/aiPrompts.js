@@ -47,31 +47,10 @@ export function buildJsonSchemaPrompt() {
   "findings": [
     { "statement": "[Concrete analytical conclusion]", "basis": "[Visual evidence basis]" }
   ],
-  "executiveSummary": "100-150 word research summary tailored to the specialized visual type.",
-  "identification": "Visual classification and identification rationale applying the specialized pipeline.",
-  "detailedAnalysis": "Detailed visual feature analysis following the specialized pipeline guidelines.",
-  "scientificTechnicalInfo": "Technical specifications, domain data, and structural principles.",
-  "historicalContext": "Context, background, or emergence relevant to the subject.",
-  "timeline": [
-    { "year": "Phase I", "title": "Milestone 1", "desc": "Description 1" },
-    { "year": "Phase II", "title": "Milestone 2", "desc": "Description 2" }
-  ],
-  "applications": ["Application 1", "Application 2", "Application 3"],
-  "keyFacts": [
-    { "label": "Metric 1", "detail": "Value 1" },
-    { "label": "Metric 2", "detail": "Value 2" }
-  ],
-  "interestingFacts": ["Fact 1", "Fact 2"],
-  "references": [
-    {
-      "title": "[Real Title of Reference or Document]",
-      "source": "[Real Organization, Governing Body, or Publisher]",
-      "year": "[Real Year or 'Official Record']",
-      "url": "[Real URL or DOI, or empty string if unverified]"
-    }
-  ],
-  "conclusion": "75-100 word conclusion.",
-  "limitations": "Specific visual inference limitations based on the visual type.",
+  "executiveSummary": "[1-2 sentence concise executive overview]",
+  "detailedAnalysis": "[1-2 sentence core feature summary]",
+  "scientificTechnicalInfo": "[1-2 sentence technical or domain classification note]",
+  "limitations": "[1-2 sentence optical boundary statement]",
   "detectedObjects": ["Subject", "Background", "Focal Region"],
   "extractedOCR": "Extracted text OR 'None detected'",
   "diagramStructure": {

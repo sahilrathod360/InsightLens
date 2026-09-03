@@ -29,41 +29,22 @@ export class AnalysisStrategyFactory {
   }
 
   /**
-   * Generates comprehensive prompt guidance embedding Visual Classification Taxonomy
-   * and all 8 specialized analysis pipeline rules into the single-turn AI synthesis call.
+   * Generates high-signal prompt guidance embedding Visual Classification Taxonomy
+   * and specialized analysis pipeline rules into the single-turn AI synthesis call.
    */
   static buildPromptInstructions() {
-    return `===================================================================
-PHASE 3 VISUAL TYPE CLASSIFICATION & SPECIALIZED PIPELINES:
-===================================================================
-STEP 1: CLASSIFY VISUAL TYPE
-Examine the visual artifact and classify it into EXACTLY ONE of these 8 categories:
-- "photograph": Real-world photography of people, animals, landscapes, objects, architecture, or physical scenes.
-- "document": Text-heavy pages, scanned sheets, official forms, invoices, receipts, letters, tables, or manuscripts.
-- "diagram": Conceptual schematics, architecture blocks, flowcharts, electrical circuits, network topology, or UML graphs.
-- "chart": Quantitative data plots, bar graphs, line charts, scatter plots, pie charts, histograms, or metrics dashboards.
-- "screenshot": Software interfaces, web browsers, operating system windows, mobile applications, or code editors.
-- "artwork": Fine art paintings, watercolors, sketches, digital drawings, illustrations, graphic designs, or sculptures.
-- "map": Geographic representations, cartographic surveys, transit route networks, urban street grids, or terrain charts.
-- "unknown": Visuals where category is genuinely ambiguous, hybrid, or confidence is low.
+    return `VISUAL CLASSIFICATION & SPECIALIZED PIPELINES:
+1. CLASSIFY VISUAL TYPE into exactly ONE category:
+- "photograph": Real-world photography of subjects, landscapes, architecture, or objects. (Analyze focal subject, clothing/features, lighting, composition).
+- "document": Text-heavy pages, forms, invoices, letters, tables, or scanned sheets. (Extract OCR text, document layout, sections).
+- "diagram": Schematics, flowcharts, DFD, UML, architecture blocks, or circuits. (Extract diagramType, nodes with id/label/type, and edges with source/target/label/direction).
+- "chart": Quantitative data plots, bar graphs, line charts, pie charts, or dashboards. (Extract chart archetype, axes, visible categories, trends).
+- "screenshot": Software interfaces, browser apps, OS windows, mobile screens, or code editors. (Extract interface context, visible UI elements).
+- "artwork": Paintings, drawings, watercolors, digital illustrations, or sculptures. (Extract artistic medium, style, composition).
+- "map": Geographic maps, transit routes, or terrain surveys. (Extract cartographic type, landmarks, spatial features).
+- "unknown": Ambiguous or hybrid visuals.
 
-STEP 2: APPLY THE MATCHING SPECIALIZED STRATEGY GUIDELINES
-${AnalysisStrategyFactory.strategies.photograph.getInstructions()}
-
-${AnalysisStrategyFactory.strategies.document.getInstructions()}
-
-${AnalysisStrategyFactory.strategies.chart.getInstructions()}
-
-${AnalysisStrategyFactory.strategies.screenshot.getInstructions()}
-
-${AnalysisStrategyFactory.strategies.artwork.getInstructions()}
-
-${AnalysisStrategyFactory.strategies.map.getInstructions()}
-
-${AnalysisStrategyFactory.strategies.diagram.getInstructions()}
-
-${AnalysisStrategyFactory.strategies.unknown.getInstructions()}
-===================================================================`;
+2. IDENTITY SAFETY: For human subjects, NEVER assert or guess the name or identity of any real individual from facial appearance alone. Describe observable clothing, posture, and features objectively without named-person claims.`;
   }
 }
 

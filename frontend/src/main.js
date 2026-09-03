@@ -4,7 +4,7 @@ import { loadPreferences, initPersistentSession } from './services/storage.js';
 
 import { setupNavigation, setupMobileDrawer, setupGlobalKeyboardEvents, setupTheme, setupAuthEvents, setupLogoutModal, setupUserDropdownMenu, setAuthMode, updateAuthUI } from './components/Navbar.js';
 import { setupUploadEvents } from './components/ResearchDesk.js';
-import { startAnalysisPipeline } from './components/LoadingPipeline.js';
+import { startAnalysisPipeline, setupLoadingFailureActions } from './components/LoadingPipeline.js';
 import { setupReportActions } from './components/ReportViewer.js';
 import { setupDashboardEvents, renderDashboard } from './components/Dashboard.js';
 import { renderArchivePage } from './components/Archive.js';
@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSettingsEvents();
   setupLogoutModal(renderArchivePage);
   setupReportActions(startAnalysisPipeline);
+  setupLoadingFailureActions();
   setupUserDropdownMenu();
   setupDashboardEvents();
   setupGlobalKeyboardEvents();
