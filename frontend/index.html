@@ -1129,8 +1129,8 @@
   <!-- SCREEN 5: PREMIUM AI RESEARCH RESULT SCREEN -->
   <div id="page-result" class="page-view hidden flex-grow w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 py-8 space-y-8">
     
-    <!-- Result Control Header Bar -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-container p-4 sm:p-5 rounded-2xl ghost-border shadow-lg backdrop-blur-xl">
+    <!-- Result Control Header Bar (Strictly Hidden During Print/PDF Export) -->
+    <div id="result-action-bar" class="no-print flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-container p-4 sm:p-5 rounded-2xl ghost-border shadow-lg backdrop-blur-xl">
       <div class="flex items-center gap-3.5">
         <button id="new-analysis-btn" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface text-xs px-4 py-2.5 rounded-xl border ghost-border flex items-center gap-2 transition-all cursor-pointer font-medium hover:scale-105 active:scale-95">
           <span class="material-symbols-outlined text-[18px] text-blue-400">arrow_back</span>
@@ -1165,10 +1165,6 @@
         </button>
 
         <button id="export-json-btn" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer shrink-0 font-medium">
-          <span class="material-symbols-outlined text-[18px] text-slate-400">code</span>
-          JSON
-        </button>
-
         <button id="share-btn" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer shrink-0 font-medium">
           <span class="material-symbols-outlined text-[18px] text-slate-400">share</span>
           Share
@@ -1176,48 +1172,46 @@
       </div>
     </div>
 
-    <!-- MAIN ACADEMIC PAPER REPORT CANVAS -->
+    <!-- MAIN REPORT 2.0 CANVAS (FLAGSHIP INTELLIGENCE REPORT) -->
     <div id="paper-canvas" class="report-paper-wrapper space-y-10 shadow-2xl relative overflow-hidden transition-colors">
       
-      <!-- 1. HERO SECTION: SUBJECT NAME -> SCIENTIFIC NAME -> CATEGORY PILL -->
-      <header class="border-b border-[var(--border-color)] pb-8 space-y-4 relative">
+      <!-- REPORT 2.0 HEADER -->
+      <header class="border-b border-[var(--border-color)] pb-6 space-y-4 relative">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-[var(--accent-emerald)] text-xs font-mono font-bold border border-emerald-500/20">
-            <span class="w-2 h-2 rounded-full bg-[var(--accent-emerald)] animate-pulse"></span>
-            INSIGHTLENS AI RESEARCH BRIEF
+          <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-mono font-bold border border-indigo-500/25 shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+            INSIGHTLENS VISUAL INTELLIGENCE REPORT
           </div>
 
-          <div class="flex items-center gap-3 text-xs font-mono text-[var(--text-muted)]">
-            <span id="report-provider-used" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--accent-purple)] font-bold">Google Gemini</span>
-            <span id="report-model-used" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">gemini-2.0-flash</span>
-            <span id="report-id-display" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] hidden sm:inline-block">RPT-89420</span>
+          <div class="flex items-center gap-2.5 text-xs font-mono text-[var(--text-muted)]">
+            <span id="report-provider-used" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-indigo-300 font-bold">Google Gemini</span>
+            <span id="report-model-used" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">gemini-2.5-flash</span>
+            <span id="report-id-display" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] hidden sm:inline-block font-mono">RPT-89420</span>
           </div>
         </div>
 
         <div class="space-y-2 pt-1">
-          <!-- LARGE BOLD SUBJECT NAME -->
-          <h1 id="report-hero-title" class="font-serif text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] text-[var(--text-primary)]">
-            Domestic Dog
+          <h1 id="report-hero-title" class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.15] text-[var(--text-primary)]">
+            Visual Intelligence Report
           </h1>
           
-          <!-- SMALLER SCIENTIFIC NAME -->
-          <div id="report-scientific-name" class="font-serif italic text-base sm:text-lg text-[var(--text-secondary)]">
-            Canis lupus familiaris
+          <div id="report-scientific-name" class="font-serif italic text-sm sm:text-base text-[var(--text-secondary)]">
+            Analysis Target
           </div>
           
           <div class="flex flex-wrap items-center gap-2.5 pt-2">
-            <!-- CATEGORY BADGE -->
+            <!-- Category -->
             <span id="report-category-subtitle" class="px-3 py-1 rounded-md bg-[var(--bg-card-subtle)] text-[var(--accent-purple)] font-mono text-xs font-semibold tracking-wide border border-[var(--border-color)]">
-              Veterinary Science &amp; Zoology
+              Domain Research
             </span>
-            <!-- VISUAL TYPE BADGE (Phase 3) -->
+            <!-- Visual Type Badge -->
             <span id="report-visual-type-badge" class="px-3 py-1 rounded-md bg-indigo-500/10 text-indigo-400 font-mono text-xs font-semibold tracking-wide border border-indigo-500/30 flex items-center gap-1.5 shadow-sm">
               <span class="text-[10px] tracking-wider opacity-75 font-normal uppercase">VISUAL TYPE</span>
               <span id="report-visual-type-val" class="font-bold text-indigo-300">Photograph</span>
             </span>
-            <!-- SPECIALIZED PIPELINE BADGE (Phase 3) -->
+            <!-- Pipeline Badge -->
             <span id="report-pipeline-badge" class="px-3 py-1 rounded-md bg-emerald-500/10 text-emerald-400 font-mono text-xs font-semibold tracking-wide border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
-              <span class="text-[10px] tracking-wider opacity-75 font-normal uppercase">ANALYSIS PIPELINE</span>
+              <span class="text-[10px] tracking-wider opacity-75 font-normal uppercase">PIPELINE</span>
               <span id="report-pipeline-val" class="font-bold text-emerald-300">Photo Analysis</span>
             </span>
             <span id="result-timestamp" class="text-xs text-[var(--text-muted)] font-mono">
@@ -1225,446 +1219,213 @@
             </span>
           </div>
         </div>
-
-        <p id="report-lead-summary" class="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed max-w-4xl font-sans font-normal pt-2">
-          An empirical visual research paper evaluated by InsightLens. Analyzing spatial geometry, chromatic properties, domain taxonomy, and technical specifications derived directly from visual evidence.
-        </p>
       </header>
 
-      <!-- 2. AI DETECTION SUMMARY TELEMETRY CARDS (FIRST FOCAL SECTION) -->
-      <section class="space-y-4">
-        <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-          <div>
-            <h2 class="font-serif text-xl font-bold text-[var(--text-primary)] flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-emerald)] text-[22px]">analytics</span>
-              AI Detection Summary
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Primary visual tensor metrics, detected objects, and camera metadata</p>
-          </div>
-          <span class="text-xs font-mono text-[var(--accent-emerald)] font-semibold px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">10 Parameters Grounded</span>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 font-mono text-xs">
-          <!-- Card 1: Subject -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Detected Subject</span>
-            <strong id="grid-subject" class="text-[var(--text-primary)] text-xs font-sans font-bold block truncate">Domestic Dog</strong>
-          </div>
-          <!-- Card 2: Scientific Name -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Scientific Name</span>
-            <strong id="grid-scientific" class="text-[var(--accent-purple)] text-xs font-serif italic font-bold block truncate">Canis lupus familiaris</strong>
-          </div>
-          <!-- Card 3: Confidence -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-emerald)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Confidence Score</span>
-            <strong id="grid-confidence" class="text-[var(--accent-emerald)] text-xs font-bold block">99.4% High</strong>
-          </div>
-          <!-- Card 4: Processing Time -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Processing Time</span>
-            <strong id="grid-time" class="text-[var(--text-primary)] text-xs font-bold block">1.8s Latency</strong>
-          </div>
-          <!-- Card 5: Estimated Domain -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Estimated Domain</span>
-            <strong id="grid-category" class="text-[var(--accent-purple)] text-xs font-sans font-bold block truncate">Veterinary Science</strong>
-          </div>
-          <!-- Card 6: Detected Objects -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Objects Detected</span>
-            <strong id="grid-objects-count" class="text-[var(--accent-amber)] text-xs font-bold block">5 Regions</strong>
-          </div>
-          <!-- Card 7: Dominant Colors -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Dominant Hues</span>
-            <strong id="grid-colors" class="text-[var(--text-secondary)] text-xs font-sans font-medium block truncate">Brown, Green, White</strong>
-          </div>
-          <!-- Card 8: Resolution -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Resolution</span>
-            <strong id="grid-resolution" class="text-[var(--text-primary)] text-xs font-bold block">1920 x 1080 px</strong>
-          </div>
-          <!-- Card 9: OCR Inscriptions -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">OCR Text</span>
-            <strong id="grid-ocr-status" class="text-[var(--text-secondary)] text-xs font-sans font-medium block truncate">None detected</strong>
-          </div>
-          <!-- Card 10: Ingest Status -->
-          <div class="report-card space-y-1 hover:border-[var(--accent-emerald)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Validation Status</span>
-            <strong id="grid-status" class="text-[var(--accent-emerald)] text-xs font-sans font-bold block">Schema Verified</strong>
-          </div>
-        </div>
-      </section>
-
-      <!-- 3. VISUAL SOURCE TARGET & MULTI-METRIC BREAKDOWN -->
-      <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start report-section-divider">
-        <!-- LEFT (7 COLS): UPLOADED IMAGE & CAPTION -->
-        <div class="lg:col-span-7 report-card space-y-3.5 shadow-md">
+      <!-- VISUAL SOURCE TARGET (EVIDENCE ANCHOR) -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-8 report-card space-y-3 shadow-md">
           <div class="flex items-center justify-between text-xs font-mono border-b border-[var(--border-color)] pb-2.5">
             <span class="text-[var(--text-primary)] font-semibold flex items-center gap-2">
-              <span class="material-symbols-outlined text-[var(--accent-link)] text-[18px]">image</span>
+              <span class="material-symbols-outlined text-indigo-400 text-[18px]">image</span>
               Visual Ingest Target
             </span>
             <span id="report-image-filename" class="text-[var(--text-muted)] font-sans text-[11px]">image.jpg</span>
           </div>
 
-          <div class="relative w-full h-[360px] bg-[var(--bg-card-subtle)] rounded-xl overflow-hidden flex items-center justify-center border border-[var(--border-color)] group shadow-inner">
-            <img id="report-source-img" src="" alt="Analyzed Visual Artifact" class="max-h-full max-w-full object-contain p-2 rounded-lg transition-transform duration-300 group-hover:scale-[1.02]" />
+          <div class="relative w-full max-h-[420px] bg-[var(--bg-card-subtle)] rounded-xl overflow-hidden flex items-center justify-center border border-[var(--border-color)] group shadow-inner">
+            <img id="report-source-img" src="" alt="Analyzed Visual Artifact" class="max-h-[400px] w-auto max-w-full object-contain p-2 rounded-lg transition-transform duration-300" />
           </div>
           
           <figcaption id="report-caption" class="text-xs text-[var(--text-muted)] font-mono text-center pt-1 leading-relaxed">
-            Figure 1.1: Primary subject focal frame exhibiting high structural definition and clear contrast separation.
+            Figure 1.1: High-resolution visual tensor input with localized coordinate analysis.
           </figcaption>
         </div>
 
-        <!-- RIGHT (5 COLS): MULTI-METRIC CONFIDENCE -->
-        <div class="lg:col-span-5 report-card space-y-6 shadow-md text-xs font-sans">
-          <div class="space-y-3.5 border-b border-[var(--border-color)] pb-5">
-            <h3 class="text-[var(--accent-link)] font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px]">bar_chart</span>
-              Multi-Metric Confidence Breakdown
-            </h3>
-            
-            <div class="space-y-3 font-mono text-[11px]">
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-[var(--text-secondary)]">Overall Confidence</span>
-                  <span id="label-conf-overall" class="text-[var(--accent-emerald)] font-bold">99.4%</span>
-                </div>
-                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
-                  <div id="bar-conf-overall" class="bg-[var(--accent-emerald)] h-full transition-all duration-500" style="width: 99.4%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-[var(--text-secondary)]">Object Detection</span>
-                  <span id="label-conf-objects" class="text-[var(--accent-link)] font-bold">97.8%</span>
-                </div>
-                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
-                  <div id="bar-conf-objects" class="bg-[var(--accent-link)] h-full transition-all duration-500" style="width: 97.8%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-[var(--text-secondary)]">Subject Classification</span>
-                  <span id="label-conf-subject" class="text-[var(--accent-purple)] font-bold">99.1%</span>
-                </div>
-                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
-                  <div id="bar-conf-subject" class="bg-[var(--accent-purple)] h-full transition-all duration-500" style="width: 99.1%"></div>
-                </div>
-              </div>
-            </div>
+        <!-- RIGHT SIDE METRIC QUICK OVERVIEW (4 COLS) -->
+        <div class="lg:col-span-4 report-card space-y-4 shadow-md text-xs font-sans">
+          <div class="border-b border-[var(--border-color)] pb-2.5">
+            <span class="text-[10px] font-mono uppercase text-[var(--text-muted)] tracking-wider block">Focal Subject</span>
+            <strong id="r2-side-subject" class="text-sm font-serif font-bold text-[var(--text-primary)] block mt-0.5">Analysis Target</strong>
           </div>
-
-          <div class="space-y-2.5">
-            <span class="text-[11px] font-mono text-[var(--text-muted)] uppercase block font-bold">Detected Regions &amp; Objects:</span>
-            <div id="detected-objects-tags" class="flex flex-wrap gap-2">
-              <span class="px-2.5 py-1 rounded-lg bg-[var(--bg-card-subtle)] text-[var(--accent-link)] text-[11px] font-mono border border-[var(--border-color)]">Domestic Dog</span>
-              <span class="px-2.5 py-1 rounded-lg bg-[var(--bg-card-subtle)] text-[var(--accent-emerald)] text-[11px] font-mono border border-[var(--border-color)]">Grass</span>
+          <div class="space-y-2 font-mono text-xs">
+            <div class="flex justify-between py-1 border-b border-[var(--border-color)]/50">
+              <span class="text-[var(--text-secondary)]">Confidence Score</span>
+              <span id="r2-side-confidence" class="text-emerald-400 font-bold">98.5%</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-[var(--border-color)]/50">
+              <span class="text-[var(--text-secondary)]">Processing Latency</span>
+              <span id="r2-side-time" class="text-[var(--text-primary)] font-semibold">1.8s</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-[var(--border-color)]/50">
+              <span class="text-[var(--text-secondary)]">Schema Validation</span>
+              <span id="r2-side-status" class="text-emerald-400 font-semibold">Verified 2.0</span>
+            </div>
+            <div class="flex justify-between py-1">
+              <span class="text-[var(--text-secondary)]">OCR Inscriptions</span>
+              <span id="r2-side-ocr" class="text-slate-300 truncate max-w-[140px]">None detected</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 4. EXECUTIVE SUMMARY MULTI-CARD GRID -->
-      <section class="space-y-4 report-section-divider">
-        <div class="border-b border-[var(--border-color)] pb-3">
-          <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-            <span class="material-symbols-outlined text-[var(--accent-purple)] text-[26px]">summarize</span>
-            Executive Summary
-          </h2>
-          <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Overview of the detected subject and key findings</p>
-        </div>
+      <!-- REPORT 2.0 SECTIONS CONTAINER -->
+      <div class="space-y-10 font-sans">
 
-        <div id="report-exec-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
-          <!-- Summary Card -->
-          <div class="report-card space-y-2 shadow-sm">
-            <div class="flex items-center gap-2 text-[var(--accent-link)] font-semibold font-mono text-xs uppercase tracking-wider">
-              <span class="material-symbols-outlined text-[18px]">overview</span>
-              Summary
+        <!-- 01 — EXECUTIVE INSIGHT -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-mono text-xs font-bold border border-indigo-500/20">01</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Executive Insight</h2>
             </div>
-            <p id="exec-card-overview" class="text-[var(--text-secondary)] text-xs leading-relaxed">
-              Empirical visual research brief evaluating spatial geometry, chromatic properties, and physical features of the target subject.
-            </p>
+            <span class="text-xs text-[var(--text-muted)] font-mono">Immediate Synthesis</span>
           </div>
 
-          <!-- Key Findings Card -->
-          <div class="report-card space-y-2 shadow-sm">
-            <div class="flex items-center gap-2 text-[var(--accent-emerald)] font-semibold font-mono text-xs uppercase tracking-wider">
-              <span class="material-symbols-outlined text-[18px]">verified</span>
-              Key Findings
-            </div>
-            <p id="exec-card-findings" class="text-[var(--text-secondary)] text-xs leading-relaxed">
-              High confidence classification confirming primary subject markers. Crisp focal contrast and distinct contour boundaries.
+          <div class="report-card p-5 space-y-4">
+            <p id="r2-exec-summary" class="text-sm md:text-base leading-relaxed text-[var(--text-primary)] font-sans">
+              Visual intelligence assessment synthesized from direct optical tensors.
             </p>
-          </div>
 
-          <!-- Main Observation Card -->
-          <div class="report-card space-y-2 shadow-sm">
-            <div class="flex items-center gap-2 text-[var(--accent-amber)] font-semibold font-mono text-xs uppercase tracking-wider">
-              <span class="material-symbols-outlined text-[18px]">visibility</span>
-              Main Visual Observation
+            <div class="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
+              <span class="text-[10px] font-mono text-indigo-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[14px]">star</span>
+                Core Critical Finding
+              </span>
+              <p id="r2-exec-key-finding" class="text-sm font-semibold text-[var(--text-primary)]">
+                Focal subject identified with high structural definition.
+              </p>
             </div>
-            <p id="exec-card-observation" class="text-[var(--text-secondary)] text-xs leading-relaxed">
-              Clear spatial organization with well-defined illumination vectors. Balanced natural contrast separation between subject and environment.
-            </p>
-          </div>
 
-          <!-- Research Scope Card -->
-          <div class="report-card space-y-2 shadow-sm">
-            <div class="flex items-center gap-2 text-[var(--accent-purple)] font-semibold font-mono text-xs uppercase tracking-wider">
-              <span class="material-symbols-outlined text-[18px]">psychology</span>
-              Research Scope
-            </div>
-            <p id="exec-card-synthesis" class="text-[var(--text-secondary)] text-xs leading-relaxed">
-              Grounded in multimodal vision intelligence algorithms. Results synthesized into structured citations and verified domain principles.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 5. STRUCTURED ACADEMIC RESEARCH SECTIONS -->
-      <section class="space-y-10 report-section-divider font-sans">
-        
-        <!-- PHASE 4: DIAGRAM STRUCTURAL GRAPH EXTRACTION (HIDDEN UNLESS VISUAL TYPE IS DIAGRAM) -->
-        <div id="diagram-structure-container" class="hidden space-y-4">
-          <div class="border-b border-[var(--border-color)] pb-2 flex items-center justify-between">
             <div>
-              <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-                <span class="material-symbols-outlined text-[var(--accent-purple)] text-[24px]">account_tree</span>
-                Visual Structure &amp; Topology
-              </h2>
-              <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Machine-readable node &amp; connector extraction from visual evidence</p>
-            </div>
-            <span id="diagram-type-pill" class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 font-mono text-xs font-bold border border-indigo-500/20 uppercase">Diagram</span>
-          </div>
-
-          <!-- Quick Metrics Bar -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-mono">
-            <div class="report-card p-3 space-y-0.5">
-              <span class="text-[10px] text-[var(--text-muted)] uppercase block">Diagram Type</span>
-              <strong id="diagram-stat-type" class="text-indigo-400 block font-bold text-sm">Flowchart</strong>
-            </div>
-            <div class="report-card p-3 space-y-0.5">
-              <span class="text-[10px] text-[var(--text-muted)] uppercase block">Nodes Extracted</span>
-              <strong id="diagram-stat-nodes" class="text-emerald-400 block font-bold text-sm">0 Nodes</strong>
-            </div>
-            <div class="report-card p-3 space-y-0.5 col-span-2 sm:col-span-1">
-              <span class="text-[10px] text-[var(--text-muted)] uppercase block">Connections</span>
-              <strong id="diagram-stat-edges" class="text-sky-400 block font-bold text-sm">0 Edges</strong>
-            </div>
-          </div>
-
-          <!-- Two-column: Nodes list on left, Connections on right -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <!-- NODES LIST -->
-            <div class="report-card p-4 space-y-2.5">
-              <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-1.5">
-                <span class="font-mono text-xs font-bold text-[var(--text-primary)] uppercase flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm text-[var(--accent-purple)]">crop_din</span>
-                  Nodes
-                </span>
-                <span id="diagram-nodes-count-badge" class="font-mono text-[10px] text-[var(--text-muted)]">0 items</span>
-              </div>
-              <ul id="diagram-nodes-list" class="space-y-1.5 max-h-64 overflow-y-auto pr-1 font-sans">
-                <!-- Populated dynamically -->
-              </ul>
-            </div>
-
-            <!-- CONNECTIONS LIST -->
-            <div class="report-card p-4 space-y-2.5">
-              <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-1.5">
-                <span class="font-mono text-xs font-bold text-[var(--text-primary)] uppercase flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm text-[var(--accent-emerald)]">arrow_forward</span>
-                  Connections
-                </span>
-                <span id="diagram-edges-count-badge" class="font-mono text-[10px] text-[var(--text-muted)]">0 links</span>
-              </div>
-              <ul id="diagram-edges-list" class="space-y-1.5 max-h-64 overflow-y-auto pr-1 font-sans">
-                <!-- Populated dynamically -->
+              <span class="text-[11px] font-mono uppercase text-[var(--text-muted)] font-bold block mb-2">Key Takeaways</span>
+              <ul id="r2-exec-takeaways" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
               </ul>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- SECTION 1: DETAILED VISUAL & STRUCTURAL ANALYSIS -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">center_focus_strong</span>
-              1. Visual &amp; Structural Analysis
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Detailed physical attributes, spatial geometry, and focal vectors</p>
-          </div>
-          <div id="report-detailed-analysis-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
-            <p>The visual analysis reveals distinct structural markers across the primary focal region. Geometry, lighting, and chromatic variance demonstrate a well-balanced composition.</p>
-          </div>
-        </div>
-
-        <!-- SECTION 2: SUBJECT IDENTIFICATION & TAXONOMY -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-emerald)] text-[24px]">fingerprint</span>
-              2. Subject Identification &amp; Domain Taxonomy
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Taxonomical classification and evolutionary lineage</p>
-          </div>
-          <div id="report-identification-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
-            <p>The primary subject is classified under domain taxonomy based on physical attributes, spatial positioning, and visual features.</p>
-          </div>
-        </div>
-
-        <!-- SECTION 3: TECHNICAL DATA COMPARISON CARDS -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-purple)] text-[24px]">science</span>
-              3. Scientific &amp; Technical Attributes
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Quantitative benchmarks, material properties, and operational parameters</p>
-          </div>
-          <div id="report-scientific-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3 mb-3">
-            <p>From a domain perspective, the subject exhibits key scientific mechanisms, material properties, and operational parameters.</p>
-          </div>
-
-          <!-- COMPARISON CARDS / ATTRIBUTE BLOCKS -->
-          <div id="specs-comparison-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="report-card space-y-1">
-              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Classification</span>
-              <strong class="text-xs text-[var(--text-primary)] block font-semibold">Domestic Canine</strong>
+        <!-- 02 — VISUAL EVIDENCE -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/20">02</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Visual Evidence</h2>
             </div>
-            <div class="report-card space-y-1">
-              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Domain</span>
-              <strong class="text-xs text-[var(--accent-purple)] block font-semibold">Veterinary Zoology</strong>
-            </div>
-            <div class="report-card space-y-1">
-              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Detection Fidelity</span>
-              <strong class="text-xs text-[var(--accent-emerald)] block font-semibold">99.4% High</strong>
+            <div class="flex items-center gap-2 text-[10px] font-mono">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">OBSERVED</span>
+              <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold">INFERRED</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">UNDETERMINABLE</span>
             </div>
           </div>
-        </div>
 
-        <!-- SECTION 4: HISTORICAL CONTEXT & VERTICAL TIMELINE -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-amber)] text-[24px]">history_edu</span>
-              4. Historical Context &amp; Evolutionary Timeline
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Chronological milestones and evolutionary development</p>
+          <div id="r2-evidence-list" class="space-y-2.5">
           </div>
+        </section>
 
-          <!-- VERTICAL TIMELINE COMPONENT -->
-          <div id="report-historical-timeline" class="vertical-timeline space-y-4">
-            <div class="timeline-item">
-              <div class="timeline-node"></div>
-              <div class="timeline-card">
-                <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">~30,000 BCE &bull; Evolutionary Origin</span>
-                <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">Domestication from Ancestral Wolf Lineages</strong>
-                <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">Early divergence of Canis lupus familiaris during the Upper Paleolithic era.</p>
-              </div>
+        <!-- 03 — VISUAL STRUCTURE (VISUAL-TYPE ADAPTIVE) -->
+        <section id="r2-structure-section" class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-purple-500/10 text-purple-400 font-mono text-xs font-bold border border-purple-500/20">03</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Visual Structure &amp; Topology</h2>
             </div>
-            <div class="timeline-item">
-              <div class="timeline-node"></div>
-              <div class="timeline-card">
-                <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">19th Century &bull; Modern Classification</span>
-                <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">Formalization of Kennel Standards &amp; Breed Selection</strong>
-                <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">Systematic breed standardization across European and American registries.</p>
-              </div>
+            <span id="r2-structure-type-pill" class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 font-mono text-xs font-bold border border-purple-500/20 uppercase">Structural Analysis</span>
+          </div>
+
+          <div id="r2-structure-container" class="space-y-4">
+          </div>
+        </section>
+
+        <!-- 04 — KEY OBSERVATIONS -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-mono text-xs font-bold border border-blue-500/20">04</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Key Observations</h2>
             </div>
+            <span class="text-xs text-[var(--text-muted)] font-mono">Grounded Visual Data</span>
           </div>
-        </div>
 
-        <!-- SECTION 5: PRACTICAL APPLICATIONS -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-purple)] text-[24px]">apps</span>
-              5. Applications &amp; Domain Importance
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Practical utility, institutional research, and clinical relevance</p>
+          <div id="r2-observations-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           </div>
-          <div id="applications-importance-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
-            <div class="report-card space-y-1.5">
-              <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-[var(--accent-emerald)] font-mono text-xs font-bold flex items-center justify-center">1</span>
-              <p class="text-[var(--text-secondary)] text-xs leading-relaxed">Academic reference and veterinary research documentation.</p>
+        </section>
+
+        <!-- 05 — INTERPRETATION -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono text-xs font-bold border border-amber-500/20">05</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Interpretation &amp; Meaning</h2>
             </div>
+            <span class="text-xs text-[var(--text-muted)] font-mono">Reasoning Beyond Direct Observation</span>
           </div>
-        </div>
 
-        <!-- SECTION 6: KEY FACT FEATURE CARDS -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-amber)] text-[24px]">lightbulb</span>
-              6. Key Fact Highlights
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Essential domain insights and notable attributes</p>
+          <div id="r2-interpretations-list" class="space-y-3">
           </div>
-          <div id="interesting-facts-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
-            <div class="report-card space-y-2">
-              <span class="material-symbols-outlined text-[var(--accent-amber)] text-[20px]">lightbulb</span>
-              <p class="text-[var(--text-secondary)] text-xs leading-relaxed">Key structural feature observed across primary focal regions.</p>
+        </section>
+
+        <!-- 06 — FINDINGS -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-rose-500/10 text-rose-400 font-mono text-xs font-bold border border-rose-500/20">06</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Core Findings</h2>
             </div>
+            <span class="text-xs text-[var(--text-muted)] font-mono">Visual Intelligence Conclusions</span>
           </div>
-        </div>
 
-        <!-- SECTION 7: ANALYTICAL LIMITATIONS -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--accent-amber)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[24px]">warning</span>
-              7. Analytical Limitations &amp; Scope
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Physical constraints of 2D visual extraction</p>
+          <div id="r2-findings-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           </div>
-          <div id="limitations-text" class="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/20 text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed font-sans">
-            Visual inference from a 2D image is limited by camera sensor resolution, occlusion, and light spectrum constraints. Sub-surface compositions or precise microscopic physical attributes cannot be determined from visual evidence alone.
-          </div>
-        </div>
+        </section>
 
-        <!-- SECTION 8: REFERENCES & VERIFIED SOURCES -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 id="section-references-title" class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">menu_book</span>
-              8. References &amp; Verified Sources
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Independently verified institutional references and source citations</p>
-          </div>
-          <div id="references-list" class="space-y-3 text-xs font-mono text-[var(--text-secondary)]">
-            <div class="report-card p-4 rounded-xl text-xs text-[var(--text-secondary)] font-mono">
-              Loading verified reference sources...
+        <!-- 07 — LIMITATIONS & UNCERTAINTY -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono text-xs font-bold border border-amber-500/20">07</span>
+              <h2 class="font-serif text-2xl font-bold text-amber-400">Limitations &amp; Uncertainty Boundaries</h2>
             </div>
+            <span class="text-xs text-amber-400/80 font-mono">Epistemic Scope</span>
           </div>
-        </div>
 
-        <!-- SECTION 9: CONCLUDING SYNTHESIS -->
-        <div class="space-y-3">
-          <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-emerald)] text-[24px]">task_alt</span>
-              9. Concluding Synthesis
-            </h2>
-            <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Final analytical evaluation</p>
+          <div class="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/20 space-y-3">
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+              InsightLens operates strictly within empirical 2D visual boundaries. The following attributes cannot be established from this visual artifact:
+            </p>
+            <ul id="r2-limitations-list" class="space-y-2 text-xs font-mono text-slate-300">
+            </ul>
           </div>
-          <div id="conclusion-text" class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
-            <p>In conclusion, the visual research assessment confirms a well-structured artifact with crisp edge contours and grounded domain principles.</p>
+        </section>
+
+        <!-- 08 — SOURCES & VERIFICATION -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono text-xs font-bold border border-sky-500/20">08</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Sources &amp; Verification</h2>
+            </div>
+            <span class="text-xs text-[var(--text-muted)] font-mono">External Grounding</span>
           </div>
-        </div>
 
-        <!-- APPENDIX & TELEMETRY FOOTER -->
-        <div id="appendix-telemetry-box" class="p-5 bg-[var(--bg-card-subtle)] rounded-2xl border border-[var(--border-color)] text-xs font-mono text-[var(--text-muted)] space-y-1.5">
-          <div>Engine: InsightLens Academic Visual Intelligence System</div>
-          <div>Multimodal Model: Gemini 3.6 Flash</div>
-          <div>Validation Status: 13-Section Academic Paper Schema Verified (Passed)</div>
-        </div>
+          <div id="r2-sources-list" class="space-y-2.5 text-xs">
+          </div>
+        </section>
 
-      </section>
+        <!-- 09 — TECHNICAL METADATA -->
+        <section class="space-y-4 report-2-section">
+          <div class="border-b border-[var(--border-color)] pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-slate-500/10 text-slate-400 font-mono text-xs font-bold border border-slate-500/20">09</span>
+              <h2 class="font-serif text-2xl font-bold text-[var(--text-primary)]">Technical Metadata &amp; Telemetry</h2>
+            </div>
+            <span class="text-xs text-[var(--text-muted)] font-mono">System Audit Trail</span>
+          </div>
 
+          <div id="r2-telemetry-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-[var(--bg-card-subtle)] border border-[var(--border-color)] font-mono text-xs text-[var(--text-muted)]">
+          </div>
+        </section>
+
+      </div>
     </div>
   </div>
 

@@ -30,6 +30,23 @@ export function buildJsonSchemaPrompt() {
   "scientificName": "[Taxonomy or Domain Classification]",
   "category": "[Domain Category e.g. Sports, Geography, Astronomy, Architecture, Biology, Computer Science, Financial Analytics]",
   "confidenceScore": "98.5%",
+  "executiveInsight": {
+    "summary": "[Concise 2-3 sentence summary answering what this visual communicates]",
+    "keyFinding": "[The single most critical takeaway or finding]",
+    "keyTakeaways": ["[Takeaway 1]", "[Takeaway 2]", "[Takeaway 3]"]
+  },
+  "visualEvidence": [
+    { "statement": "[Direct visual evidence statement]", "status": "observed | inferred | undeterminable" }
+  ],
+  "observations": [
+    { "category": "Subjects | Objects | Text | Environment | Composition | Lighting", "statement": "[Objective visual observation]", "status": "observed" }
+  ],
+  "interpretations": [
+    { "statement": "[Reasoned interpretation of visual meaning]", "basis": "[Observed visual feature basis]" }
+  ],
+  "findings": [
+    { "statement": "[Concrete analytical conclusion]", "basis": "[Visual evidence basis]" }
+  ],
   "executiveSummary": "100-150 word research summary tailored to the specialized visual type.",
   "identification": "Visual classification and identification rationale applying the specialized pipeline.",
   "detailedAnalysis": "Detailed visual feature analysis following the specialized pipeline guidelines.",

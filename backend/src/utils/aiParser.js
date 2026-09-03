@@ -1,6 +1,7 @@
 import { APIError } from './apiUtils.js';
 import { VisualTypeClassifier } from '../services/classification/VisualTypeClassifier.js';
 import { AnalysisStrategyFactory } from '../services/classification/AnalysisStrategyFactory.js';
+import { normalizeReport } from '../services/report/ReportNormalizer.js';
 
 function repairJsonString(str) {
   let cleaned = str
@@ -118,12 +119,15 @@ export function parseAIResponse(rawText, provider, model) {
 
   const nowStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  // Phase 3: Resolve Visual Classification and Apply Specialized Strategy
+  // Phase 3 & 4: Resolve Visual Classification and Apply Specialized Strategy
   const classification = VisualTypeClassifier.classify(parsedData);
   const strategy = AnalysisStrategyFactory.getStrategy(classification.visualType);
   parsedData = strategy.postProcess(parsedData);
   parsedData.classificationReason = classification.reason;
   parsedData.classificationConfidence = classification.classificationConfidence;
+
+  // Phase 5A: Apply Report 2.0 Normalization
+  parsedData = normalizeReport(parsedData);
 
   parsedData.aiProvider = provider;
   parsedData.modelUsed = model;
