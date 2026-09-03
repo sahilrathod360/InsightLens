@@ -63,16 +63,16 @@ export async function optimizeImage(dataUrl) {
   const originalSizeBytes = inputBuffer.length;
   const imageHash = crypto.createHash('sha256').update(inputBuffer).digest('hex');
 
-  // Perform Sharp optimization (Max 1024px, JPEG quality 82%)
+  // Perform Sharp optimization (Max 768px for optimal vision inference speed, JPEG quality 80%)
   const optimizedBuffer = await sharp(inputBuffer)
     .resize({
-      width: 1024,
-      height: 1024,
+      width: 768,
+      height: 768,
       fit: 'inside',
       withoutEnlargement: true
     })
     .jpeg({
-      quality: 82,
+      quality: 80,
       mozjpeg: true
     })
     .toBuffer();

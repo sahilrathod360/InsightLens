@@ -29,6 +29,13 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
   } catch (dbErr) {
     console.error('[Database Init Notice]', dbErr.message);
   }
+
+  // Asynchronously probe configured Gemini models availability in background
+  import('./src/services/ai/ModelRegistry.js')
+    .then(({ default: ModelRegistry }) => {
+      ModelRegistry.probeGeminiAvailability(config.apiKeys.gemini).catch(() => {});
+    })
+    .catch(() => {});
 });
 
 server.on('error', (err) => {

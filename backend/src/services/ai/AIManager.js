@@ -35,28 +35,22 @@ class AIManager {
       };
     }
 
-    // Step 3: Global Safety Ceiling (25 seconds maximum bounded live-analysis ceiling)
+    // Step 3: Global Safety Ceiling (18 seconds bounded live-analysis ceiling)
     const globalAbortController = new AbortController();
     const globalTimeoutId = setTimeout(() => {
-      console.warn('[AIManager] 25-second global safety ceiling reached. Terminating all active analysis providers.');
+      console.warn('[AIManager] 18-second global safety ceiling reached. Terminating all active analysis candidates.');
       globalAbortController.abort();
-    }, 25000);
+    }, 18000);
 
-    // Step 4: Multi-Model Candidate Selection from Registry
+    // Step 4: Multi-Model Candidate Selection from Registry (Top 2 healthy candidates)
     const hasGeminiKey = !!config.apiKeys?.gemini;
     const hasOpenRouterKey = !!config.apiKeys?.openrouter;
 
-    let candidates = ModelRegistry.getVisionCandidates({
-      maxCandidates: 4,
+    const candidates = ModelRegistry.getVisionCandidates({
+      maxCandidates: 2,
       hasGeminiKey,
       hasOpenRouterKey
     });
-
-    // Filter out models currently in cooldown unless no models remain
-    const healthyCandidates = candidates.filter(c => ModelHealthTracker.isAvailable(c.id));
-    if (healthyCandidates.length > 0) {
-      candidates = healthyCandidates;
-    }
 
     if (candidates.length === 0) {
       clearTimeout(globalTimeoutId);
