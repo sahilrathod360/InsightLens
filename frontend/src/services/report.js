@@ -46,7 +46,7 @@ export function formatReportPayload(data) {
       keyFacts,
       interestingFacts,
       limitations,
-      conclusion,
+      conclusion: data.conclusion || 'Empirical visual research assessment concluded successfully.',
       references
     }
   };

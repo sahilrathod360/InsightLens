@@ -5,6 +5,7 @@ import { computeImageStatistics } from '../utils/canvas.js';
 import { exportMarkdownFile, exportJSONFile, exportCleanPDF } from '../utils/export.js';
 
 import { showToast } from '../utils/toast.js';
+import { renderMarkdownToHtml } from '../utils/markdown.js';
 import { updateTelemetryUI } from './LoadingPipeline.js';
 import { mountInlineExplainPanel, renderUpgradedReportCanvas } from './Report/ReportViewer.js';
 
@@ -223,7 +224,7 @@ export function renderResultScreen(data) {
   const setSectionText = (id, text) => {
     const el = document.getElementById(id);
     if (el && text) {
-      el.innerHTML = text.split('\n\n').map(p => `<p class="leading-relaxed mb-3">${p}</p>`).join('');
+      el.innerHTML = renderMarkdownToHtml(text);
     }
   };
 

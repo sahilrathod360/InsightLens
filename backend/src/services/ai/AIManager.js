@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { config } from '../../config/env.js';
 import GeminiService from './GeminiService.js';
 import OpenRouterService from './OpenRouterService.js';
@@ -17,10 +16,8 @@ class AIManager {
     const optResult = await optimizeImage(rawInputDataUrl);
     console.log(`[ImageOptimizer] Original: ${optResult.originalSizeKb} KB | Compressed: ${optResult.compressedSizeKb} KB | Ratio: -${optResult.compressionRatioPct}% | Time: ${optResult.optimizationTimeMs} ms`);
 
-    // Step 2: 30-Minute In-Memory Intent-Aware Cache Lookup
-    const intentFingerprint = JSON.stringify(promptObj || {});
-    const cacheKey = crypto.createHash('sha256').update(`${optResult.imageHash}_${intentFingerprint}`).digest('hex');
-
+    // Step 2: 30-Minute In-Memory Cache Lookup (Composite key ensuring context safety)
+    const cacheKey = `${optResult.imageHash}_${(promptObj?.subjectContext || '').trim().toLowerCase()}_${promptObj?.language || 'en'}_${promptObj?.researchLength || 'long'}`;
     const cachedResult = cacheManager.get(cacheKey);
     if (cachedResult) {
       const totalDuration = Date.now() - startTime;
@@ -53,9 +50,9 @@ class AIManager {
       console.log('[AIManager] Executing Provider A: Google Gemini API...');
       const geminiController = new AbortController();
       const geminiTimeoutId = setTimeout(() => {
-        console.warn('[AIManager] Gemini 36-second bounded ceiling triggered.');
+        console.warn('[AIManager] Gemini 60-second bounded ceiling triggered.');
         geminiController.abort();
-      }, 36000);
+      }, 60000);
 
       const onGlobalAbortGemini = () => geminiController.abort();
       globalAbortController.signal.addEventListener('abort', onGlobalAbortGemini);

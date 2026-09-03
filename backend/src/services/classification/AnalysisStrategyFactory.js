@@ -35,7 +35,7 @@ export class AnalysisStrategyFactory {
   static buildPromptInstructions() {
     return `VISUAL CLASSIFICATION & SPECIALIZED PIPELINES:
 1. CLASSIFY VISUAL TYPE into exactly ONE category:
-- "photograph": Real-world photography of subjects, landscapes, architecture, or objects. (Analyze focal subject, clothing/features, lighting, composition).
+- "photograph": Real-world photography of subjects, people, athletes, actors, landscapes, architecture, stadiums, products, or objects.
 - "document": Text-heavy pages, forms, invoices, letters, tables, or scanned sheets. (Extract OCR text, document layout, sections).
 - "diagram": Schematics, flowcharts, DFD, UML, architecture blocks, or circuits. (Extract diagramType, nodes with id/label/type, and edges with source/target/label/direction).
 - "chart": Quantitative data plots, bar graphs, line charts, pie charts, or dashboards. (Extract chart archetype, axes, visible categories, trends).
@@ -44,7 +44,9 @@ export class AnalysisStrategyFactory {
 - "map": Geographic maps, transit routes, or terrain surveys. (Extract cartographic type, landmarks, spatial features).
 - "unknown": Ambiguous or hybrid visuals.
 
-2. IDENTITY SAFETY: For human subjects, NEVER assert or guess the name or identity of any real individual from facial appearance alone. Describe observable clothing, posture, and features objectively without named-person claims.`;
+2. SUBJECT IDENTIFICATION DISCIPLINE:
+- Automatically identify the primary research subject (prominent public figure, athlete, landmark, product, dataset, or diagram system) from all available visual evidence (features, logos, uniforms, team insignia, location cues, labels).
+- For unidentifiable or private persons, use an accurate descriptive domain subject (e.g., "Professional Cricket Player in Match Uniform") without inventing a name.`;
   }
 }
 

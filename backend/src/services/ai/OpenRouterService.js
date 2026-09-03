@@ -14,25 +14,14 @@ class OpenRouterService {
     const startTime = Date.now();
     console.log('[AIManager] OpenRouter started');
 
-    const { 
-      language = 'en', 
-      researchIntent = {}, 
-      subjectContext = '' 
-    } = promptObj;
-
-    const normalizedIntent = {
-      subjectContext: (researchIntent.subjectContext || subjectContext || '').trim(),
-      focus: researchIntent.focus || 'auto',
-      question: (researchIntent.question || '').trim(),
-      depth: researchIntent.depth || promptObj.researchLength || 'standard'
-    };
+    const { researchLength = 'long', language = 'en', subjectContext = '' } = promptObj;
     
     let imageUrl = dataUrl;
     if (typeof dataUrl === 'string' && !dataUrl.startsWith('data:')) {
        imageUrl = `data:image/jpeg;base64,${dataUrl}`;
     }
 
-    const promptText = buildAiPrompt(language, normalizedIntent);
+    const promptText = buildAiPrompt(language, researchLength, subjectContext);
     const schemaText = buildJsonSchemaPrompt();
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -130,7 +119,7 @@ class OpenRouterService {
         const duration = Date.now() - startTime;
         console.log(`[AIManager] OpenRouter finished (${model}) in ${duration} ms (TTFB: ${timeToFirstByteMs}ms, Inference: ${totalInferenceTimeMs}ms)`);
 
-        const parsedResult = parseAIResponse(rawText, 'OpenRouter', model, normalizedIntent);
+        const parsedResult = parseAIResponse(rawText, 'OpenRouter', model);
         parsedResult.timeToFirstByteMs = timeToFirstByteMs;
         parsedResult.totalInferenceTimeMs = totalInferenceTimeMs;
         return parsedResult;

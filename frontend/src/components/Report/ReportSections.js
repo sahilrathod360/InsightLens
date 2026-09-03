@@ -1,4 +1,5 @@
 // Report Sections Component with Collapsible Toggles, Highlighting & Callouts
+import { renderMarkdownToHtml } from '../../utils/markdown.js';
 
 export function renderReportSections(formatted) {
   if (!formatted) return '';
@@ -22,9 +23,9 @@ export function renderReportSections(formatted) {
         <div class="sec-body space-y-3">
           <div class="p-4 bg-indigo-500/10 border-l-4 border-indigo-400 rounded-r-xl space-y-1">
             <strong class="text-indigo-300 font-semibold text-xs block">Key Insight Abstract</strong>
-            <p class="text-slate-200 leading-relaxed text-xs">
-              ${sections.executiveSummary}
-            </p>
+            <div class="text-slate-200 leading-relaxed text-xs">
+              ${renderMarkdownToHtml(sections.executiveSummary)}
+            </div>
           </div>
         </div>
       </section>
@@ -42,9 +43,9 @@ export function renderReportSections(formatted) {
         </div>
 
         <div class="sec-body space-y-3">
-          <p class="text-slate-300 leading-relaxed">
-            ${sections.identification}
-          </p>
+          <div class="text-slate-300 leading-relaxed">
+            ${renderMarkdownToHtml(sections.identification)}
+          </div>
           <div class="p-3.5 bg-surface-container rounded-xl border ghost-border font-mono text-[11px] text-slate-300 flex items-center gap-2">
             <span class="material-symbols-outlined text-sky-400 text-[18px]">verified</span>
             <span>Primary Subject Verified: <mark class="bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded font-bold border border-indigo-500/30">${subject}</mark></span>
@@ -66,7 +67,7 @@ export function renderReportSections(formatted) {
 
         <div class="sec-body space-y-3">
           <div class="prose prose-invert max-w-none text-slate-300 leading-relaxed">
-            ${sections.overview}
+            ${renderMarkdownToHtml(sections.overview)}
           </div>
         </div>
       </section>
@@ -86,9 +87,9 @@ export function renderReportSections(formatted) {
         <div class="sec-body space-y-3">
           <div class="p-4 bg-emerald-500/10 border-l-4 border-emerald-400 rounded-r-xl space-y-1">
             <strong class="text-emerald-300 font-semibold text-xs block">Historical Timeline &amp; Origins</strong>
-            <p class="text-slate-200 leading-relaxed text-xs">
-              ${sections.historicalBackground}
-            </p>
+            <div class="text-slate-200 leading-relaxed text-xs">
+              ${renderMarkdownToHtml(sections.historicalBackground)}
+            </div>
           </div>
         </div>
       </section>
@@ -107,7 +108,7 @@ export function renderReportSections(formatted) {
 
         <div class="sec-body space-y-3">
           <div class="text-slate-300 leading-relaxed">
-            ${sections.technicalDetails}
+            ${renderMarkdownToHtml(sections.technicalDetails)}
           </div>
         </div>
       </section>

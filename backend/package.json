@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
-    "test": "node test_research_intent_suite.js"
+    "dev": "node --watch server.js"
   },
   "keywords": [],
   "author": "",

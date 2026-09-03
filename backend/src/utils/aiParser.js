@@ -85,7 +85,7 @@ export function validateAiReportSchema(data) {
   return true;
 }
 
-export function parseAIResponse(rawText, provider, model, researchIntent = {}) {
+export function parseAIResponse(rawText, provider, model) {
   const parseStartTime = Date.now();
 
   if (typeof rawText !== 'string' || !rawText.trim()) {
@@ -161,8 +161,8 @@ export function parseAIResponse(rawText, provider, model, researchIntent = {}) {
   parsedData.classificationReason = classification.reason;
   parsedData.classificationConfidence = classification.classificationConfidence;
 
-  // Phase 5A: Apply Report 2.0 Normalization with Research Intent
-  parsedData = normalizeReport(parsedData, researchIntent);
+  // Phase 5A: Apply Report 2.0 Normalization
+  parsedData = normalizeReport(parsedData);
 
   parsedData.aiProvider = provider;
   parsedData.modelUsed = model;

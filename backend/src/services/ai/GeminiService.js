@@ -13,18 +13,7 @@ class GeminiService {
     const startTime = Date.now();
     console.log('[AIManager] Gemini started');
 
-    const { 
-      language = 'en', 
-      researchIntent = {}, 
-      subjectContext = '' 
-    } = promptObj;
-
-    const normalizedIntent = {
-      subjectContext: (researchIntent.subjectContext || subjectContext || '').trim(),
-      focus: researchIntent.focus || 'auto',
-      question: (researchIntent.question || '').trim(),
-      depth: researchIntent.depth || promptObj.researchLength || 'standard'
-    };
+    const { researchLength = 'long', language = 'en', subjectContext = '' } = promptObj;
     
     // Extract base64 and mimetype
     let mimeType = 'image/jpeg';
@@ -37,9 +26,9 @@ class GeminiService {
       }
     }
 
-    const promptText = buildAiPrompt(language, normalizedIntent);
+    const promptText = buildAiPrompt(language, researchLength, subjectContext);
     const schemaText = buildJsonSchemaPrompt();
-    const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.5-flash'];
+    const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite'];
     let lastError = null;
 
     for (const model of models) {
@@ -57,18 +46,14 @@ class GeminiService {
             ]
           }
         ],
-        generationConfig: { 
-          responseMimeType: "application/json", 
-          temperature: 0.2,
-          maxOutputTokens: 3500 
-        }
+        generationConfig: { response_mime_type: "application/json", maxOutputTokens: 6000 }
       };
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.warn(`[Gemini] 18-second timeout triggered for model ${model}`);
+        console.warn(`[Gemini] 28-second timeout triggered for model ${model}`);
         controller.abort();
-      }, 18000);
+      }, 28000);
 
       const onParentAbort = () => controller.abort();
       if (parentSignal) {
@@ -108,7 +93,7 @@ class GeminiService {
         const duration = Date.now() - startTime;
         console.log(`[AIManager] Gemini finished (${model}) in ${duration} ms (TTFB: ${timeToFirstByteMs}ms, Inference: ${totalInferenceTimeMs}ms)`);
 
-        const parsedResult = parseAIResponse(rawText, 'Google Gemini AI', model, normalizedIntent);
+        const parsedResult = parseAIResponse(rawText, 'Google Gemini AI', model);
         parsedResult.timeToFirstByteMs = timeToFirstByteMs;
         parsedResult.totalInferenceTimeMs = totalInferenceTimeMs;
         return parsedResult;

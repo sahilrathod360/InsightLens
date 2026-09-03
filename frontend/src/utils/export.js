@@ -44,20 +44,14 @@ export function exportMarkdownFile() {
 
 ---
 
-### 🎯 Research Intent & Parameters
-- **Research Subject:** ${d.researchIntent?.subjectContext || d.subject || 'None specified'}
-- **Research Focus:** ${(d.researchIntent?.focus || 'auto').toUpperCase()}
-- **Research Question:** ${d.researchIntent?.question || 'General Visual Synthesis'}
-- **Research Depth:** ${(d.researchIntent?.depth || 'standard').toUpperCase()}
-
----
-
 ### 📊 Research Metadata & Telemetry
 - **Visual Classification:** ${(d.visualType || 'photograph').toUpperCase()}
 - **Specialized Pipeline:** ${d.specializedPipeline || 'Photo Analysis Pipeline'}
 - **Primary Subject:** ${d.subject}
+- **Scientific/Technical Name:** ${d.scientificName || 'N/A'}
 - **Domain Category:** ${d.category || 'Visual Science'}
 - **AI Confidence Score:** ${d.confidenceScore || d.aiConfidence || '99.2%'}
+- **Detected Objects:** ${(d.detectedObjects || []).join(', ')}
 
 ---
 
