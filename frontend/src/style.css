@@ -1129,15 +1129,52 @@ input, select, textarea, .input-transition {
     border-color: #cbd5e1 !important;
   }
 
-  /* 6. Image & Figure Hygiene */
+  /* 6. Image & Figure Hygiene - Complete Unbroken Image Preservation */
+  #report-visual-target-section,
+  #report-image-card,
+  .report-image-card,
+  .report-image-section,
+  figure,
+  figcaption {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  #report-image-wrapper,
+  .report-image-wrapper {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
   #report-source-img {
-    max-height: 260px !important;
+    max-width: 100% !important;
     width: auto !important;
+    max-height: 270px !important;
+    height: auto !important;
     object-fit: contain !important;
     display: block !important;
     margin: 0 auto !important;
+    padding: 4px !important;
+    border-radius: 6px !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  #report-caption {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    padding-top: 6px !important;
+    font-size: 8pt !important;
+    color: #475569 !important;
   }
 
   figure, .group {
@@ -1149,15 +1186,15 @@ input, select, textarea, .input-transition {
   section {
     break-inside: auto !important;
     page-break-inside: auto !important;
-    margin-top: 1.5rem !important;
-    margin-bottom: 1.5rem !important;
+    margin-top: 1.25rem !important;
+    margin-bottom: 1.25rem !important;
   }
 
   header {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-    margin-bottom: 1.5rem !important;
-    padding-bottom: 1.5rem !important;
+    margin-bottom: 1.25rem !important;
+    padding-bottom: 1.25rem !important;
     border-bottom: 2px solid #0f172a !important;
   }
 

@@ -49,7 +49,7 @@ class OpenRouterService {
 
       const body = {
         model: model,
-        max_tokens: 280,
+        max_tokens: 6000,
         messages: [
           {
             role: "user",
