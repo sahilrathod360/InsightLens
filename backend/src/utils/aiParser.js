@@ -1,4 +1,6 @@
 import { APIError } from './apiUtils.js';
+import { VisualTypeClassifier } from '../services/classification/VisualTypeClassifier.js';
+import { AnalysisStrategyFactory } from '../services/classification/AnalysisStrategyFactory.js';
 
 function repairJsonString(str) {
   let cleaned = str
@@ -116,6 +118,13 @@ export function parseAIResponse(rawText, provider, model) {
 
   const nowStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
+  // Phase 3: Resolve Visual Classification and Apply Specialized Strategy
+  const classification = VisualTypeClassifier.classify(parsedData);
+  const strategy = AnalysisStrategyFactory.getStrategy(classification.visualType);
+  parsedData = strategy.postProcess(parsedData);
+  parsedData.classificationReason = classification.reason;
+  parsedData.classificationConfidence = classification.classificationConfidence;
+
   parsedData.aiProvider = provider;
   parsedData.modelUsed = model;
   parsedData.actualModel = model;
@@ -124,6 +133,6 @@ export function parseAIResponse(rawText, provider, model) {
   parsedData.jsonParsingTimeMs = jsonParsingTimeMs;
   parsedData.schemaValidationTimeMs = schemaValidationTimeMs;
 
-  console.log(`[Parser] Verified valid AI report schema for ${provider} (${model}) - Subject: "${parsedData.subject}" (JSON parse: ${jsonParsingTimeMs}ms, Validation: ${schemaValidationTimeMs}ms)`);
+  console.log(`[Parser] Verified valid AI report schema for ${provider} (${model}) - Type: [${parsedData.visualType.toUpperCase()}] Pipeline: [${parsedData.specializedPipeline}] Subject: "${parsedData.subject}" (JSON parse: ${jsonParsingTimeMs}ms, Validation: ${schemaValidationTimeMs}ms)`);
   return parsedData;
 }

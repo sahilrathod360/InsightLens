@@ -245,8 +245,10 @@ export async function renderArchivePage() {
                     <span class="material-symbols-outlined text-[18px] ${rpt.favorite ? 'text-amber-400 fill-amber-400' : 'text-slate-400'}">star</span>
                   </button>
 
-                  <div class="absolute bottom-2.5 left-3 bg-black/80 backdrop-blur-xs px-2.5 py-0.5 rounded text-[10px] font-mono text-indigo-300 font-bold border border-white/10">
-                    ${rpt.category || 'General Research'}
+                  <div class="absolute bottom-2.5 left-3 bg-black/80 backdrop-blur-xs px-2.5 py-0.5 rounded text-[10px] font-mono text-indigo-300 font-bold border border-white/10 flex items-center gap-1.5">
+                    <span>${rpt.category || 'General Research'}</span>
+                    <span class="text-slate-500">•</span>
+                    <span class="text-emerald-400 uppercase">${rpt.visualType || (rpt.full_data && rpt.full_data.visualType) || 'Photo'}</span>
                   </div>
                 </div>
 

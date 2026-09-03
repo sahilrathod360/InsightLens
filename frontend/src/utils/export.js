@@ -29,8 +29,10 @@ export function exportMarkdownFile() {
 ---
 
 ### 📊 Research Metadata & Telemetry
+- **Visual Classification:** ${(d.visualType || 'photograph').toUpperCase()}
+- **Specialized Pipeline:** ${d.specializedPipeline || 'Photo Analysis Pipeline'}
 - **Primary Subject:** ${d.subject}
-- **AI Confidence Score:** ${d.aiConfidence || 96.8}%
+- **AI Confidence Score:** ${d.aiConfidence || d.confidenceScore || 96.8}%
 - **Source Credibility Index:** ${d.credibilityScore || 94}/100
 - **Detected Objects:** ${(d.detectedObjects || []).join(', ')}
 - **Taxonomy Keywords:** ${(d.generatedKeywords || []).map(k => `#${k}`).join(' ')}

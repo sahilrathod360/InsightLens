@@ -1,24 +1,36 @@
+import { AnalysisStrategyFactory } from '../services/classification/AnalysisStrategyFactory.js';
+
 export function buildAiPrompt(lang = 'en', researchLength = 'long') {
-  return `Analyze the primary subject in this image and generate an academic research paper in ${lang} (${researchLength} depth).
-Identify the specific subject (e.g. Virat Kohli, Alps Mountain Range, Montreal Skyline, Milky Way Galaxy, Mars Rover) and domain taxonomy.
+  const strategyGuide = AnalysisStrategyFactory.buildPromptInstructions();
+
+  return `You are InsightLens Visual Intelligence Engine.
+Analyze the provided visual artifact and synthesize a structured empirical research report in ${lang} (${researchLength} depth).
+
+${strategyGuide}
+
 IMPORTANT CITATION INSTRUCTION:
 Never invent, fabricate, or hallucinate citations, DOIs, fake academic papers, or non-existent URLs.
 Only cite genuine, verifiable sources relevant to the identified subject (such as official governing bodies, institutional archives, official records, reputable encyclopedias, or real published papers). If a real source URL is known, include it; otherwise, provide the legitimate publisher or institution title. Do NOT output placeholder DOIs.
+
 Return ONLY valid JSON matching this schema:`;
 }
 
 export function buildJsonSchemaPrompt() {
   return `{
+  "visualType": "photograph | document | diagram | chart | screenshot | artwork | map | unknown",
+  "classificationReason": "[1-2 sentence evidence-based visual classification rationale]",
+  "classificationConfidence": "98.5%",
+  "specializedPipeline": "photograph | document | diagram | chart | screenshot | artwork | map | unknown",
   "title": "[Exact Subject Name]",
   "subject": "[Exact Subject Name]",
   "scientificName": "[Taxonomy or Domain Classification]",
-  "category": "[Domain Category e.g. Sports, Geography, Astronomy, Architecture, Biology]",
-  "confidenceScore": "99.2%",
-  "executiveSummary": "100-150 word research summary.",
-  "identification": "Taxonomy classification and visual identification rationale.",
-  "detailedAnalysis": "Visual geometry, chromatic properties, and feature analysis.",
-  "scientificTechnicalInfo": "Scientific principles, domain data, and technical specifications.",
-  "historicalContext": "Historical emergence and career/evolutionary milestones.",
+  "category": "[Domain Category e.g. Sports, Geography, Astronomy, Architecture, Biology, Computer Science, Financial Analytics]",
+  "confidenceScore": "98.5%",
+  "executiveSummary": "100-150 word research summary tailored to the specialized visual type.",
+  "identification": "Visual classification and identification rationale applying the specialized pipeline.",
+  "detailedAnalysis": "Detailed visual feature analysis following the specialized pipeline guidelines.",
+  "scientificTechnicalInfo": "Technical specifications, domain data, and structural principles.",
+  "historicalContext": "Context, background, or emergence relevant to the subject.",
   "timeline": [
     { "year": "Phase I", "title": "Milestone 1", "desc": "Description 1" },
     { "year": "Phase II", "title": "Milestone 2", "desc": "Description 2" }
@@ -38,7 +50,7 @@ export function buildJsonSchemaPrompt() {
     }
   ],
   "conclusion": "75-100 word conclusion.",
-  "limitations": "Specific 2D visual inference limitations.",
+  "limitations": "Specific visual inference limitations based on the visual type.",
   "detectedObjects": ["Subject", "Background", "Focal Region"],
   "extractedOCR": "Extracted text OR 'None detected'"
 }`;

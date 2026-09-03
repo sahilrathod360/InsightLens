@@ -127,6 +127,7 @@ export const analyzeArtifact = async (req, res, next) => {
     const totalRequestTimeMs = Date.now() - reqStartTime;
 
     console.log('\n================ ANALYSIS TIMING ================');
+    console.log(`Visual Classification:               [${(report.visualType || 'unknown').toUpperCase()}] -> ${report.specializedPipeline || 'Standard'}`);
     console.log(`AI Pipeline (Inference + Citations): ${report.processingTimeMs || 0} ms`);
     console.log(`Winning AI Provider:                 ${report.aiProvider || 'Unknown'}`);
     console.log(`PostgreSQL Report Insert:            ${dbInsertDurationMs} ms`);

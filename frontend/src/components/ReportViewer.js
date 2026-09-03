@@ -144,6 +144,21 @@ export function renderResultScreen(data) {
     resultTimestampEl.textContent = `Generated ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
   }
 
+  // Phase 3: Visual Type & Specialized Analysis Pipeline Badges
+  const rawType = (data.visualType || 'photograph').toLowerCase();
+  const displayType = rawType.charAt(0).toUpperCase() + rawType.slice(1);
+  const pipelineLabel = data.specializedPipeline || `${displayType} Analysis Pipeline`;
+
+  const visualTypeValEl = document.getElementById('report-visual-type-val');
+  if (visualTypeValEl) {
+    visualTypeValEl.textContent = displayType;
+  }
+
+  const pipelineValEl = document.getElementById('report-pipeline-val');
+  if (pipelineValEl) {
+    pipelineValEl.textContent = pipelineLabel;
+  }
+
   const leadSummaryEl = document.getElementById('report-lead-summary');
   if (leadSummaryEl) {
     leadSummaryEl.textContent = data.executiveSummary || `An empirical visual research paper evaluated by InsightLens. Analyzing geometry, chromatic properties, domain taxonomy, and technical specifications of ${subjectName}.`;
