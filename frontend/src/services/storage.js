@@ -83,62 +83,80 @@ export function applyTheme(theme) {
   });
 }
 
+let activeAuthPromise = null;
+
 export async function initPersistentSession(updateAuthUI) {
+  // Deduplicate concurrent /api/auth/me requests
+  if (activeAuthPromise) {
+    return activeAuthPromise;
+  }
+
   const token = getAuthToken();
+  const checkingBadge = document.getElementById('auth-checking-badge');
+  const authNavBtn = document.getElementById('auth-nav-btn');
 
   if (!token) {
     setUserSession(null);
+    if (checkingBadge) checkingBadge.classList.add('hidden');
+    if (authNavBtn) authNavBtn.classList.remove('hidden');
     if (typeof updateAuthUI === 'function') updateAuthUI();
     return null;
   }
 
-  // Pre-hide Sign In button while validating token to avoid UI flash
-  const authNavBtn = document.getElementById('auth-nav-btn');
+  // Ensure lightweight checking state is displayed while validating token
   if (authNavBtn) authNavBtn.classList.add('hidden');
+  if (checkingBadge) checkingBadge.classList.remove('hidden');
 
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+  activeAuthPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && json.data) {
-        const user = json.data;
-        const session = {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          initials: user.initials || getInitials(user.name),
-          role: user.role || 'Researcher',
-          loginTime: user.created_at || Date.now()
-        };
-        setUserSession(session);
-        localStorage.setItem('insightlens_session', JSON.stringify(session));
-        if (typeof updateAuthUI === 'function') updateAuthUI();
-        return session;
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const user = json.data;
+          const session = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            initials: user.initials || getInitials(user.name),
+            role: user.role || 'Researcher',
+            loginTime: user.created_at || Date.now()
+          };
+          setUserSession(session);
+          localStorage.setItem('insightlens_session', JSON.stringify(session));
+          if (typeof updateAuthUI === 'function') updateAuthUI();
+          return session;
+        }
       }
+
+      // Token is invalid, expired, or user not found in PostgreSQL
+      console.warn('[Auth] Session token verification failed. Clearing session.');
+      setAuthToken(null);
+      localStorage.removeItem('insightlens_session');
+      setUserSession(null);
+      if (typeof updateAuthUI === 'function') updateAuthUI();
+      return null;
+    } catch (err) {
+      console.error('[Auth] Network error during session restoration:', err);
+      // On network failure or offline, do not claim authenticated without verification
+      setAuthToken(null);
+      localStorage.removeItem('insightlens_session');
+      setUserSession(null);
+      if (typeof updateAuthUI === 'function') updateAuthUI();
+      return null;
+    } finally {
+      if (checkingBadge) checkingBadge.classList.add('hidden');
+      activeAuthPromise = null;
     }
+  })();
 
-    // Token is invalid, expired, or user not found in PostgreSQL
-    console.warn('[Auth] Session token verification failed. Clearing session.');
-    setAuthToken(null);
-    localStorage.removeItem('insightlens_session');
-    setUserSession(null);
-    if (typeof updateAuthUI === 'function') updateAuthUI();
-    return null;
-  } catch (err) {
-    console.error('[Auth] Network error during session restoration:', err);
-    // On network failure or offline, do not claim authenticated without verification
-    setAuthToken(null);
-    localStorage.removeItem('insightlens_session');
-    setUserSession(null);
-    if (typeof updateAuthUI === 'function') updateAuthUI();
-    return null;
-  }
+  return activeAuthPromise;
 }
 
 export async function hashPassword(password) {

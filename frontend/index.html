@@ -146,16 +146,23 @@
           <span class="hidden sm:inline font-medium text-slate-300"><strong id="header-user-name" class="font-medium text-slate-100 max-w-[110px] truncate inline-block align-bottom">Dr. Sahil</strong></span>
         </div>
 
+        <!-- Lightweight Auth Initializing State (Visible only while validating existing session) -->
+        <div id="auth-checking-badge" class="hidden flex items-center gap-1.5 text-xs text-slate-300 bg-white/[0.06] hover:bg-white/[0.1] px-3.5 py-1.5 rounded-lg border border-white/10 font-medium select-none transition-all">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-[12px] text-slate-300">Checking session...</span>
+        </div>
+
         <!-- Auth Action Button -->
         <button id="auth-nav-btn" class="text-xs text-slate-200 hover:text-white bg-white/[0.08] hover:bg-white/[0.14] px-3.5 py-1.5 rounded-lg border border-white/10 transition-all font-medium flex items-center gap-1.5 cursor-pointer">
           <span class="material-symbols-outlined text-[16px]">account_circle</span>
           <span id="auth-btn-label">Sign In</span>
         </button>
         <script>
-          // Instant pre-render check to prevent flash of 'Sign In' if a token exists
+          // Instant pre-render check to ensure navbar has an immediate, stable visual state
           try {
             if (localStorage.getItem('insightlens_token')) {
               document.getElementById('auth-nav-btn')?.classList.add('hidden');
+              document.getElementById('auth-checking-badge')?.classList.remove('hidden');
             }
           } catch(e) {}
         </script>

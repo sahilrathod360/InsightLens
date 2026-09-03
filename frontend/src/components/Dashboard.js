@@ -3,7 +3,7 @@
 import { renderRealDashboard } from './Dashboard/DashboardComponent.js';
 
 export function setupDashboardEvents() {
-  renderRealDashboard();
+  // Navigation & interaction listeners are mounted dynamically when the dashboard view renders
 }
 
 export function renderDashboard() {

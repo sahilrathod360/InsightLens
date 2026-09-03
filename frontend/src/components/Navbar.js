@@ -242,11 +242,13 @@ export function setupAuthEvents(renderArchivePage, renderDashboard) {
         localStorage.setItem('insightlens_session', JSON.stringify(newSession));
 
         updateAuthUI();
-        if (typeof renderArchivePage === 'function') renderArchivePage();
-        if (typeof renderDashboard === 'function') renderDashboard();
-        showToast(`Welcome, ${firstName || user.name}! You're now registered and signed in.`, 'success');
         closeLoginModal();
+        showToast(`Welcome, ${firstName || user.name}! You're now registered and signed in.`, 'success');
         navigateTo('landing');
+        setTimeout(() => {
+          if (typeof renderArchivePage === 'function') renderArchivePage();
+          if (typeof renderDashboard === 'function') renderDashboard();
+        }, 50);
 
       } else {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
@@ -276,12 +278,14 @@ export function setupAuthEvents(renderArchivePage, renderDashboard) {
         localStorage.setItem('insightlens_session', JSON.stringify(sessionObj));
 
         updateAuthUI();
-        if (typeof renderArchivePage === 'function') renderArchivePage();
-        if (typeof renderDashboard === 'function') renderDashboard();
+        closeLoginModal();
         const first = user.name.split(' ')[0];
         showToast(`Welcome, ${first}! You're now signed in.`, 'success');
-        closeLoginModal();
         navigateTo('landing');
+        setTimeout(() => {
+          if (typeof renderArchivePage === 'function') renderArchivePage();
+          if (typeof renderDashboard === 'function') renderDashboard();
+        }, 50);
       }
     } catch (authErr) {
       console.error('[Auth Error]', authErr);
@@ -345,11 +349,15 @@ export function setAuthMode(mode) {
 
 export function updateAuthUI() {
   const authNavBtn = document.getElementById('auth-nav-btn');
+  const checkingBadge = document.getElementById('auth-checking-badge');
   const welcomeBadge = document.getElementById('user-welcome-badge');
   const headerUserName = document.getElementById('header-user-name');
   const navUserAvatar = document.getElementById('nav-user-avatar');
   const userMenuContainer = document.getElementById('user-menu-container');
   const userSession = getUserSession();
+
+  // Always dismiss the temporary checking badge when updating auth state
+  if (checkingBadge) checkingBadge.classList.add('hidden');
 
   const landingTitle = document.getElementById('landing-hero-title');
   const landingSubtitle = document.getElementById('landing-hero-subtitle');

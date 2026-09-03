@@ -48,12 +48,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupLandingPageEvents();
   setupMethodologyEvents();
 
-  // Authoritatively restore session from PostgreSQL via backend /api/auth/me
-  await initPersistentSession(updateAuthUI);
+  // Authoritatively restore session from PostgreSQL via backend /api/auth/me in background
+  initPersistentSession(updateAuthUI);
 
-  // Initial page view rendering once session identity is established
-  renderArchivePage();
-  if (window.location.hash === '#dashboard' || document.getElementById('page-dashboard')?.classList.contains('active')) {
+  // If user directly opened or bookmarked a specific protected hash/view, render on demand
+  if (window.location.hash === '#archive' || document.getElementById('page-archive')?.classList.contains('active')) {
+    renderArchivePage();
+  } else if (window.location.hash === '#dashboard' || document.getElementById('page-dashboard')?.classList.contains('active')) {
     renderDashboard();
   }
 });
