@@ -2,19 +2,24 @@ import { config } from '../../config/env.js';
 import { buildAiPrompt, buildJsonSchemaPrompt } from '../../utils/aiPrompts.js';
 import { APIError } from '../../utils/apiUtils.js';
 import { parseAIResponse } from '../../utils/aiParser.js';
+import ModelHealthTracker from './ModelHealthTracker.js';
 
 class GeminiService {
-  async generate(dataUrl, promptObj = {}, parentSignal = null) {
+  async generateWithModel(modelConfig, dataUrl, promptObj = {}, parentSignal = null) {
     const apiKey = config.apiKeys.gemini;
     if (!apiKey) {
       throw new APIError('Gemini API key is missing.', 401, 'Gemini', 'INVALID_KEY');
     }
 
+    const modelId = modelConfig.id || modelConfig;
+    const timeoutMs = modelConfig.timeoutMs || 15000;
+    const thinkingConfig = modelConfig.thinkingConfig;
+
     const startTime = Date.now();
-    console.log('[AIManager] Gemini started');
+    console.log(`[RACE] Gemini / ${modelId} START (timeout: ${timeoutMs}ms)`);
 
     const { researchLength = 'long', language = 'en', subjectContext = '' } = promptObj;
-    
+
     // Extract base64 and mimetype
     let mimeType = 'image/jpeg';
     let base64Data = dataUrl;
@@ -28,97 +33,112 @@ class GeminiService {
 
     const promptText = buildAiPrompt(language, researchLength, subjectContext);
     const schemaText = buildJsonSchemaPrompt();
-    const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite'];
-    let lastError = null;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 
-    for (const model of models) {
-      if (parentSignal && parentSignal.aborted) break;
+    const genConfig = {
+      response_mime_type: "application/json",
+      maxOutputTokens: modelConfig.maxOutputTokens || 6000
+    };
 
-      console.log(`[Gemini] Trying model ${model}...`);
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-      const body = {
-        contents: [
-          {
-            parts: [
-              { inline_data: { mime_type: mimeType, data: base64Data } },
-              { text: `${promptText}\n\n${schemaText}` }
-            ]
-          }
-        ],
-        generationConfig: { response_mime_type: "application/json", maxOutputTokens: 6000 }
-      };
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.warn(`[Gemini] 28-second timeout triggered for model ${model}`);
-        controller.abort();
-      }, 28000);
-
-      const onParentAbort = () => controller.abort();
-      if (parentSignal) {
-        if (parentSignal.aborted) controller.abort();
-        else parentSignal.addEventListener('abort', onParentAbort);
-      }
-
-      const reqStart = Date.now();
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: controller.signal
-        });
-
-        const timeToFirstByteMs = Date.now() - reqStart;
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => '');
-          console.log(`[Gemini] Model ${model} status ${response.status}. Proceeding to fallback candidate...`);
-          lastError = new APIError(`Gemini model ${model} status ${response.status}: ${errorText}`, response.status, 'Gemini');
-          continue;
-        }
-
-        const resJson = await response.json();
-        const totalInferenceTimeMs = Date.now() - reqStart;
-
-        const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        if (!rawText.trim()) {
-          console.log(`[Gemini] Model ${model} returned empty response.`);
-          lastError = new APIError(`Gemini model ${model} returned empty response.`, 500, 'Gemini');
-          continue;
-        }
-        
-        const duration = Date.now() - startTime;
-        console.log(`[AIManager] Gemini finished (${model}) in ${duration} ms (TTFB: ${timeToFirstByteMs}ms, Inference: ${totalInferenceTimeMs}ms)`);
-
-        const parsedResult = parseAIResponse(rawText, 'Google Gemini AI', model);
-        parsedResult.timeToFirstByteMs = timeToFirstByteMs;
-        parsedResult.totalInferenceTimeMs = totalInferenceTimeMs;
-        return parsedResult;
-
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (parentSignal && parentSignal.aborted) {
-          console.log(`[Gemini] Parent aborted pipeline execution.`);
-          lastError = error;
-          break;
-        } else if (error.status === 429) {
-          throw error;
-        } else {
-          console.log(`[Gemini] Model ${model} failed/timed out: ${error.message}. Proceeding to fallback candidate...`);
-          lastError = error;
-        }
-      } finally {
-        clearTimeout(timeoutId);
-        if (parentSignal) parentSignal.removeEventListener('abort', onParentAbort);
-      }
+    if (thinkingConfig) {
+      genConfig.thinking_config = thinkingConfig;
     }
 
-    const duration = Date.now() - startTime;
-    console.log(`[Gemini] All models failed after ${duration} ms`);
-    throw lastError || new APIError('All Gemini models failed', 500, 'Gemini');
+    const body = {
+      contents: [
+        {
+          parts: [
+            { inline_data: { mime_type: mimeType, data: base64Data } },
+            { text: `${promptText}\n\n${schemaText}` }
+          ]
+        }
+      ],
+      generationConfig: genConfig
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn(`[RACE] Gemini / ${modelId} TIMEOUT after ${timeoutMs}ms`);
+      controller.abort();
+    }, timeoutMs);
+
+    const onParentAbort = () => controller.abort();
+    if (parentSignal) {
+      if (parentSignal.aborted) controller.abort();
+      else parentSignal.addEventListener('abort', onParentAbort);
+    }
+
+    const reqStart = Date.now();
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+
+      const timeToFirstByteMs = Date.now() - reqStart;
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        const status = response.status;
+        const errType = status === 429 ? 'HTTP_429' : (status === 401 || status === 403 ? 'AUTH_ERROR' : `HTTP_${status}`);
+        
+        console.warn(`[RACE] Gemini / ${modelId} FAILED ${status} in ${timeToFirstByteMs}ms: ${errorText.slice(0, 120)}`);
+        ModelHealthTracker.recordFailure(modelId, errType, timeToFirstByteMs, errorText.slice(0, 100));
+        throw new APIError(`Gemini model ${modelId} status ${status}: ${errorText}`, status, 'Gemini');
+      }
+
+      const resJson = await response.json();
+      const totalInferenceTimeMs = Date.now() - reqStart;
+
+      const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!rawText.trim()) {
+        console.warn(`[RACE] Gemini / ${modelId} returned empty response in ${totalInferenceTimeMs}ms`);
+        ModelHealthTracker.recordFailure(modelId, 'EMPTY_RESPONSE', totalInferenceTimeMs, 'Empty response text');
+        throw new APIError(`Gemini model ${modelId} returned empty response.`, 500, 'Gemini');
+      }
+
+      const parsedResult = parseAIResponse(rawText, 'Google Gemini AI', modelId);
+      parsedResult.timeToFirstByteMs = timeToFirstByteMs;
+      parsedResult.totalInferenceTimeMs = totalInferenceTimeMs;
+
+      ModelHealthTracker.recordSuccess(modelId, totalInferenceTimeMs);
+      console.log(`[RACE] Gemini / ${modelId} returned valid JSON in ${(totalInferenceTimeMs / 1000).toFixed(2)}s`);
+      return parsedResult;
+
+    } catch (error) {
+      clearTimeout(timeoutId);
+      const elapsedMs = Date.now() - reqStart;
+      if (controller.signal.aborted && !parentSignal?.aborted) {
+        ModelHealthTracker.recordFailure(modelId, 'TIMEOUT', elapsedMs, 'Request timed out');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+      if (parentSignal) parentSignal.removeEventListener('abort', onParentAbort);
+    }
+  }
+
+  async generate(dataUrl, promptObj = {}, parentSignal = null) {
+    const defaultModels = [
+      { id: 'gemini-3.7-flash', timeoutMs: 14000, thinkingConfig: { thinking_budget: 0 } },
+      { id: 'gemini-3.5-flash-lite', timeoutMs: 15000 },
+      { id: 'gemini-3.6-flash', timeoutMs: 16000, thinkingConfig: { thinking_budget: 0 } }
+    ];
+
+    let lastError = null;
+    for (const m of defaultModels) {
+      if (parentSignal && parentSignal.aborted) break;
+      if (!ModelHealthTracker.isAvailable(m.id)) continue;
+      try {
+        return await this.generateWithModel(m, dataUrl, promptObj, parentSignal);
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    throw lastError || new APIError('All Gemini candidate models failed', 500, 'Gemini');
   }
 }
 

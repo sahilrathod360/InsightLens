@@ -1,17 +1,18 @@
 import { config } from '../../config/env.js';
 import GeminiService from './GeminiService.js';
 import OpenRouterService from './OpenRouterService.js';
+import ModelRegistry from './ModelRegistry.js';
+import ModelHealthTracker from './ModelHealthTracker.js';
 import { APIError } from '../../utils/apiUtils.js';
 import { optimizeImage } from '../../utils/imageOptimizer.js';
 import cacheManager from '../../utils/cacheManager.js';
 import { verifyAndCleanCitations } from './CitationVerifier.js';
-import { PROVIDER_CONFIG } from './providerConfig.js';
 
 class AIManager {
   async generateReport(rawInputDataUrl, promptObj = {}) {
     const startTime = Date.now();
     console.log('\n==================================================');
-    console.log('[AIManager] Starting Production AI Parallel Analysis Pipeline');
+    console.log('[AIManager] Starting Parallel Multimodal Model Race');
 
     // Step 1: Server-Side Image Optimization (Resize 1024px, JPEG 82%, EXIF strip, SHA-256)
     const optResult = await optimizeImage(rawInputDataUrl);
@@ -34,44 +35,45 @@ class AIManager {
       };
     }
 
-    // Step 3: Global Safety Timeout Ceiling (45 seconds)
+    // Step 3: Global Safety Ceiling (25 seconds maximum bounded live-analysis ceiling)
     const globalAbortController = new AbortController();
     const globalTimeoutId = setTimeout(() => {
-      console.warn('[AIManager] 45-second global safety ceiling reached. Terminating all active analysis providers.');
+      console.warn('[AIManager] 25-second global safety ceiling reached. Terminating all active analysis providers.');
       globalAbortController.abort();
-    }, 45000);
+    }, 25000);
 
-    // Step 4: True Parallel Provider Orchestration
-    // Build active provider runners from extensible configuration
-    const activeProviders = [];
+    // Step 4: Multi-Model Candidate Selection from Registry
+    const hasGeminiKey = !!config.apiKeys?.gemini;
+    const hasOpenRouterKey = !!config.apiKeys?.openrouter;
 
-    if (PROVIDER_CONFIG.gemini?.enabled && config.apiKeys?.gemini) {
-      activeProviders.push({
-        id: 'gemini',
-        name: 'Google Gemini AI',
-        service: GeminiService,
-        controller: new AbortController()
-      });
+    let candidates = ModelRegistry.getVisionCandidates({
+      maxCandidates: 4,
+      hasGeminiKey,
+      hasOpenRouterKey
+    });
+
+    // Filter out models currently in cooldown unless no models remain
+    const healthyCandidates = candidates.filter(c => ModelHealthTracker.isAvailable(c.id));
+    if (healthyCandidates.length > 0) {
+      candidates = healthyCandidates;
     }
 
-    if (PROVIDER_CONFIG.openrouter?.enabled && config.apiKeys?.openrouter) {
-      activeProviders.push({
-        id: 'openrouter',
-        name: 'OpenRouter',
-        service: OpenRouterService,
-        controller: new AbortController()
-      });
-    }
-
-    if (activeProviders.length === 0) {
+    if (candidates.length === 0) {
       clearTimeout(globalTimeoutId);
-      throw new APIError('No AI providers configured with valid API keys.', 500, 'AIManager', 'NO_PROVIDERS_CONFIGURED');
+      throw new APIError('No vision-capable AI models configured with valid credentials.', 500, 'AIManager', 'NO_MODELS_AVAILABLE');
     }
 
-    // Connect global abort signal to all provider controllers
+    // Step 5: Execute True Parallel Multimodal Model Race
+    // Each candidate gets an independent AbortController and bounded timeout
+    const activeTasks = candidates.map(modelConfig => ({
+      config: modelConfig,
+      controller: new AbortController()
+    }));
+
+    // Propagate global abort to all active task controllers
     const onGlobalAbort = () => {
-      activeProviders.forEach(p => {
-        try { p.controller.abort(); } catch (e) {}
+      activeTasks.forEach(task => {
+        try { task.controller.abort(); } catch (e) {}
       });
     };
     globalAbortController.signal.addEventListener('abort', onGlobalAbort);
@@ -80,38 +82,52 @@ class AIManager {
     let raceWinner = null;
 
     try {
-      console.log(`[AIManager] Concurrently launching ${activeProviders.length} AI providers in parallel race: ${activeProviders.map(p => p.name).join(', ')}`);
+      console.log(`[AIManager] Launching ${activeTasks.length} vision candidates in parallel: ${activeTasks.map(t => `${t.config.provider}/${t.config.id}`).join(', ')}`);
 
-      // Race all providers concurrently. First VALID report wins; losers are immediately aborted.
       raceWinner = await new Promise((resolve) => {
-        let pendingCount = activeProviders.length;
+        let pendingCount = activeTasks.length;
         let isResolved = false;
 
-        activeProviders.forEach(provider => {
-          const provStart = Date.now();
-          console.log(`[AIManager] [RACE START] Provider ${provider.name} started candidate loop...`);
+        activeTasks.forEach(task => {
+          const { config: modelConfig, controller } = task;
+          const service = modelConfig.provider === 'gemini' ? GeminiService : OpenRouterService;
+          const taskStart = Date.now();
 
-          provider.service.generate(optResult.dataUrl, promptObj, provider.controller.signal)
+          service.generateWithModel(modelConfig, optResult.dataUrl, promptObj, controller.signal)
             .then(result => {
-              if (isResolved) return; // Race already won by another provider
+              if (isResolved) return; // Race already won
 
+              // Validate that the returned object contains real, complete research fields
               if (result && result.subject && (result.executiveSummary || result.summaryLead || result.sections || result.structuredSections)) {
                 isResolved = true;
-                const elapsedMs = Date.now() - provStart;
-                console.log(`\n>>> [AIManager] [RACE WINNER] ${provider.name} produced a valid report in ${elapsedMs} ms!`);
-                
-                // Immediately abort all other losing providers
-                activeProviders.forEach(other => {
-                  if (other.id !== provider.id) {
-                    console.log(`[AIManager] [ABORT LOSER] Aborting active provider: ${other.name}`);
+                const elapsedMs = Date.now() - taskStart;
+                console.log(`\n==================================================`);
+                console.log(`>>> [RACE WINNER]`);
+                console.log(`Provider: ${result.aiProvider || modelConfig.provider}`);
+                console.log(`Model:    ${modelConfig.id}`);
+                console.log(`TTFB:     ${result.timeToFirstByteMs || 0} ms`);
+                console.log(`Inference:${result.totalInferenceTimeMs || 0} ms`);
+                console.log(`Total:    ${elapsedMs} ms (${(elapsedMs / 1000).toFixed(2)}s)`);
+                console.log(`==================================================\n`);
+
+                // Immediately abort all losing candidates
+                activeTasks.forEach(other => {
+                  if (other.config.id !== modelConfig.id) {
+                    console.log(`[RACE] Aborting candidate: ${other.config.provider}/${other.config.id}`);
                     try { other.controller.abort(); } catch (e) {}
                   }
                 });
 
-                resolve({ name: provider.name, result });
+                resolve({
+                  provider: result.aiProvider || (modelConfig.provider === 'gemini' ? 'Google Gemini AI' : 'OpenRouter'),
+                  modelId: modelConfig.id,
+                  result
+                });
               } else {
-                // Incomplete result
-                providerDiagnostics.push({ provider: provider.name, error: 'Incomplete schema in response' });
+                providerDiagnostics.push({
+                  model: modelConfig.id,
+                  error: 'Incomplete schema in response'
+                });
                 pendingCount--;
                 if (pendingCount === 0 && !isResolved) {
                   isResolved = true;
@@ -120,12 +136,15 @@ class AIManager {
               }
             })
             .catch(err => {
-              if (isResolved) return; // If race already concluded, ignore errors from aborted losers
-              
-              const errMsg = err.message || `${provider.name} failed`;
-              const elapsedMs = Date.now() - provStart;
-              console.warn(`[AIManager] [PROVIDER FAILED] ${provider.name} finished with error after ${elapsedMs} ms: ${errMsg}`);
-              providerDiagnostics.push({ provider: provider.name, error: errMsg });
+              if (isResolved) return; // If race concluded, ignore errors from aborted losers
+
+              const errMsg = err.message || `${modelConfig.id} failed`;
+              const elapsedMs = Date.now() - taskStart;
+              providerDiagnostics.push({
+                model: modelConfig.id,
+                error: errMsg,
+                elapsedMs
+              });
 
               pendingCount--;
               if (pendingCount === 0 && !isResolved) {
@@ -136,17 +155,16 @@ class AIManager {
         });
       });
 
-      // Clean up global abort listeners & timers
       clearTimeout(globalTimeoutId);
       globalAbortController.signal.removeEventListener('abort', onGlobalAbort);
 
       if (!raceWinner || !raceWinner.result) {
-        const failureSummary = providerDiagnostics.map(d => `${d.provider}: ${d.error}`).join(' | ');
-        console.error(`[AIManager] Controlled Failure — All parallel AI providers failed: ${failureSummary}`);
+        const failureSummary = providerDiagnostics.map(d => `${d.model}: ${d.error}`).join(' | ');
+        console.error(`[AIManager] All parallel vision models failed: ${failureSummary}`);
         throw new APIError('All AI providers failed to generate a valid research report within timeout bounds.', 502, 'AIManager', 'AI_PROVIDERS_FAILED');
       }
 
-      // Step 5: Citation Verification against Live Endpoints
+      // Step 6: Citation Verification against Live Endpoints
       const citStart = Date.now();
       const validatedReferences = await verifyAndCleanCitations(
         raceWinner.result.references,
@@ -160,21 +178,22 @@ class AIManager {
       const finalReport = {
         ...raceWinner.result,
         references: validatedReferences,
-        aiProvider: raceWinner.name,
+        aiProvider: raceWinner.provider,
+        actualModel: raceWinner.modelId,
         processingTimeMs: totalDurationMs,
         totalRequestDurationMs: totalDurationMs
       };
 
-      // Step 6: Store in 30-minute in-memory cache
+      // Step 7: Store in Cache
       cacheManager.set(cacheKey, finalReport);
 
-      // Step 7: Structured Production Metrics Log
+      // Step 8: Structured Production Telemetry
       console.log('\n--- PRODUCTION METRICS LOG ---');
       console.log(`Image Size:             ${optResult.originalSizeKb} KB`);
       console.log(`Compressed Size:        ${optResult.compressedSizeKb} KB`);
       console.log(`Compression Ratio:      -${optResult.compressionRatioPct}%`);
-      console.log(`Provider Selected:      ${raceWinner.name}`);
-      console.log(`Model Selected:         ${finalReport.actualModel || finalReport.modelUsed}`);
+      console.log(`Provider Selected:      ${finalReport.aiProvider}`);
+      console.log(`Model Selected:         ${finalReport.actualModel}`);
       console.log(`Time to First Byte:     ${finalReport.timeToFirstByteMs || 0} ms`);
       console.log(`Total Inference Time:   ${finalReport.totalInferenceTimeMs || 0} ms`);
       console.log(`JSON Parsing Time:      ${finalReport.jsonParsingTimeMs || 0} ms`);
@@ -189,7 +208,7 @@ class AIManager {
       clearTimeout(globalTimeoutId);
       globalAbortController.signal.removeEventListener('abort', onGlobalAbort);
       const totalDurationMs = Date.now() - startTime;
-      console.log(`[AIManager] Parallel pipeline finished with error in ${totalDurationMs} ms:`, finalErr.message);
+      console.log(`[AIManager] Parallel race failed after ${totalDurationMs} ms:`, finalErr.message);
       console.log('==================================================\n');
       if (finalErr instanceof APIError) throw finalErr;
       throw new APIError('All AI providers failed to generate a valid research report within timeout bounds.', 502, 'AIManager', 'AI_PROVIDERS_FAILED');
