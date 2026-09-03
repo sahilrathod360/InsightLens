@@ -39,6 +39,29 @@ export function exportMarkdownFile() {
     diagramSection = `\n---\n\n## Visual Structure & Topology\n\nDiagram Type: ${(s.diagramType || 'diagram').replace(/_/g, ' ').toUpperCase()}\n\n### Nodes\n${nodesList || '- No explicit nodes detected.'}\n\n### Connections\n${edgesList || '- No explicit connections detected.'}\n`;
   }
 
+  let bodySections = '';
+  if (Array.isArray(d.structuredSections) && d.structuredSections.length > 0) {
+    bodySections = d.structuredSections.map(s => `## ${s.heading}\n\n${s.content}`).join('\n\n---\n\n');
+  } else if (Array.isArray(d.sections) && d.sections.length > 0) {
+    bodySections = d.sections.map(s => `## ${s.heading}\n\n${s.body}`).join('\n\n---\n\n');
+  } else {
+    bodySections = `## Detailed Analysis\n\n${d.detailedAnalysis || ''}\n\n---\n\n## Identification & Taxonomy\n\n${d.identification || ''}\n\n---\n\n## Scientific & Technical Attributes\n\n${d.scientificTechnicalInfo || ''}`;
+  }
+
+  let keyFactsSection = '';
+  if (Array.isArray(d.keyFacts) && d.keyFacts.length > 0) {
+    const factsRows = d.keyFacts.map(f => `| ${f.label} | ${f.detail} |`).join('\n');
+    keyFactsSection = `\n---\n\n## Key Fact Attributes\n\n| Attribute | Detail |\n|---|---|\n${factsRows}\n`;
+  }
+
+  let timelineSection = '';
+  if (Array.isArray(d.timeline) && d.timeline.length > 0) {
+    const timelineRows = d.timeline.map(t => `- **${t.year} — ${t.title}:** ${t.desc}`).join('\n');
+    timelineSection = `\n---\n\n## Historical Timeline & Milestones\n\n${timelineRows}\n`;
+  }
+
+  const ocrSection = d.extractedOCR && d.extractedOCR !== 'None detected' ? `\n---\n\n## Extracted Text (OCR)\n\`\`\`\n${d.extractedOCR}\n\`\`\`\n` : '';
+
   const md = `# ${d.title || d.subject || 'Visual Research Brief'}
 *Synthesized by InsightLens AI Visual Research Engine (${d.modelUsed || d.actualModel || systemPreferences.model || 'Gemini'})*
 
@@ -56,19 +79,16 @@ export function exportMarkdownFile() {
 ---
 
 ## Executive Summary Abstract
-${d.summaryLead || d.executiveSummary || d.executiveInsight?.summary || ''}
-
+${d.executiveSummary || d.summaryLead || d.executiveInsight?.summary || ''}
+${diagramSection}${ocrSection}
 ---
 
-## Multimodal Extracted OCR Text
-\`\`\`
-${d.extractedOCR || 'No textual inscriptions detected.'}
-\`\`\`
-${diagramSection}
+${bodySections}
+${keyFactsSection}${timelineSection}
 ---
 
-## Detailed Analytical Report
-${(d.sections || []).map(s => `### ${s.heading}\n${s.body}`).join('\n\n')}
+## Concluding Synthesis
+${d.conclusion || 'Empirical visual research assessment concluded successfully.'}
 
 ---
 
@@ -85,7 +105,7 @@ ${(Array.isArray(d.references) && d.references.length > 0)
 ---
 
 ## Analytical Limitations & Scope
-${d.limitations || 'Cannot infer interior microstructure or non-visible attributes from 2D pixel input.'}
+${d.limitations || 'Analysis is grounded in 2D optical evidence and historical domain documentation.'}
 `;
 
   downloadBlob(md, `InsightLens_Research_Report_${Date.now()}.md`, 'text/markdown');

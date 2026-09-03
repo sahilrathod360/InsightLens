@@ -1166,5 +1166,32 @@ input, select, textarea, .input-transition {
     page-break-inside: avoid !important;
     margin-bottom: 1rem !important;
   }
+
+  /* 8. Table & Dynamic Sections Print Hygiene */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0.75rem 0 !important;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 10px !important;
+    color: #0f172a !important;
+    font-size: 8.5pt !important;
+  }
+
+  th {
+    background-color: #e2e8f0 !important;
+    font-weight: 700 !important;
+  }
+
+  #report-dynamic-sections-container > div {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.5rem !important;
+  }
 }
 

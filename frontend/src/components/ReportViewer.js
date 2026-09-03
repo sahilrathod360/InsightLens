@@ -162,7 +162,7 @@ export function renderResultScreen(data) {
 
   const leadSummaryEl = document.getElementById('report-lead-summary');
   if (leadSummaryEl) {
-    leadSummaryEl.textContent = data.executiveSummary || `An empirical visual research paper evaluated by InsightLens. Analyzing geometry, chromatic properties, domain taxonomy, and technical specifications of ${subjectName}.`;
+    leadSummaryEl.textContent = data.executiveSummary || data.executiveInsight?.summary || `Comprehensive visual research analysis focusing on ${subjectName}.`;
   }
 
   // Smart Domain Section Titles
@@ -181,11 +181,11 @@ export function renderResultScreen(data) {
   setVal('grid-confidence', confidenceScoreVal);
   setVal('grid-time', data.processingTimeMs ? `${(data.processingTimeMs / 1000).toFixed(1)}s Latency` : '1.8s Latency');
   setVal('grid-category', categoryName);
-  setVal('grid-objects-count', `${(data.detectedObjects || []).length || 5} Regions`);
-  setVal('grid-colors', data.dominantColors || 'Brown, Green, White');
-  setVal('grid-resolution', data.imageStats?.resolution || '1920 x 1080 px');
-  setVal('grid-ocr-status', data.extractedOCR && data.extractedOCR.length > 2 ? 'Text Inscription' : 'None detected');
-  setVal('grid-status', 'Schema Verified');
+  setVal('grid-objects-count', `${(data.detectedObjects || []).length || 1} Regions`);
+  setVal('grid-colors', data.dominantColors || 'Natural Palette');
+  setVal('grid-resolution', data.imageStats?.resolution || 'High Resolution');
+  setVal('grid-ocr-status', data.extractedOCR && data.extractedOCR.length > 2 && data.extractedOCR !== 'None detected' ? 'Text Extracted' : 'None detected');
+  setVal('grid-status', 'Verified Research');
 
   // 5. Multi-Metric Confidence Progress Bars
   const numConf = parseFloat(confidenceScoreVal) || 99.4;
@@ -204,7 +204,7 @@ export function renderResultScreen(data) {
   // 6. Detected Objects Tags
   const tagsContainer = document.getElementById('detected-objects-tags');
   if (tagsContainer) {
-    const objects = data.detectedObjects || [subjectName, 'Foreground Contours', 'Luminance Regions', 'Background Context', 'Focal Edge'];
+    const objects = data.detectedObjects && data.detectedObjects.length > 0 ? data.detectedObjects : [subjectName, 'Primary Focal Region', 'Visual Context'];
     tagsContainer.innerHTML = objects.map(obj => `
       <span class="px-2.5 py-1 rounded-lg bg-[var(--bg-card-subtle)] text-[var(--accent-link)] text-[11px] font-mono border border-[var(--border-color)] flex items-center gap-1.5">
         <span class="material-symbols-outlined text-[13px] text-[var(--accent-link)]">pin_drop</span>
@@ -214,30 +214,55 @@ export function renderResultScreen(data) {
   }
 
   // 7. Executive Summary Cards
-  const overviewText = data.executiveSummary || `Empirical analysis of ${subjectName}. Visual tensor processing evaluated spatial geometry, color contrast distribution, and physical features.`;
+  const overviewText = data.executiveSummary || data.executiveInsight?.summary || `Comprehensive research analysis focusing on ${subjectName}.`;
   setVal('exec-card-overview', overviewText);
-  setVal('exec-card-findings', data.detectionSummary || `Primary subject ${subjectName} detected with high confidence score. High structural definition and focal contrast.`);
-  setVal('exec-card-observation', data.sceneComposition || data.visualDescription || `Clear spatial organization with well-defined illumination vectors. Natural contrast separation between ${subjectName} and surrounding context.`);
-  setVal('exec-card-synthesis', `Grounded in empirical visual intelligence algorithms. Results synthesized into structured academic citations and verified ${categoryName} principles.`);
+  setVal('exec-card-findings', data.executiveInsight?.keyFinding || data.detectionSummary || `Primary subject ${subjectName} identified and verified.`);
+  setVal('exec-card-observation', (data.observations && data.observations[0] ? data.observations[0].statement : '') || (data.visualEvidence && data.visualEvidence[0] ? data.visualEvidence[0].statement : '') || `Visual evidence confirms primary focal markers of ${subjectName}.`);
+  setVal('exec-card-synthesis', (data.interpretations && data.interpretations[0] ? data.interpretations[0].statement : '') || (data.executiveInsight?.keyTakeaways ? data.executiveInsight.keyTakeaways[0] : '') || `Authoritative domain research on ${subjectName}.`);
 
-  // 8. Academic Sections
-  const setSectionText = (id, text) => {
-    const el = document.getElementById(id);
-    if (el && text) {
-      el.innerHTML = renderMarkdownToHtml(text);
+  // 8. Dynamic Domain-Adaptive Sections & Academic Research
+  const dynamicSectionsEl = document.getElementById('report-dynamic-sections-container');
+  const defaultSecsWrapper = document.getElementById('report-default-sections-wrapper');
+
+  if (Array.isArray(data.structuredSections) && data.structuredSections.length > 0) {
+    if (defaultSecsWrapper) defaultSecsWrapper.classList.add('hidden');
+    if (dynamicSectionsEl) {
+      dynamicSectionsEl.classList.remove('hidden');
+      dynamicSectionsEl.innerHTML = data.structuredSections.map((sec, idx) => `
+        <div class="space-y-3">
+          <div class="border-b border-[var(--border-color)] pb-2 flex items-center justify-between">
+            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">${sec.icon || 'article'}</span>
+              ${idx + 1}. ${sec.heading}
+            </h2>
+          </div>
+          <div class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
+            ${renderMarkdownToHtml(sec.content)}
+          </div>
+        </div>
+      `).join('');
     }
-  };
+  } else {
+    if (defaultSecsWrapper) defaultSecsWrapper.classList.remove('hidden');
+    if (dynamicSectionsEl) dynamicSectionsEl.classList.add('hidden');
+    
+    const setSectionText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el && text) {
+        el.innerHTML = renderMarkdownToHtml(text);
+      }
+    };
 
-  const bulletsText = (data.visualAnalysisBullets || []).join('\n\n');
-  setSectionText('report-detailed-analysis-text', bulletsText || data.detailedAnalysis || `Visual analysis reveals distinct structural markers across primary focal region of ${subjectName}.`);
-  setSectionText('report-identification-text', data.identification || `The primary subject is classified as ${subjectName} within ${categoryName}. Identification grounded in visual geometry and physical features.`);
-  setSectionText('report-scientific-text', data.scientificTechnicalInfo || `From a ${categoryName} perspective, ${subjectName} exhibits key mechanisms, material properties, and operational parameters.`);
-  setSectionText('conclusion-text', data.conclusion || `In summary, the visual research assessment confirms a well-structured artifact with crisp edge contours and grounded domain principles.`);
+    const bulletsText = (data.visualAnalysisBullets || []).join('\n\n');
+    setSectionText('report-detailed-analysis-text', bulletsText || data.detailedAnalysis || `Visual analysis and domain research on ${subjectName}.`);
+    setSectionText('report-identification-text', data.identification || `The primary subject is classified as ${subjectName} within ${categoryName}.`);
+    setSectionText('report-scientific-text', data.scientificTechnicalInfo || `From a ${categoryName} perspective, ${subjectName} exhibits key mechanisms and operational parameters.`);
+  }
 
   // 9. Technical Comparison Cards Grid
   const specsComparisonGrid = document.getElementById('specs-comparison-grid');
   if (specsComparisonGrid) {
-    const facts = data.keyFacts || [
+    const facts = (Array.isArray(data.keyFacts) && data.keyFacts.length > 0) ? data.keyFacts : [
       { label: 'Primary Subject', detail: subjectName },
       { label: 'Scientific Lineage', detail: scientificNameStr },
       { label: 'Domain Classification', detail: categoryName },
@@ -254,67 +279,74 @@ export function renderResultScreen(data) {
 
   // 10. Vertical Timeline for Historical Context
   const timelineContainer = document.getElementById('report-historical-timeline');
+  const timelineSection = timelineContainer?.closest('.space-y-3');
   if (timelineContainer) {
-    const milestones = data.timeline || [
-      { year: 'Phase I', title: `Origin & Early Development of ${subjectName}`, desc: `Initial discovery, structural emergence, and early historical records regarding ${subjectName}.` },
-      { year: 'Phase II', title: `Standardization & Domain Classification`, desc: `Formal classification within ${categoryName} standards and scientific literature.` },
-      { year: 'Phase III', title: `Modern Analysis & Multimodal Research`, desc: `Contemporary visual analysis evaluated via advanced AI vision models.` }
-    ];
-    timelineContainer.innerHTML = milestones.map(m => `
-      <div class="timeline-item">
-        <div class="timeline-node"></div>
-        <div class="timeline-card">
-          <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">${m.year}</span>
-          <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">${m.title}</strong>
-          <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">${m.desc}</p>
+    const milestones = Array.isArray(data.timeline) && data.timeline.length > 0 ? data.timeline : null;
+    if (milestones) {
+      if (timelineSection) timelineSection.classList.remove('hidden');
+      timelineContainer.innerHTML = milestones.map(m => `
+        <div class="timeline-item">
+          <div class="timeline-node"></div>
+          <div class="timeline-card">
+            <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">${m.year}</span>
+            <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">${m.title}</strong>
+            <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">${m.desc}</p>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } else {
+      if (timelineSection) timelineSection.classList.add('hidden');
+    }
   }
 
   // 11. Practical Applications Grid
   const appsContainer = document.getElementById('applications-importance-list');
+  const appsSection = appsContainer?.closest('.space-y-3');
   if (appsContainer) {
-    const apps = data.applications || data.applicationsImportance || [
-      `Academic research and domain reference regarding ${subjectName}.`,
-      `Cataloging and visual documentation in institutional repositories.`,
-      `Comparative visual analysis across ${categoryName} benchmarks.`
-    ];
-    appsContainer.innerHTML = apps.map((app, i) => `
-      <div class="report-card space-y-2">
-        <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-[var(--accent-emerald)] font-mono text-xs font-bold flex items-center justify-center">${i + 1}</span>
-        <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${app}</p>
-      </div>
-    `).join('');
+    const apps = Array.isArray(data.applications) && data.applications.length > 0 ? data.applications : null;
+    if (apps) {
+      if (appsSection) appsSection.classList.remove('hidden');
+      appsContainer.innerHTML = apps.map((app, i) => `
+        <div class="report-card space-y-2">
+          <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-[var(--accent-emerald)] font-mono text-xs font-bold flex items-center justify-center">${i + 1}</span>
+          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${app}</p>
+        </div>
+      `).join('');
+    } else {
+      if (appsSection) appsSection.classList.add('hidden');
+    }
   }
 
   // 12. Key Fact Feature Cards Grid
   const factsGrid = document.getElementById('interesting-facts-grid');
+  const factsSection = factsGrid?.closest('.space-y-3');
   if (factsGrid) {
-    const facts = data.interestingFacts || [
-      `Key structural feature observed across primary focal regions of ${subjectName}.`,
-      `Clear visual contrast separation between ${subjectName} and surrounding context.`,
-      `High-fidelity detail captured within primary camera sensor frame.`
-    ];
-    factsGrid.innerHTML = facts.map((f) => `
-      <div class="report-card space-y-2 hover:border-[var(--accent-amber)] transition-all">
-        <span class="material-symbols-outlined text-[var(--accent-amber)] text-[20px]">lightbulb</span>
-        <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${f}</p>
-      </div>
-    `).join('');
+    const facts = Array.isArray(data.interestingFacts) && data.interestingFacts.length > 0 ? data.interestingFacts : null;
+    if (facts) {
+      if (factsSection) factsSection.classList.remove('hidden');
+      factsGrid.innerHTML = facts.map((f) => `
+        <div class="report-card space-y-2 hover:border-[var(--accent-amber)] transition-all">
+          <span class="material-symbols-outlined text-[var(--accent-amber)] text-[20px]">lightbulb</span>
+          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${f}</p>
+        </div>
+      `).join('');
+    } else {
+      if (factsSection) factsSection.classList.add('hidden');
+    }
   }
 
   // 13. Limitations Callout
   const limEl = document.getElementById('limitations-text');
   if (limEl) {
-    limEl.textContent = data.limitations || `Visual inference from 2D pixel input is limited by camera sensor resolution, light spectrum, and occlusion. Microscopic properties or internal joins cannot be determined without physical sampling.`;
+    const limText = Array.isArray(data.limitations) ? data.limitations.join('\n\n') : data.limitations;
+    limEl.innerHTML = renderMarkdownToHtml(limText || `Analysis is grounded in 2D optical evidence and historical domain documentation.`);
   }
 
   // 14. References & Verified Sources
   const refListEl = document.getElementById('references-list');
   const refTitleEl = document.getElementById('section-references-title');
   if (refListEl) {
-    const rawRefs = Array.isArray(data.references) ? data.references : [];
+    const rawRefs = Array.isArray(data.references) ? data.references : (Array.isArray(data.sources) ? data.sources : []);
     
     const validRefs = rawRefs.map(item => {
       if (typeof item === 'string') {
@@ -365,7 +397,13 @@ export function renderResultScreen(data) {
     }
   }
 
-  // 15. Appendix Telemetry Box
+  // 15. Concluding Synthesis
+  const conclusionEl = document.getElementById('conclusion-text');
+  if (conclusionEl) {
+    conclusionEl.innerHTML = renderMarkdownToHtml(data.conclusion || `In summary, research on ${subjectName} establishes its primary historical, career, and domain significance within ${categoryName}.`);
+  }
+
+  // 16. Appendix Telemetry Box
   const appEl = document.getElementById('appendix-telemetry-box');
   if (appEl) {
     const timestamp = new Date().toISOString();

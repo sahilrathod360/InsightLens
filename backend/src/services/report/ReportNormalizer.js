@@ -1,6 +1,6 @@
 /**
  * Backend Report 2.0 Normalizer
- * Enforces the Report 2.0 structure before persistence in PostgreSQL reports.full_data
+ * Enforces structured domain-adaptive research data before persistence in PostgreSQL reports.full_data
  */
 
 export function normalizeReport(raw) {
@@ -12,19 +12,28 @@ export function normalizeReport(raw) {
   // 1. Executive Insight
   const executiveInsight = raw.executiveInsight && typeof raw.executiveInsight === 'object'
     ? {
-        summary: raw.executiveInsight.summary || raw.executiveSummary || 'Concise empirical visual analysis.',
+        summary: raw.executiveInsight.summary || raw.executiveSummary || `Comprehensive visual research analysis focusing on ${subject}.`,
         keyFinding: raw.executiveInsight.keyFinding || raw.detectionSummary || `Primary focal subject identified as ${subject}.`,
         keyTakeaways: Array.isArray(raw.executiveInsight.keyTakeaways) && raw.executiveInsight.keyTakeaways.length > 0
           ? raw.executiveInsight.keyTakeaways
-          : (Array.isArray(raw.applications) ? raw.applications.slice(0, 3) : [`Visual inspection of ${subject}.`])
+          : (Array.isArray(raw.applications) ? raw.applications.slice(0, 4) : [`Empirical research and domain analysis of ${subject}.`])
       }
     : {
-        summary: raw.executiveSummary || raw.identification || `Visual intelligence analysis of ${subject}.`,
-        keyFinding: raw.detectionSummary || (Array.isArray(raw.keyFacts) && raw.keyFacts[0] ? `${raw.keyFacts[0].label}: ${raw.keyFacts[0].detail}` : `Focal subject ${subject} observed with high fidelity.`),
-        keyTakeaways: Array.isArray(raw.applications) ? raw.applications.slice(0, 3) : ['Primary visual feature extraction and spatial analysis.']
+        summary: raw.executiveSummary || raw.identification || `Comprehensive visual research analysis focusing on ${subject}.`,
+        keyFinding: raw.detectionSummary || (Array.isArray(raw.keyFacts) && raw.keyFacts[0] ? `${raw.keyFacts[0].label}: ${raw.keyFacts[0].detail}` : `Primary subject ${subject} observed with high fidelity.`),
+        keyTakeaways: Array.isArray(raw.applications) ? raw.applications.slice(0, 4) : [`Empirical research and domain analysis of ${subject}.`]
       };
 
-  // 2. Visual Evidence
+  // 2. Structured Domain Sections
+  const structuredSections = Array.isArray(raw.structuredSections) && raw.structuredSections.length > 0
+    ? raw.structuredSections.map(sec => ({
+        heading: sec.heading || 'Domain Analysis',
+        icon: sec.icon || 'analytics',
+        content: sec.content || ''
+      }))
+    : [];
+
+  // 3. Visual Evidence
   const visualEvidence = Array.isArray(raw.visualEvidence) && raw.visualEvidence.length > 0
     ? raw.visualEvidence.map(item => ({
         statement: typeof item === 'string' ? item : item.statement,
@@ -35,58 +44,61 @@ export function normalizeReport(raw) {
     : [
         { statement: `Visual inspection confirms observable features of ${subject}.`, status: 'observed' },
         ...(raw.extractedOCR && raw.extractedOCR !== 'None detected' ? [{ statement: `Textual inscription: "${raw.extractedOCR.slice(0, 80)}"`, status: 'observed' }] : []),
-        { statement: `Composition aligns with ${raw.category || 'domain target'} principles.`, status: 'inferred' },
-        { statement: 'External environmental context outside the frame cannot be verified.', status: 'undeterminable' }
+        { statement: `Visual characteristics correspond to ${raw.category || 'domain'} classification.`, status: 'inferred' },
+        { statement: 'Sub-surface composition and unobservable context cannot be determined from 2D visual input.', status: 'undeterminable' }
       ];
 
-  // 3. Observations
+  // 4. Observations
   const observations = Array.isArray(raw.observations) && raw.observations.length > 0
     ? raw.observations
     : [
-        ...(Array.isArray(raw.detectedObjects) && raw.detectedObjects.length > 0 ? [{ category: 'Subjects & Entities', statement: `Detected entities: ${raw.detectedObjects.join(', ')}.`, status: 'observed' }] : []),
-        ...(raw.extractedOCR && raw.extractedOCR !== 'None detected' ? [{ category: 'Textual Inscriptions', statement: `OCR text: ${raw.extractedOCR.slice(0, 100)}`, status: 'observed' }] : []),
-        ...(raw.dominantColors ? [{ category: 'Lighting & Chromatic', statement: `Dominant chromatic spectrum: ${raw.dominantColors}.`, status: 'observed' }] : [])
+        ...(Array.isArray(raw.detectedObjects) && raw.detectedObjects.length > 0 ? [{ category: 'Subjects & Entities', statement: `Observed focal entities: ${raw.detectedObjects.join(', ')}.`, status: 'observed' }] : []),
+        ...(raw.extractedOCR && raw.extractedOCR !== 'None detected' ? [{ category: 'Textual Inscriptions', statement: `Extracted text: ${raw.extractedOCR.slice(0, 100)}`, status: 'observed' }] : []),
+        ...(raw.dominantColors ? [{ category: 'Visual Palette', statement: `Dominant chromatic palette: ${raw.dominantColors}.`, status: 'observed' }] : [])
       ];
 
-  // 4. Interpretations
+  // 5. Interpretations
   const interpretations = Array.isArray(raw.interpretations) && raw.interpretations.length > 0
     ? raw.interpretations
     : [
         {
-          statement: raw.identification ? raw.identification.split(/\.\s+/)[0] + '.' : `Visual structure corresponds to ${raw.category || 'domain'} classification.`,
-          basis: 'Derived from observable physical contours and visual features.'
+          statement: raw.identification ? raw.identification.split(/\.\s+/)[0] + '.' : `Subject features correspond to ${raw.category || 'domain'} classification.`,
+          basis: 'Derived from visual evidence and verified domain taxonomy.'
         }
       ];
 
-  // 5. Findings
+  // 6. Findings
   const findings = Array.isArray(raw.findings) && raw.findings.length > 0
     ? raw.findings
     : [
         {
           statement: executiveInsight.keyFinding,
-          basis: 'Primary visual identification.'
+          basis: 'Subject research and visual evidence synthesis.'
         }
       ];
 
-  // 6. Limitations
+  // 7. Limitations
   const limitations = Array.isArray(raw.limitations) && raw.limitations.length > 0
     ? raw.limitations
     : (typeof raw.limitations === 'string' ? raw.limitations.split(/\n+/).filter(Boolean) : [
-        'Analysis is strictly grounded in visible 2D optical features; unseen context outside frame cannot be verified.',
-        'Individual personal identity or real-world private names cannot be established from visual appearance alone.'
+        'Analysis is grounded in 2D optical evidence and historical domain documentation.',
+        'Unseen context outside the image frame cannot be independently verified.'
       ]);
 
-  // 7. Sources
+  // 8. Conclusion
+  const conclusion = raw.conclusion || `In summary, research on ${subject} establishes its primary historical, career, and domain significance within ${raw.category || 'the field'}.`;
+
+  // 9. Sources
   const sources = Array.isArray(raw.sources) && raw.sources.length > 0
     ? raw.sources
     : (Array.isArray(raw.references) ? raw.references.map(ref => ({
-        title: ref.title || 'Verified Reference Document',
+        title: ref.title || `${subject} Documentation`,
         source: ref.source || 'Institutional Archive',
         year: ref.year || '',
         url: ref.url || ''
       })) : []);
 
-  // 8. Technical Metadata
+  // 10. Technical Metadata
   const technicalMetadata = {
     reportVersion: raw.reportVersion || '2.0',
     visualType,
@@ -103,6 +115,8 @@ export function normalizeReport(raw) {
     ...raw,
     reportVersion: '2.0',
     executiveInsight,
+    structuredSections,
+    conclusion,
     visualEvidence,
     observations,
     interpretations,
