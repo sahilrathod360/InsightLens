@@ -185,11 +185,12 @@ export const logout = (req, res) => {
 
 export const getMe = async (req, res, next) => {
   try {
-    const userEmail = req.user?.email || req.query.email;
+    // Only derive identity from verified JWT in req.user
+    const userEmail = req.user?.email;
     if (!userEmail) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required.',
+        message: 'Authentication required. No valid session token provided.',
         data: null
       });
     }

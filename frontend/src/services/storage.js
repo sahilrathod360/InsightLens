@@ -1,6 +1,7 @@
 // Storage, Metrics & Session Services
 
 import { setUserSession } from '../state.js';
+import { API_BASE, getAuthToken, setAuthToken } from '../utils/api.js';
 
 export const DEFAULT_PREFERENCES = {
   theme: 'dark',
@@ -82,33 +83,61 @@ export function applyTheme(theme) {
   });
 }
 
-export function initPersistentSession(updateAuthUI) {
-  try {
-    const token = localStorage.getItem('insightlens_token');
-    const storedSession = localStorage.getItem('insightlens_session');
+export async function initPersistentSession(updateAuthUI) {
+  const token = getAuthToken();
 
-    // Only restore authenticated session if valid JWT token is present
-    if (token && storedSession) {
-      const parsed = JSON.parse(storedSession);
-      if (parsed && parsed.email && parsed.email !== 'guest@insightlens.edu') {
-        setUserSession(parsed);
-      } else {
-        localStorage.removeItem('insightlens_session');
-        localStorage.removeItem('insightlens_token');
-        setUserSession(null);
+  if (!token) {
+    setUserSession(null);
+    if (typeof updateAuthUI === 'function') updateAuthUI();
+    return null;
+  }
+
+  // Pre-hide Sign In button while validating token to avoid UI flash
+  const authNavBtn = document.getElementById('auth-nav-btn');
+  if (authNavBtn) authNavBtn.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    } else {
-      localStorage.removeItem('insightlens_session');
-      localStorage.removeItem('insightlens_token');
-      setUserSession(null);
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        const user = json.data;
+        const session = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          initials: user.initials || getInitials(user.name),
+          role: user.role || 'Researcher',
+          loginTime: user.created_at || Date.now()
+        };
+        setUserSession(session);
+        localStorage.setItem('insightlens_session', JSON.stringify(session));
+        if (typeof updateAuthUI === 'function') updateAuthUI();
+        return session;
+      }
     }
 
-    if (typeof updateAuthUI === 'function') updateAuthUI();
-  } catch (err) {
-    console.error('Failed to parse persistent session:', err);
+    // Token is invalid, expired, or user not found in PostgreSQL
+    console.warn('[Auth] Session token verification failed. Clearing session.');
+    setAuthToken(null);
     localStorage.removeItem('insightlens_session');
-    localStorage.removeItem('insightlens_token');
     setUserSession(null);
+    if (typeof updateAuthUI === 'function') updateAuthUI();
+    return null;
+  } catch (err) {
+    console.error('[Auth] Network error during session restoration:', err);
+    // On network failure or offline, do not claim authenticated without verification
+    setAuthToken(null);
+    localStorage.removeItem('insightlens_session');
+    setUserSession(null);
+    if (typeof updateAuthUI === 'function') updateAuthUI();
+    return null;
   }
 }
 

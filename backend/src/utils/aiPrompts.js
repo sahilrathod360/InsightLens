@@ -8,6 +8,10 @@ Analyze the provided visual artifact and synthesize a structured empirical resea
 
 ${strategyGuide}
 
+MANDATORY IDENTITY SAFETY & OBSERVATION DISCIPLINE:
+- Prioritize concrete, structured visual observations over generic demographic phrasing.
+- For human subjects: NEVER assert or guess the name or identity of any real individual from facial appearance alone. Describe observable clothing, posture, grooming, lighting, and composition objectively without making named-person claims.
+
 IMPORTANT CITATION INSTRUCTION:
 Never invent, fabricate, or hallucinate citations, DOIs, fake academic papers, or non-existent URLs.
 Only cite genuine, verifiable sources relevant to the identified subject (such as official governing bodies, institutional archives, official records, reputable encyclopedias, or real published papers). If a real source URL is known, include it; otherwise, provide the legitimate publisher or institution title. Do NOT output placeholder DOIs.

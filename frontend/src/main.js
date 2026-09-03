@@ -21,7 +21,7 @@ window.getActiveReportData = getActiveReportData;
 window.setActiveReportData = setActiveReportData;
 window.renderResultScreen = renderResultScreen;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Register render callbacks to resolve cross-module calls without circular dependencies
   registerRenderCallbacks({
     renderArchivePage,
@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadPreferences();
   setupTheme();
-  initPersistentSession();
   setupNavigation();
   setupMobileDrawer();
   setupUploadEvents(startAnalysisPipeline);
@@ -48,5 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
   setupGlobalKeyboardEvents();
   setupLandingPageEvents();
   setupMethodologyEvents();
+
+  // Authoritatively restore session from PostgreSQL via backend /api/auth/me
+  await initPersistentSession(updateAuthUI);
+
+  // Initial page view rendering once session identity is established
   renderArchivePage();
+  if (window.location.hash === '#dashboard' || document.getElementById('page-dashboard')?.classList.contains('active')) {
+    renderDashboard();
+  }
 });

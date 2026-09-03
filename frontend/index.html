@@ -151,6 +151,14 @@
           <span class="material-symbols-outlined text-[16px]">account_circle</span>
           <span id="auth-btn-label">Sign In</span>
         </button>
+        <script>
+          // Instant pre-render check to prevent flash of 'Sign In' if a token exists
+          try {
+            if (localStorage.getItem('insightlens_token')) {
+              document.getElementById('auth-nav-btn')?.classList.add('hidden');
+            }
+          } catch(e) {}
+        </script>
 
         <!-- Three-Dot Menu (Logged-In Users Only) -->
         <div class="relative hidden" id="user-menu-container">
