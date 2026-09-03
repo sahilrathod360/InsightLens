@@ -28,7 +28,7 @@ class GeminiService {
 
     const promptText = buildAiPrompt(language, researchLength, subjectContext);
     const schemaText = buildJsonSchemaPrompt();
-    const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite'];
+    const models = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
     let lastError = null;
 
     for (const model of models) {
@@ -46,14 +46,18 @@ class GeminiService {
             ]
           }
         ],
-        generationConfig: { response_mime_type: "application/json", maxOutputTokens: 2500 }
+        generationConfig: { 
+          responseMimeType: "application/json", 
+          temperature: 0.2,
+          maxOutputTokens: 3500 
+        }
       };
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.warn(`[Gemini] 28-second timeout triggered for model ${model}`);
+        console.warn(`[Gemini] 18-second timeout triggered for model ${model}`);
         controller.abort();
-      }, 28000);
+      }, 18000);
 
       const onParentAbort = () => controller.abort();
       if (parentSignal) {

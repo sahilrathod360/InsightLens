@@ -49,9 +49,9 @@ class AIManager {
       console.log('[AIManager] Executing Provider A: Google Gemini API...');
       const geminiController = new AbortController();
       const geminiTimeoutId = setTimeout(() => {
-        console.warn('[AIManager] Gemini 60-second bounded ceiling triggered.');
+        console.warn('[AIManager] Gemini 36-second bounded ceiling triggered.');
         geminiController.abort();
-      }, 60000);
+      }, 36000);
 
       const onGlobalAbortGemini = () => geminiController.abort();
       globalAbortController.signal.addEventListener('abort', onGlobalAbortGemini);

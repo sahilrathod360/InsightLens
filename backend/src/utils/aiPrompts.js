@@ -51,9 +51,8 @@ export function buildJsonSchemaPrompt() {
   "classificationReason": "[1-2 sentence evidence-based visual classification rationale]",
   "classificationConfidence": "98.5%",
   "specializedPipeline": "photograph | document | diagram | chart | screenshot | artwork | map | unknown",
-  "title": "[Exact Subject Name]",
+  "title": "[Exact Subject Name or Subject — Descriptive Subtitle]",
   "subject": "[Exact Subject Name]",
-  "scientificName": "[Taxonomy or Domain Classification]",
   "category": "[Domain Category e.g. Sports, Geography, Astronomy, Architecture, Biology, Computer Science, Financial Analytics]",
   "confidenceScore": "98.5%",
   "executiveInsight": {
@@ -73,12 +72,12 @@ export function buildJsonSchemaPrompt() {
   "findings": [
     { "statement": "[Concrete analytical conclusion]", "basis": "[Visual evidence basis]" }
   ],
-  "executiveSummary": "[1-2 sentence concise executive overview]",
-  "detailedAnalysis": "[1-2 sentence core feature summary]",
-  "scientificTechnicalInfo": "[1-2 sentence technical or domain classification note]",
-  "limitations": "[1-2 sentence optical boundary statement]",
-  "detectedObjects": ["Subject", "Background", "Focal Region"],
-  "extractedOCR": "Extracted text OR 'None detected'",
+  "limitations": [
+    "[1-2 sentence optical boundary statement]"
+  ],
+  "sources": [
+    { "title": "[Reference Title]", "source": "[Institutional Publisher / Governing Body]", "year": "2024", "url": "[URL if verified or empty]" }
+  ],
   "diagramStructure": {
     "diagramType": "flowchart | dfd | uml | er_diagram | architecture | generic diagram",
     "classificationReason": "[Visual rationale for diagram archetype]",
