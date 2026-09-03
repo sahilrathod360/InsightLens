@@ -961,37 +961,59 @@
           <h2 class="font-headline-md text-base text-on-surface font-bold">Synthesis Options &amp; Parameters</h2>
         </div>
 
-        <!-- Optional Subject Context Input -->
+        <!-- Step 3A: Subject / Context -->
         <div class="space-y-1.5">
           <label for="input-subject-context" class="block text-on-surface-variant font-medium text-[11px] flex items-center justify-between">
-            <span>Subject Name / Context <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></span>
-            <span class="text-[10px] font-mono text-purple-400">e.g. Virat Kohli, Eiffel Tower</span>
+            <span>Who / What is this about? <span class="text-[10px] text-slate-400 font-normal">(Optional Subject Context)</span></span>
+            <span class="text-[10px] font-mono text-purple-400">e.g. Virat Kohli, Apollo 11, Eiffel Tower</span>
           </label>
           <div class="relative">
             <input type="text" id="input-subject-context" placeholder="Enter subject name or context (e.g. Virat Kohli)..." class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
           </div>
-          <p class="text-[10px] text-slate-400 font-mono">User-supplied premise anchored to visual evidence (not facial recognition).</p>
+          <p class="text-[10px] text-slate-400 font-mono">Optional context supplied by you. InsightLens will use this as the research subject; it is not facial-recognition identification.</p>
         </div>
 
+        <!-- Step 3B: Research Question -->
+        <div class="space-y-1.5">
+          <label for="input-research-question" class="block text-on-surface-variant font-medium text-[11px] flex items-center justify-between">
+            <span>What would you like InsightLens to research? <span class="text-[10px] text-slate-400 font-normal">(Optional Research Question)</span></span>
+            <span class="text-[10px] font-mono text-sky-400">Targeted Inquiry</span>
+          </label>
+          <textarea id="input-research-question" rows="2" placeholder="Example: What are Virat Kohli's major career achievements and what can be determined about this photograph?" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none resize-none"></textarea>
+        </div>
+
+        <!-- Step 3C: Research Focus & Research Depth Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div class="space-y-1.5">
-            <label for="select-length" class="block text-on-surface-variant font-medium text-[11px]">Research Depth</label>
-            <select id="select-length" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
-              <option value="long" selected>Comprehensive (3-4 Detailed Sections)</option>
-              <option value="short">Short Brief (1-2 Concise Sections)</option>
+            <label for="select-focus" class="block text-on-surface-variant font-medium text-[11px] flex items-center justify-between">
+              <span>Research Focus</span>
+              <span class="text-[9px] font-mono text-indigo-400">Prioritizes Analysis</span>
+            </label>
+            <select id="select-focus" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
+              <option value="auto" selected>Auto (Intent & Visual Type)</option>
+              <option value="person">Person / Subject</option>
+              <option value="clothing">Clothing / Appearance</option>
+              <option value="object">Object / Product</option>
+              <option value="place">Place / Background</option>
+              <option value="chart">Chart / Data</option>
+              <option value="document">Document / Text</option>
+              <option value="diagram">Diagram / Structure</option>
+              <option value="all">All Dimensions</option>
             </select>
           </div>
 
           <div class="space-y-1.5">
-            <label for="select-style" class="block text-on-surface-variant font-medium text-[11px]">Writing Style &amp; Tone</label>
-            <select id="select-style" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
-              <option value="classic" selected>Classic Academic &amp; Formal</option>
-              <option value="creative">Creative &amp; Narrative Insight</option>
-              <option value="minimal">Minimalist Technical &amp; Data Bullets</option>
+            <label for="select-depth" class="block text-on-surface-variant font-medium text-[11px] flex items-center justify-between">
+              <span>Research Depth</span>
+              <span class="text-[9px] font-mono text-emerald-400">Scope & Rigor</span>
+            </label>
+            <select id="select-depth" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
+              <option value="quick">Quick (Concise Key Takeaways)</option>
+              <option value="standard" selected>Standard (Balanced Evidence & Research)</option>
+              <option value="deep">Deep (Comprehensive Investigation & Sources)</option>
             </select>
           </div>
         </div>
-      </div>
 
       <div class="md:col-span-4 space-y-2.5">
         <div class="flex items-center gap-3">

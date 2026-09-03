@@ -4,7 +4,7 @@ import { systemPreferences, loadPreferences } from './storage.js';
 import { API_BASE, getAuthHeaders } from '../utils/api.js';
 import { getUserSession } from '../state.js';
 
-export async function callGemini25Flash(dataUrl, researchLength, writingStyle, subjectContext = '', onAttemptModel = null, onRetryNotice = null) {
+export async function callGemini25Flash(dataUrl, researchIntent = {}, onAttemptModel = null, onRetryNotice = null) {
   const startMs = Date.now();
   
   if (!dataUrl) {
@@ -18,13 +18,22 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, s
   const session = getUserSession();
   const userEmail = session && session.email ? session.email : null;
 
+  const intentObj = typeof researchIntent === 'object' && researchIntent !== null
+    ? researchIntent
+    : { subjectContext: typeof researchIntent === 'string' ? researchIntent : '' };
+
   const targetUrl = `${API_BASE}/api/analyze`;
   const payload = {
     dataUrl: dataUrl,
     promptObj: { 
-      researchLength, 
       language: lang,
-      subjectContext: typeof subjectContext === 'string' ? subjectContext.trim() : ''
+      researchIntent: {
+        subjectContext: (intentObj.subjectContext || '').trim(),
+        focus: intentObj.focus || 'auto',
+        question: (intentObj.question || '').trim(),
+        depth: intentObj.depth || 'standard'
+      },
+      subjectContext: (intentObj.subjectContext || '').trim()
     },
     preferredProvider: selectedProvider !== 'auto' ? selectedProvider : null,
     userEmail: userEmail

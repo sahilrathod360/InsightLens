@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { config } from '../../config/env.js';
 import GeminiService from './GeminiService.js';
 import OpenRouterService from './OpenRouterService.js';
@@ -16,8 +17,11 @@ class AIManager {
     const optResult = await optimizeImage(rawInputDataUrl);
     console.log(`[ImageOptimizer] Original: ${optResult.originalSizeKb} KB | Compressed: ${optResult.compressedSizeKb} KB | Ratio: -${optResult.compressionRatioPct}% | Time: ${optResult.optimizationTimeMs} ms`);
 
-    // Step 2: 30-Minute In-Memory Cache Lookup
-    const cachedResult = cacheManager.get(optResult.imageHash);
+    // Step 2: 30-Minute In-Memory Intent-Aware Cache Lookup
+    const intentFingerprint = JSON.stringify(promptObj || {});
+    const cacheKey = crypto.createHash('sha256').update(`${optResult.imageHash}_${intentFingerprint}`).digest('hex');
+
+    const cachedResult = cacheManager.get(cacheKey);
     if (cachedResult) {
       const totalDuration = Date.now() - startTime;
       console.log(`[AIManager] Returning CACHED report instantly in ${totalDuration} ms`);
@@ -128,7 +132,7 @@ class AIManager {
       };
 
       // Step 4: Store validated report in 30-minute in-memory cache
-      cacheManager.set(optResult.imageHash, finalReport);
+      cacheManager.set(cacheKey, finalReport);
 
       // Step 5: Structured Production Logging
       console.log('\n--- PRODUCTION METRICS LOG ---');

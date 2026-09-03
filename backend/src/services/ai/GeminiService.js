@@ -13,7 +13,18 @@ class GeminiService {
     const startTime = Date.now();
     console.log('[AIManager] Gemini started');
 
-    const { researchLength = 'long', language = 'en', subjectContext = '' } = promptObj;
+    const { 
+      language = 'en', 
+      researchIntent = {}, 
+      subjectContext = '' 
+    } = promptObj;
+
+    const normalizedIntent = {
+      subjectContext: (researchIntent.subjectContext || subjectContext || '').trim(),
+      focus: researchIntent.focus || 'auto',
+      question: (researchIntent.question || '').trim(),
+      depth: researchIntent.depth || promptObj.researchLength || 'standard'
+    };
     
     // Extract base64 and mimetype
     let mimeType = 'image/jpeg';
@@ -26,9 +37,9 @@ class GeminiService {
       }
     }
 
-    const promptText = buildAiPrompt(language, researchLength, subjectContext);
+    const promptText = buildAiPrompt(language, normalizedIntent);
     const schemaText = buildJsonSchemaPrompt();
-    const models = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+    const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.5-flash'];
     let lastError = null;
 
     for (const model of models) {
@@ -97,7 +108,7 @@ class GeminiService {
         const duration = Date.now() - startTime;
         console.log(`[AIManager] Gemini finished (${model}) in ${duration} ms (TTFB: ${timeToFirstByteMs}ms, Inference: ${totalInferenceTimeMs}ms)`);
 
-        const parsedResult = parseAIResponse(rawText, 'Google Gemini AI', model);
+        const parsedResult = parseAIResponse(rawText, 'Google Gemini AI', model, normalizedIntent);
         parsedResult.timeToFirstByteMs = timeToFirstByteMs;
         parsedResult.totalInferenceTimeMs = totalInferenceTimeMs;
         return parsedResult;

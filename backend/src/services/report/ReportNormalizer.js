@@ -3,11 +3,18 @@
  * Enforces the Report 2.0 structure before persistence in PostgreSQL reports.full_data
  */
 
-export function normalizeReport(raw) {
+export function normalizeReport(raw, researchIntent = {}) {
   if (!raw || typeof raw !== 'object') return raw;
 
   const visualType = (raw.visualType || 'unknown').toLowerCase();
   const subject = (raw.subject || raw.title || 'Visual Artifact Subject').trim();
+
+  const intent = {
+    subjectContext: researchIntent?.subjectContext || raw.researchIntent?.subjectContext || '',
+    focus: researchIntent?.focus || raw.researchIntent?.focus || 'auto',
+    question: researchIntent?.question || raw.researchIntent?.question || '',
+    depth: researchIntent?.depth || raw.researchIntent?.depth || 'standard'
+  };
 
   // 1. Executive Insight
   const executiveInsight = raw.executiveInsight && typeof raw.executiveInsight === 'object'
@@ -28,7 +35,7 @@ export function normalizeReport(raw) {
   const visualEvidence = Array.isArray(raw.visualEvidence) && raw.visualEvidence.length > 0
     ? raw.visualEvidence.map(item => ({
         statement: typeof item === 'string' ? item : item.statement,
-        status: (item.status && ['observed', 'inferred', 'undeterminable'].includes(item.status.toLowerCase()))
+        status: (item.status && ['observed', 'researched', 'inferred', 'undeterminable'].includes(item.status.toLowerCase()))
           ? item.status.toLowerCase()
           : 'observed'
       }))
@@ -96,12 +103,14 @@ export function normalizeReport(raw) {
     confidenceScore: raw.confidenceScore || raw.confidence || '98.5%',
     processingTimeMs: raw.processingTimeMs || 1800,
     validationStatus: 'Report 2.0 Schema Verified',
-    timestamp: raw.generationTimestamp || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    timestamp: raw.generationTimestamp || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    researchIntent: intent
   };
 
   return {
     ...raw,
     reportVersion: '2.0',
+    researchIntent: intent,
     executiveInsight,
     visualEvidence,
     observations,
