@@ -67,7 +67,41 @@ async function testImagePersistenceIntegrity() {
   console.log('========================================================\n');
 }
 
-testImagePersistenceIntegrity().catch(err => {
-  console.error('Test Failed:', err);
-  process.exit(1);
-});
+async function verifyDeployments() {
+  console.log('\n--- CHECKING VERCEL PRODUCTION (https://insight-lens.vercel.app) ---');
+  try {
+    const vRes = await fetch('https://insight-lens.vercel.app', { signal: AbortSignal.timeout(15000) });
+    console.log('Vercel HTTP Status:', vRes.status);
+    const text = await vRes.text();
+    console.log('Vercel HTML length:', text.length);
+    console.log('Vercel has evidence-workbench:', text.includes('evidence-workbench'));
+  } catch (err) {
+    console.log('Vercel fetch notice:', err.message);
+  }
+
+  console.log('\n--- CHECKING RENDER PRODUCTION BACKEND (https://insightlens-backend.onrender.com) ---');
+  try {
+    const rHealthz = await fetch('https://insightlens-backend.onrender.com/healthz', { signal: AbortSignal.timeout(15000) });
+    console.log('Render /healthz Status:', rHealthz.status);
+    const healthzData = await rHealthz.json();
+    console.log('Render /healthz Payload:', JSON.stringify(healthzData));
+  } catch (err) {
+    console.log('Render /healthz notice:', err.message);
+  }
+
+  try {
+    const rHealth = await fetch('https://insightlens-backend.onrender.com/api/health', { signal: AbortSignal.timeout(15000) });
+    console.log('Render /api/health Status:', rHealth.status);
+    const healthData = await rHealth.json();
+    console.log('Render /api/health Payload:', JSON.stringify(healthData));
+  } catch (err) {
+    console.log('Render /api/health notice:', err.message);
+  }
+}
+
+testImagePersistenceIntegrity()
+  .then(() => verifyDeployments())
+  .catch(err => {
+    console.error('Test Failed:', err);
+    process.exit(1);
+  });
