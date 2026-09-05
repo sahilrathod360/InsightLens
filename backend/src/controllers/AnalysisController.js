@@ -1,18 +1,63 @@
 import AIManager from '../services/ai/AIManager.js';
 import pool from '../config/db.js';
+import { getCompletedAnalysis, storeCompletedAnalysis } from '../middleware/analysisAdmission.js';
 
 export const analyzeArtifact = async (req, res, next) => {
   const reqStartTime = Date.now();
   try {
     console.log(`[Backend] Request received for visual analysis`);
-    const { dataUrl, promptObj, preferredProvider, userEmail } = req.body;
+    const { dataUrl, promptObj = {}, preferredProvider } = req.body;
+    const email = req.user?.email;
+    if (!email) {
+      return res.status(401).json({ success: false, message: 'Authentication required.', data: null });
+    }
+
+    const replay = getCompletedAnalysis(email, req.idempotencyKey);
+    if (replay) {
+      return res.status(200).json({ ...replay, replayed: true });
+    }
     
-    if (!dataUrl) {
+    if (!dataUrl || typeof dataUrl !== 'string' || dataUrl.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'dataUrl is required for analysis.',
+        message: 'Valid image dataUrl is required for analysis.',
         data: null,
-        errors: [],
+        errors: ['Missing or empty dataUrl'],
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const trimmedUrl = dataUrl.trim();
+
+    // Reject non-image payloads, SVG injections, or dangerous protocol schemes
+    if (trimmedUrl.startsWith('data:')) {
+      const mimeMatch = trimmedUrl.match(/^data:([^;]+);base64,/i);
+      if (!mimeMatch) {
+        return res.status(400).json({
+          success: false,
+          message: 'Malformed base64 image dataUrl format.',
+          data: null,
+          errors: ['Invalid dataUrl format'],
+          timestamp: new Date().toISOString()
+        });
+      }
+      const mime = mimeMatch[1].toLowerCase().trim();
+      const allowedImageMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedImageMimes.includes(mime)) {
+        return res.status(400).json({
+          success: false,
+          message: `Unsupported file format "${mime}". Only JPEG, PNG, and WebP images are supported.`,
+          data: null,
+          errors: ['Unsupported MIME type'],
+          timestamp: new Date().toISOString()
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid image format. Only a base64 data:image URL is accepted.',
+        data: null,
+        errors: ['Invalid image format'],
         timestamp: new Date().toISOString()
       });
     }
@@ -32,9 +77,7 @@ export const analyzeArtifact = async (req, res, next) => {
       });
     }
 
-    // Prioritize verified JWT authentication over client-supplied body
-    const email = (req.user?.email || userEmail || req.body?.userEmail || 'guest@insightlens.edu').toLowerCase().trim();
-    console.log(`[AnalysisController] Persisting report for: ${email} (Auth method: ${req.user?.email ? 'verified JWT' : 'unauthenticated'})`);
+    console.log(`[AnalysisController] Persisting report for authenticated user: ${email}`);
     
     // Always assign a fresh unique report ID for every analysis
     const reportId = `RPT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -42,7 +85,11 @@ export const analyzeArtifact = async (req, res, next) => {
     const modelName = report.meta?.modelUsed || report.modelUsed || report.actualModel || 'gemini-2.5-flash';
     const formattedDate = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const processingTime = parseInt(report.meta?.inferenceLatencyMs || report.processingTimeMs || 0, 10);
-    const confidence = report.meta?.verificationScore || report.confidenceScore || '96.8%';
+    const evidenceStatus = report.evidenceStatus || 'uncertain';
+    const storedImageDataUrl = report.processedImageDataUrl;
+    const thumbnailDataUrl = report.thumbnailDataUrl;
+    delete report.processedImageDataUrl;
+    delete report.thumbnailDataUrl;
 
     report.id = reportId;
 
@@ -50,10 +97,10 @@ export const analyzeArtifact = async (req, res, next) => {
     const insertQuery = `
       INSERT INTO reports (
         id, user_email, title, subject, category, summary_lead, date_formatted,
-        timestamp, image_data_url, full_image, model_used, processing_time_ms,
+        timestamp, image_data_url, thumbnail_data_url, full_image, model_used, processing_time_ms,
         confidence_score, full_data, favorite, created_at, updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, FALSE, NOW(), NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, FALSE, NOW(), NOW())
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         subject = EXCLUDED.subject,
@@ -73,11 +120,12 @@ export const analyzeArtifact = async (req, res, next) => {
       report.executiveSummary || report.summaryLead || '',
       formattedDate,
       now,
-      dataUrl,
-      dataUrl,
+      storedImageDataUrl,
+      thumbnailDataUrl,
+      null, // Legacy column retained for old reports only
       modelName,
       processingTime,
-      confidence,
+      evidenceStatus,
       JSON.stringify(report)
     ];
 
@@ -91,9 +139,9 @@ export const analyzeArtifact = async (req, res, next) => {
       console.error('[AnalysisController] PostgreSQL Report Persistence Failure:', dbErr.message);
       return res.status(500).json({
         success: false,
-        message: `Database persistence failed: ${dbErr.message}`,
+        message: 'Database persistence failed. Please try again later.',
         data: null,
-        errors: [dbErr.message],
+        errors: [],
         timestamp: new Date().toISOString()
       });
     }
@@ -103,16 +151,15 @@ export const analyzeArtifact = async (req, res, next) => {
     const telemetryStartTime = Date.now();
     const metricsQuery = pool.query(
       `INSERT INTO app_metrics (metric_key, user_email, total_images_analyzed, total_reports_generated, last_analysis_timestamp, last_successful_model, last_successful_time)
-       VALUES ('global_metrics', $1, 1, 1, $2, $3, $4)
+       VALUES ($1, $2, 1, 1, $3, $4, $5)
        ON CONFLICT (metric_key) DO UPDATE SET
          total_images_analyzed = app_metrics.total_images_analyzed + 1,
          total_reports_generated = app_metrics.total_reports_generated + 1,
-         user_email = EXCLUDED.user_email,
          last_analysis_timestamp = EXCLUDED.last_analysis_timestamp,
          last_successful_model = EXCLUDED.last_successful_model,
          last_successful_time = EXCLUDED.last_successful_time,
          updated_at = NOW()`,
-      [email, now, modelName, now]
+      [`user:${email}`, email, now, modelName, now]
     ).catch(metricErr => console.error('[AnalysisController] PostgreSQL Metrics Update Error:', metricErr.message));
 
     const activityQuery = pool.query(
@@ -135,17 +182,21 @@ export const analyzeArtifact = async (req, res, next) => {
     console.log(`Total Request Latency:               ${totalRequestTimeMs} ms (${(totalRequestTimeMs / 1000).toFixed(2)}s)`);
     console.log('=================================================\n');
 
-    return res.status(200).json({
+    const responsePayload = {
       success: true,
       message: 'Analysis complete',
       data: {
         ...report,
-        id: persistedReportId
+        id: persistedReportId,
+        imageDataUrl: storedImageDataUrl,
+        thumbnailDataUrl
       },
       reportId: persistedReportId,
       errors: [],
       timestamp: new Date().toISOString()
-    });
+    };
+    storeCompletedAnalysis(email, req.idempotencyKey, responsePayload);
+    return res.status(200).json(responsePayload);
   } catch (err) {
     next(err);
   }

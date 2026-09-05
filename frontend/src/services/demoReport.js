@@ -6,8 +6,7 @@ export const SAMPLE_DEMO_REPORT = {
   subject: 'Golden Eagle (Aquila chrysaetos)',
   scientificName: 'Aquila chrysaetos',
   category: 'Ornithology & Aerodynamics',
-  confidenceScore: '99.4%',
-  aiConfidence: '99.4%',
+  evidenceStatus: 'observed',
   imageFilename: 'sample_golden_eagle_soaring.jpg',
   visualType: 'photograph',
   specializedPipeline: 'Photo Analysis Pipeline',
@@ -32,6 +31,34 @@ export const SAMPLE_DEMO_REPORT = {
     { category: 'Plumage & Morphology', statement: 'Dark brown body plumage with prominent golden feathers across crown and nape.', status: 'observed' },
     { category: 'Aerodynamic Geometry', statement: 'High-aspect wings held in slight positive dihedral angle.', status: 'observed' },
     { category: 'Optical Clarity', statement: 'Crisp focal separation tracking bird contour against diffuse sky background.', status: 'observed' }
+  ],
+  evidenceLedger: [
+    {
+      claim: 'Deeply emarginated primary feathers (wing-tip slots) indicate thermal soaring with minimal vortex drag.',
+      evidenceType: 'visual_observation',
+      supportStatus: 'supported',
+      evidence: 'Fanned primary remiges visible with distinct slotted emarginations at wingtips.',
+      reasoning: 'Direct geometric and morphological optical detection from visual artifact frame.',
+      sourceTitle: 'Visual Optical Frame'
+    },
+    {
+      claim: 'Specimen is an adult Golden Eagle (Aquila chrysaetos) in definitive basic plumage.',
+      evidenceType: 'inference',
+      supportStatus: 'supported',
+      evidence: 'Golden-buff nape and crown plumage contrasting against dark brown mantle.',
+      reasoning: 'Taxonomical diagnostic markers consistent with adult definitive basic plumage.',
+      sourceTitle: 'Avian Taxonomy Manual',
+      sourceUrl: 'https://example.org/raptors'
+    },
+    {
+      claim: 'Slotted primaries function as individual aerodynamic winglets attenuating induced vortex drag.',
+      evidenceType: 'external_source',
+      supportStatus: 'supported',
+      evidence: 'Aerodynamic theory and wind tunnel trials of raptor wingtip slots.',
+      reasoning: 'Corroborated by external fluid dynamics literature.',
+      sourceTitle: 'Journal of Experimental Biology',
+      sourceUrl: 'https://example.org/aero'
+    }
   ],
   sections: [
     {
@@ -80,9 +107,9 @@ export const SAMPLE_DEMO_REPORT = {
     specializedPipeline: 'Photo Analysis Pipeline',
     modelUsed: 'Demo Fixture Engine',
     aiProvider: 'InsightLens Sample Analysis',
-    confidenceScore: '99.4%',
+    evidenceStatus: 'observed',
     processingTimeMs: 85,
-    validationStatus: 'Sample Report Verified',
+    validationStatus: 'Schema validated (demo fixture)',
     timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 };

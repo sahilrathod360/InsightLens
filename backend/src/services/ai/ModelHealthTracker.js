@@ -49,27 +49,27 @@ class ModelHealthTracker {
     s.lastFailureReason = `${errorType}: ${reason}`;
 
     const now = Date.now();
-    if (errorType === 'HTTP_402' || reason.includes('402') || reason.includes('credits')) {
+    if (errorType === 'HTTP_402' || reason.includes('402') || reason.includes('credits') || reason.includes('afford')) {
       s.http402Count++;
-      // Cooldown 20 minutes for credit exhaustion
-      s.cooldownUntil = now + (20 * 60 * 1000);
-      console.warn(`[HealthTracker] Model ${modelId} placed on 20-min cooldown due to credit exhaustion (HTTP 402)`);
+      // Cooldown 30 minutes for credit exhaustion
+      s.cooldownUntil = now + (30 * 60 * 1000);
+      console.warn(`[HealthTracker] Model ${modelId} placed on 30-min cooldown due to credit exhaustion (HTTP 402)`);
     } else if (errorType === 'HTTP_503' || reason.includes('503') || reason.includes('demand')) {
       s.http503Count++;
-      // Cooldown 2 minutes for transient high demand spikes
-      s.cooldownUntil = now + (2 * 60 * 1000);
-      console.warn(`[HealthTracker] Model ${modelId} placed on 2-min cooldown due to high demand (HTTP 503)`);
-    } else if (errorType === 'HTTP_429' || reason.includes('429') || reason.includes('quota')) {
+      // Cooldown 60 seconds for transient high demand spikes
+      s.cooldownUntil = now + (60 * 1000);
+      console.warn(`[HealthTracker] Model ${modelId} placed on 60s cooldown due to high demand (HTTP 503)`);
+    } else if (errorType === 'HTTP_429' || reason.includes('429') || reason.includes('quota') || reason.includes('rate limit')) {
       s.http429Count++;
-      // Cooldown 2 minutes for rate limit
-      s.cooldownUntil = now + (2 * 60 * 1000);
-      console.warn(`[HealthTracker] Model ${modelId} placed on 2-min cooldown due to rate limit (HTTP 429)`);
+      // Cooldown 60 seconds for rate limit
+      s.cooldownUntil = now + (60 * 1000);
+      console.warn(`[HealthTracker] Model ${modelId} placed on 60s cooldown due to rate limit (HTTP 429)`);
     } else if (errorType === 'TIMEOUT') {
       s.timeoutCount++;
       if (s.consecutiveFailures >= 2) {
-        s.cooldownUntil = now + (3 * 60 * 1000);
+        s.cooldownUntil = now + (2 * 60 * 1000);
       }
-    } else if (errorType === 'INVALID_JSON') {
+    } else if (errorType === 'INVALID_JSON' || errorType === 'SCHEMA_VALIDATION_FAILED') {
       s.invalidJsonCount++;
     }
   }
@@ -83,6 +83,20 @@ class ModelHealthTracker {
     return true;
   }
 
+  getCooldownRemainingMs(modelId) {
+    const s = this.stats.get(modelId);
+    if (!s || !s.cooldownUntil) return 0;
+    return Math.max(0, s.cooldownUntil - Date.now());
+  }
+
+  reset(modelId = null) {
+    if (modelId) {
+      this.stats.delete(modelId);
+    } else {
+      this.stats.clear();
+    }
+  }
+
   getStats(modelId) {
     return this.stats.get(modelId) || null;
   }
@@ -93,3 +107,4 @@ class ModelHealthTracker {
 }
 
 export default new ModelHealthTracker();
+

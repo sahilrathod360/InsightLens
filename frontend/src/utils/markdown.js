@@ -1,5 +1,6 @@
 // Universal Markdown to HTML Renderer for Research Reports
-// Handles tables, headings, bold/italics, bullet lists, code blocks, and callouts
+// Hardened with strict HTML escaping, safe URL validation, and DOMPurify sanitization
+import { escapeHtml, sanitizeUrl, sanitizeHtml } from './sanitize.js';
 
 export function renderMarkdownToHtml(md) {
   if (!md || typeof md !== 'string') return '';
@@ -18,7 +19,7 @@ export function renderMarkdownToHtml(md) {
     if (tableHeader.length > 0) {
       html += '<thead class="bg-surface-container-highest/60 text-slate-200 font-semibold uppercase text-[10px] tracking-wider border-b ghost-border"><tr>';
       tableHeader.forEach(cell => {
-        html += `<th class="p-3 font-mono">${cell}</th>`;
+        html += `<th class="p-3 font-mono">${escapeHtml(cell)}</th>`;
       });
       html += '</tr></thead>';
     }
@@ -50,10 +51,36 @@ export function renderMarkdownToHtml(md) {
   };
 
   const formatInline = (text) => {
-    return text
+    if (!text) return '';
+
+    // First process links and convert them safely
+    let formatted = text.replace(/\[([^\]]+)\]\(([\s\S]*?)\)/g, (match, label, rawUrl) => {
+      const cleanUrl = sanitizeUrl(rawUrl.trim());
+      if (cleanUrl) {
+        return `%%%LINK_START%%%${encodeURIComponent(cleanUrl)}%%%LINK_MID%%%${escapeHtml(label)}%%%LINK_END%%%`;
+      }
+      return escapeHtml(label);
+    });
+
+    // Strip any dangerous protocol schemes that might be unlinked
+    formatted = formatted.replace(/(?:javascript|vbscript|data):[^\s"'>]+/gi, '');
+
+    // Escape all raw HTML tags/special characters in the remaining text
+    formatted = escapeHtml(formatted);
+
+    // Format bold, italics, inline code
+    formatted = formatted
       .replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-100 font-semibold">$1</strong>')
       .replace(/\*(.+?)\*/g, '<em class="text-slate-300">$1</em>')
       .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-surface-container-highest font-mono text-[11px] text-indigo-300 border ghost-border">$1</code>');
+
+    // Restore safe links
+    formatted = formatted.replace(/%%%LINK_START%%%(.*?)%%%LINK_MID%%%(.*?)%%%LINK_END%%%/g, (match, encodedUrl, safeLabel) => {
+      const url = decodeURIComponent(encodedUrl);
+      return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:underline">${safeLabel}</a>`;
+    });
+
+    return formatted;
   };
 
   for (let i = 0; i < lines.length; i++) {
@@ -120,5 +147,6 @@ export function renderMarkdownToHtml(md) {
   flushTable();
   flushList();
 
-  return out.join('');
+  const rawHtml = out.join('');
+  return sanitizeHtml(rawHtml);
 }

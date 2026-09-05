@@ -1,11 +1,12 @@
 // Real Data Dashboard Component Implementation (Backed by Aiven PostgreSQL)
 
 import { getUserSession, getSystemPreferences, setActiveReportData, navigateTo } from '../../state.js';
-import { getReportsHistory, computeRealDashboardStats } from '../../services/history.js';
+import { getReportsHistory, getReportById, computeRealDashboardStats, getLastHistoryError } from '../../services/history.js';
 import { formatBytes } from '../../utils/toast.js';
 import { renderResultScreen } from '../ReportViewer.js';
 import { exportPreferencesFile } from '../../services/preferences.js';
 import { API_BASE, getAuthHeaders } from '../../utils/api.js';
+import { escapeHtml, sanitizeUrl } from '../../utils/sanitize.js';
 
 export async function renderRealDashboard() {
   const dashboardContainer = document.getElementById('page-dashboard');
@@ -41,6 +42,10 @@ export async function renderRealDashboard() {
   // Fetch reports from PostgreSQL
   const reports = await getReportsHistory();
   const stats = computeRealDashboardStats(reports, backendDashboardData?.metrics || {});
+  if (backendDashboardData) {
+    stats.totalReports = backendDashboardData.totalReports;
+    stats.totalImagesAnalyzed = backendDashboardData.metrics?.totalImagesAnalyzed || backendDashboardData.totalReports;
+  }
   const systemPreferences = getSystemPreferences();
   const isOnline = navigator.onLine;
 
@@ -147,11 +152,11 @@ export async function renderRealDashboard() {
 
       <div class="bg-surface-container p-5 rounded-2xl ghost-border space-y-1">
         <div class="flex items-center justify-between text-on-surface-variant">
-          <span>Avg Confidence Score</span>
+          <span>Evidence labels</span>
           <span class="material-symbols-outlined text-emerald-400 text-[20px]">verified</span>
         </div>
-        <div class="font-display-lg text-2xl md:text-3xl font-serif font-bold text-emerald-400">${stats.avgConfidenceScore}</div>
-        <span class="text-[10px] text-on-surface-variant">Average AI vision confidence</span>
+        <div class="font-display-lg text-2xl md:text-3xl font-serif font-bold text-emerald-400">Not calibrated</div>
+        <span class="text-[10px] text-on-surface-variant">Observed / inferred / uncertain per report</span>
       </div>
 
       <div class="bg-surface-container p-5 rounded-2xl ghost-border space-y-1">
@@ -204,7 +209,26 @@ export async function renderRealDashboard() {
           <span class="text-[10px] font-mono text-on-surface-variant font-bold uppercase">Real App History</span>
         </div>
 
-        ${stats.totalReports === 0 ? `
+        ${getLastHistoryError() ? `
+          <!-- DATABASE ERROR STATE -->
+          <div class="p-8 text-center bg-surface-container-lowest rounded-xl border ghost-border space-y-4 error-state-container">
+            <div class="w-14 h-14 rounded-2xl bg-red-500/10 text-red-400 mx-auto flex items-center justify-center border border-red-500/20 shadow-md">
+              <span class="material-symbols-outlined text-[28px]">cloud_off</span>
+            </div>
+            <div class="space-y-1.5">
+              <h3 class="font-serif text-lg font-bold text-slate-100">Database Synchronization Failed</h3>
+              <p class="text-slate-400 text-xs max-w-[340px] mx-auto leading-relaxed">
+                Could not connect to PostgreSQL (${escapeHtml(getLastHistoryError())}).
+              </p>
+            </div>
+            <div class="pt-2">
+              <button id="dash-retry-btn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-6 py-2.5 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer shadow-md">
+                <span class="material-symbols-outlined text-[16px]">refresh</span>
+                Retry Connection
+              </button>
+            </div>
+          </div>
+        ` : stats.totalReports === 0 ? `
           <!-- ELEGANT EMPTY STATE -->
           <div class="p-8 text-center bg-surface-container-lowest rounded-xl border ghost-border space-y-4 empty-state-container">
             <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mx-auto flex items-center justify-center border border-indigo-500/20 shadow-md empty-state-icon">
@@ -229,22 +253,23 @@ export async function renderRealDashboard() {
               const data = rpt.fullData || {};
               const model = data.actualModel || data.modelUsed || 'gemini-2.5-flash';
               const procTime = data.processingTimeMs ? (data.processingTimeMs / 1000).toFixed(1) + 's' : '~2.0s';
-              const conf = data.confidenceScore || '96.8%';
+              const conf = data.evidenceStatus || 'Uncertain';
+              const safeImg = sanitizeUrl(rpt.thumbnailDataUrl) || sanitizeUrl(rpt.imageDataUrl) || sanitizeUrl(rpt.fullImage) || '/images/urban-analysis.jpg';
 
               return `
                 <div class="bg-surface-container-lowest p-3.5 rounded-xl border ghost-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
-                    <img src="${rpt.imageDataUrl || '/images/urban-analysis.jpg'}" alt="${rpt.title}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border ghost-border" />
+                    <img src="${escapeHtml(safeImg)}" alt="${escapeHtml(rpt.title)}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border ghost-border" />
                     <div class="min-w-0 space-y-1">
-                      <h4 class="font-serif text-xs font-bold text-slate-100 truncate">${rpt.title}</h4>
+                      <h4 class="font-serif text-xs font-bold text-slate-100 truncate">${escapeHtml(rpt.title)}</h4>
                       <div class="flex flex-wrap items-center gap-2 text-[10px] font-mono text-slate-400">
-                        <span class="text-indigo-300 font-semibold">${model}</span>
+                        <span class="text-indigo-300 font-semibold">${escapeHtml(model)}</span>
                         <span>•</span>
-                        <span>Time: ${procTime}</span>
+                        <span>Time: ${escapeHtml(procTime)}</span>
                         <span>•</span>
-                        <span class="text-emerald-400 font-semibold">Conf: ${conf}</span>
+                        <span class="text-emerald-400 font-semibold">Evidence: ${escapeHtml(conf)}</span>
                         <span>•</span>
-                        <span>${rpt.date}</span>
+                        <span>${escapeHtml(rpt.date || 'Recently')}</span>
                       </div>
                     </div>
                   </div>
@@ -282,7 +307,7 @@ export async function renderRealDashboard() {
 
             <div class="flex justify-between items-center">
               <span class="text-on-surface-variant">Current Selected Model:</span>
-              <strong class="text-indigo-400">${(systemPreferences.model || 'auto').toUpperCase()}</strong>
+              <strong class="text-indigo-400">${escapeHtml((systemPreferences.model || 'auto').toUpperCase())}</strong>
             </div>
 
             <div class="flex justify-between items-center">
@@ -297,7 +322,7 @@ export async function renderRealDashboard() {
 
             <div class="flex justify-between items-center">
               <span class="text-on-surface-variant">Theme Preference:</span>
-              <span class="text-purple-300 font-bold">${(systemPreferences.theme || 'dark').toUpperCase()}</span>
+              <span class="text-purple-300 font-bold">${escapeHtml((systemPreferences.theme || 'dark').toUpperCase())}</span>
             </div>
           </div>
         </div>
@@ -337,7 +362,7 @@ export async function renderRealDashboard() {
                 return `
                   <div>
                     <div class="flex justify-between text-[11px] text-slate-300 mb-1">
-                      <span class="truncate pr-2">${cat}</span>
+                      <span class="truncate pr-2">${escapeHtml(cat)}</span>
                       <span class="text-indigo-400 font-bold">${count} (${pct}%)</span>
                     </div>
                     <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
@@ -421,15 +446,27 @@ export async function renderRealDashboard() {
   document.getElementById('qa-export-all')?.addEventListener('click', () => exportPreferencesFile());
   document.getElementById('qa-settings')?.addEventListener('click', () => navigateTo('settings'));
   document.getElementById('dash-empty-start-btn')?.addEventListener('click', () => navigateTo('desk'));
+  document.getElementById('dash-retry-btn')?.addEventListener('click', () => renderRealDashboard());
 
   document.querySelectorAll('.dash-reopen-btn').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const idx = parseInt(btn.getAttribute('data-idx'), 10);
-      const selected = stats.reportsList[idx];
+      let selected = stats.reportsList[idx];
       if (selected) {
-        document.getElementById('report-source-img').src = selected.imageDataUrl;
-        setActiveReportData(selected.fullData);
-        renderResultScreen(selected.fullData);
+        if (!selected.fullData) {
+          const fetched = await getReportById(selected.id);
+          if (fetched) selected = fetched;
+        }
+        const dataToRender = { 
+          ...(selected.fullData || selected), 
+          imageDataUrl: selected.imageDataUrl || selected.fullImage || selected.thumbnailDataUrl || '', 
+          thumbnailDataUrl: selected.thumbnailDataUrl || null,
+          id: selected.id,
+          title: selected.title || (selected.fullData && selected.fullData.title),
+          subject: selected.subject || (selected.fullData && selected.fullData.subject)
+        };
+        setActiveReportData(dataToRender);
+        renderResultScreen(dataToRender);
       }
     };
   });
@@ -439,4 +476,3 @@ export async function renderRealDashboard() {
 export async function saveReportToHistory(imageDataUrl, reportData) {
   return null;
 }
-

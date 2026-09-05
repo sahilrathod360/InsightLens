@@ -4,15 +4,28 @@ import { getUserSession } from '../state.js';
 import { logUserActivity } from './storage.js';
 import { API_BASE, getAuthHeaders } from '../utils/api.js';
 
+let lastHistoryError = null;
+let lastArchiveError = null;
+
+export function getLastHistoryError() {
+  return lastHistoryError;
+}
+
+export function getLastArchiveError() {
+  return lastArchiveError;
+}
+
 /**
  * Fetch all reports from PostgreSQL history endpoint.
  */
 export async function getReportsHistory(filters = {}) {
+  lastHistoryError = null;
   const session = getUserSession();
   const email = session ? session.email : 'guest@insightlens.edu';
   
   const params = new URLSearchParams({ email });
-  if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+  const category = filters.categoryFilter || filters.category;
+  if (category && category !== 'all') params.append('category', category);
   if (filters.q && filters.q.trim()) params.append('q', filters.q.trim());
   if (filters.favoritesOnly) params.append('favorites', 'true');
 
@@ -25,6 +38,7 @@ export async function getReportsHistory(filters = {}) {
     });
 
     if (!res.ok) {
+      lastHistoryError = `Server returned HTTP ${res.status}`;
       console.warn(`[History Service] /api/history returned HTTP ${res.status}`);
       return [];
     }
@@ -32,6 +46,7 @@ export async function getReportsHistory(filters = {}) {
     const json = await res.json();
     return json.success && Array.isArray(json.data) ? json.data : [];
   } catch (err) {
+    lastHistoryError = err.message || 'Network error';
     console.error('[History Service] Error fetching reports from database:', err.message);
     return [];
   }
@@ -41,6 +56,7 @@ export async function getReportsHistory(filters = {}) {
  * Fetch all archived reports from PostgreSQL archive endpoint.
  */
 export async function getArchive(filters = {}) {
+  lastArchiveError = null;
   const session = getUserSession();
   const email = session ? session.email : 'guest@insightlens.edu';
   
@@ -58,6 +74,7 @@ export async function getArchive(filters = {}) {
     });
 
     if (!res.ok) {
+      lastArchiveError = `Server returned HTTP ${res.status}`;
       console.warn(`[History Service] /api/archive returned HTTP ${res.status}`);
       return [];
     }
@@ -65,8 +82,43 @@ export async function getArchive(filters = {}) {
     const json = await res.json();
     return json.success && Array.isArray(json.data) ? json.data : [];
   } catch (err) {
+    lastArchiveError = err.message || 'Network error';
     console.error('[History Service] Error fetching archive from database:', err.message);
     return [];
+  }
+}
+
+export async function getArchivePage(filters = {}, page = 1, limit = 20) {
+  lastArchiveError = null;
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const category = filters.categoryFilter || filters.category;
+  if (category && category !== 'all') params.append('category', category);
+  const q = filters.query || filters.q;
+  if (q && q.trim()) params.append('q', q.trim());
+  if (filters.favoritesOnly) params.append('favorites', 'true');
+  const model = filters.modelFilter || filters.model;
+  if (model && model !== 'all') params.append('model', model);
+  if (filters.sortBy) params.append('sort', filters.sortBy === 'confidence' ? 'evidence' : filters.sortBy);
+  const now = Date.now();
+  if (filters.dateFilter === 'today') {
+    const today = new Date(); today.setHours(0, 0, 0, 0); params.append('since', String(today.getTime()));
+  } else if (filters.dateFilter === 'week') params.append('since', String(now - 7 * 86400000));
+  else if (filters.dateFilter === 'month') params.append('since', String(now - 30 * 86400000));
+
+  try {
+    const res = await fetch(`${API_BASE}/api/archive?${params.toString()}`, { method: 'GET', headers: getAuthHeaders() });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.success) throw new Error(json.message || `Server returned HTTP ${res.status}`);
+    return {
+      reports: Array.isArray(json.data) ? json.data : [],
+      page: Number(json.page || page),
+      total: Number(json.total || (Array.isArray(json.data) ? json.data.length : 0)),
+      totalPages: Math.max(1, Number(json.totalPages || 1)),
+      limit: Number(json.limit || limit)
+    };
+  } catch (err) {
+    lastArchiveError = err.message || 'Network error';
+    return { reports: [], page, total: 0, totalPages: 1, limit };
   }
 }
 

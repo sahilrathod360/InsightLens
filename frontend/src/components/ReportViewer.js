@@ -6,8 +6,8 @@ import { exportMarkdownFile, exportJSONFile, exportCleanPDF } from '../utils/exp
 
 import { showToast } from '../utils/toast.js';
 import { renderMarkdownToHtml } from '../utils/markdown.js';
+import { escapeHtml, sanitizeUrl } from '../utils/sanitize.js';
 import { updateTelemetryUI } from './LoadingPipeline.js';
-import { mountInlineExplainPanel, renderUpgradedReportCanvas } from './Report/ReportViewer.js';
 
 export function resolveDynamicCategory(subject = '', rawCategory = '') {
   const subLower = (subject || '').toLowerCase();
@@ -89,8 +89,7 @@ export function applySmartSectionTitles(subject = '', category = '') {
 export function renderResultScreen(data) {
   if (!data) return;
   const systemPreferences = getSystemPreferences();
-  const lastPayload = getLastAnalysisPayload();
-  const actualImgSrc = data.imageDataUrl || data.dataUrl || lastPayload?.dataUrl || '';
+  const actualImgSrc = data.imageDataUrl || data.fullImage || data.dataUrl || '';
 
   // 1. Assign Real Image
   const reportSourceImg = document.getElementById('report-source-img');
@@ -99,6 +98,8 @@ export function renderResultScreen(data) {
     const imgObj = new Image();
     imgObj.onload = () => updateTelemetryUI(computeImageStatistics(imgObj));
     imgObj.src = actualImgSrc;
+  } else if (reportSourceImg) {
+    reportSourceImg.removeAttribute('src');
   }
 
   const imgFilenameEl = document.getElementById('report-image-filename');
@@ -137,13 +138,17 @@ export function renderResultScreen(data) {
   if (modelUsedEl) modelUsedEl.textContent = `Model: ${activeModelStr}`;
 
   const reportIdEl = document.getElementById('report-id-display');
-  if (reportIdEl) reportIdEl.textContent = `RPT-${data.id || Date.now().toString().slice(-6)}`;
-
-  const resultTimestampEl = document.getElementById('result-timestamp');
-  if (resultTimestampEl) {
-    const now = new Date();
-    resultTimestampEl.textContent = `Generated ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  if (reportIdEl) {
+    const rawId = String(data.id || '').trim();
+    reportIdEl.textContent = rawId.startsWith('RPT-') ? rawId : `RPT-${rawId || Date.now().toString().slice(-6)}`;
   }
+
+  const now = new Date();
+  const dateStr = data.dateFormatted || data.generationTimestamp || now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const resultBarTsEl = document.getElementById('result-bar-timestamp');
+  if (resultBarTsEl) resultBarTsEl.textContent = dateStr;
+  const heroTsEl = document.getElementById('report-hero-timestamp');
+  if (heroTsEl) heroTsEl.textContent = `Generated ${dateStr}`;
 
   // Phase 3: Visual Type & Specialized Analysis Pipeline Badges
   const rawType = (data.visualType || 'photograph').toLowerCase();
@@ -174,51 +179,46 @@ export function renderResultScreen(data) {
     if (el) el.textContent = text;
   };
 
-  const confidenceScoreVal = typeof data.confidenceScore === 'string' ? data.confidenceScore : `${data.confidenceScore || 99.4}%`;
+  const evidenceStatus = String(data.evidenceStatus || 'uncertain').replace(/^./, c => c.toUpperCase());
 
   setVal('grid-subject', subjectName);
   setVal('grid-scientific', scientificNameStr);
-  setVal('grid-confidence', confidenceScoreVal);
-  setVal('grid-time', data.processingTimeMs ? `${(data.processingTimeMs / 1000).toFixed(1)}s Latency` : '1.8s Latency');
+  setVal('grid-confidence', evidenceStatus);
+  setVal('grid-time', data.processingTimeMs ? `${(data.processingTimeMs / 1000).toFixed(1)}s Latency` : 'Not recorded');
   setVal('grid-category', categoryName);
   setVal('grid-objects-count', `${(data.detectedObjects || []).length || 1} Regions`);
   setVal('grid-colors', data.dominantColors || 'Natural Palette');
   setVal('grid-resolution', data.imageStats?.resolution || 'High Resolution');
   setVal('grid-ocr-status', data.extractedOCR && data.extractedOCR.length > 2 && data.extractedOCR !== 'None detected' ? 'Text Extracted' : 'None detected');
-  setVal('grid-status', 'Verified Research');
+  setVal('grid-status', 'Research Completed');
 
-  // 5. Multi-Metric Confidence Progress Bars
-  const numConf = parseFloat(confidenceScoreVal) || 99.4;
-  const setConfBar = (barId, labelId, score) => {
-    const bar = document.getElementById(barId);
-    const label = document.getElementById(labelId);
-    const clamped = Math.min(Math.max(score, 85), 99.8).toFixed(1);
-    if (bar) bar.style.width = `${clamped}%`;
-    if (label) label.textContent = `${clamped}%`;
-  };
-
-  setConfBar('bar-conf-overall', 'label-conf-overall', numConf);
-  setConfBar('bar-conf-objects', 'label-conf-objects', numConf * 0.98);
-  setConfBar('bar-conf-subject', 'label-conf-subject', numConf * 0.995);
+  // 5. Evidence & Grounding Telemetry
+  setVal('telemetry-evidence-status', evidenceStatus);
+  setVal('telemetry-grounding-mode', data.visualType ? `${data.visualType.toUpperCase()} Grounded` : 'Empirical Visual Ingest');
+  setVal('telemetry-verification-scope', data.references?.length ? `${data.references.length} Citations Grounded` : 'Visual Anchor');
+  setVal('specs-evidence-grounding', 'Direct Visual Anchor');
 
   // 6. Detected Objects Tags
   const tagsContainer = document.getElementById('detected-objects-tags');
   if (tagsContainer) {
-    const objects = data.detectedObjects && data.detectedObjects.length > 0 ? data.detectedObjects : [subjectName, 'Primary Focal Region', 'Visual Context'];
+    const objects = data.detectedObjects && data.detectedObjects.length > 0 ? data.detectedObjects : [];
     tagsContainer.innerHTML = objects.map(obj => `
       <span class="px-2.5 py-1 rounded-lg bg-[var(--bg-card-subtle)] text-[var(--accent-link)] text-[11px] font-mono border border-[var(--border-color)] flex items-center gap-1.5">
         <span class="material-symbols-outlined text-[13px] text-[var(--accent-link)]">pin_drop</span>
-        ${obj}
+        ${escapeHtml(obj)}
       </span>
     `).join('');
   }
 
   // 7. Executive Summary Cards
-  const overviewText = data.executiveSummary || data.executiveInsight?.summary || `Comprehensive research analysis focusing on ${subjectName}.`;
+  const overviewText = data.executiveSummary || data.executiveInsight?.summary || 'No summary was returned for this report.';
   setVal('exec-card-overview', overviewText);
-  setVal('exec-card-findings', data.executiveInsight?.keyFinding || data.detectionSummary || `Primary subject ${subjectName} identified and verified.`);
-  setVal('exec-card-observation', (data.observations && data.observations[0] ? data.observations[0].statement : '') || (data.visualEvidence && data.visualEvidence[0] ? data.visualEvidence[0].statement : '') || `Visual evidence confirms primary focal markers of ${subjectName}.`);
-  setVal('exec-card-synthesis', (data.interpretations && data.interpretations[0] ? data.interpretations[0].statement : '') || (data.executiveInsight?.keyTakeaways ? data.executiveInsight.keyTakeaways[0] : '') || `Authoritative domain research on ${subjectName}.`);
+  setVal('exec-card-findings', data.executiveInsight?.keyFinding || data.detectionSummary || 'No key finding was returned.');
+  setVal('exec-card-observation', (data.observations && data.observations[0] ? data.observations[0].statement : '') || (data.visualEvidence && data.visualEvidence[0] ? data.visualEvidence[0].statement : '') || 'No explicit visual observation was returned.');
+  setVal('exec-card-synthesis', (data.interpretations && data.interpretations[0] ? data.interpretations[0].statement : '') || (data.executiveInsight?.keyTakeaways ? data.executiveInsight.keyTakeaways[0] : '') || 'No synthesis was returned.');
+
+  // 7b. Evidence Intelligence Workbench (Phase 9)
+  renderEvidenceWorkbench(data);
 
   // 8. Dynamic Domain-Adaptive Sections & Academic Research
   const dynamicSectionsEl = document.getElementById('report-dynamic-sections-container');
@@ -232,8 +232,8 @@ export function renderResultScreen(data) {
         <div class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2 flex items-center justify-between">
             <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">${sec.icon || 'article'}</span>
-              ${idx + 1}. ${sec.heading}
+              <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">${escapeHtml(sec.icon || 'article')}</span>
+              ${idx + 1}. ${escapeHtml(sec.heading)}
             </h2>
           </div>
           <div class="report-card text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed space-y-3">
@@ -254,9 +254,9 @@ export function renderResultScreen(data) {
     };
 
     const bulletsText = (data.visualAnalysisBullets || []).join('\n\n');
-    setSectionText('report-detailed-analysis-text', bulletsText || data.detailedAnalysis || `Visual analysis and domain research on ${subjectName}.`);
-    setSectionText('report-identification-text', data.identification || `The primary subject is classified as ${subjectName} within ${categoryName}.`);
-    setSectionText('report-scientific-text', data.scientificTechnicalInfo || `From a ${categoryName} perspective, ${subjectName} exhibits key mechanisms and operational parameters.`);
+    setSectionText('report-detailed-analysis-text', bulletsText || data.detailedAnalysis || 'No detailed analysis was returned.');
+    setSectionText('report-identification-text', data.identification || 'No identification detail was returned.');
+    setSectionText('report-scientific-text', data.scientificTechnicalInfo || 'No technical detail was returned.');
   }
 
   // 9. Technical Comparison Cards Grid
@@ -266,13 +266,13 @@ export function renderResultScreen(data) {
       { label: 'Primary Subject', detail: subjectName },
       { label: 'Scientific Lineage', detail: scientificNameStr },
       { label: 'Domain Classification', detail: categoryName },
-      { label: 'Detection Fidelity', detail: confidenceScoreVal },
+      { label: 'Evidence status', detail: evidenceStatus },
       { label: 'Analysis Model', detail: activeModelStr }
     ];
     specsComparisonGrid.innerHTML = facts.map(f => `
       <div class="report-card space-y-1">
-        <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold block">${f.label}</span>
-        <strong class="text-xs text-[var(--text-primary)] block font-semibold truncate">${f.detail}</strong>
+        <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold block">${escapeHtml(f.label)}</span>
+        <strong class="text-xs text-[var(--text-primary)] block font-semibold truncate">${escapeHtml(f.detail)}</strong>
       </div>
     `).join('');
   }
@@ -288,9 +288,9 @@ export function renderResultScreen(data) {
         <div class="timeline-item">
           <div class="timeline-node"></div>
           <div class="timeline-card">
-            <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">${m.year}</span>
-            <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">${m.title}</strong>
-            <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">${m.desc}</p>
+            <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">${escapeHtml(m.year)}</span>
+            <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">${escapeHtml(m.title)}</strong>
+            <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">${escapeHtml(m.desc)}</p>
           </div>
         </div>
       `).join('');
@@ -309,7 +309,7 @@ export function renderResultScreen(data) {
       appsContainer.innerHTML = apps.map((app, i) => `
         <div class="report-card space-y-2">
           <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-[var(--accent-emerald)] font-mono text-xs font-bold flex items-center justify-center">${i + 1}</span>
-          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${app}</p>
+          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${escapeHtml(app)}</p>
         </div>
       `).join('');
     } else {
@@ -327,7 +327,7 @@ export function renderResultScreen(data) {
       factsGrid.innerHTML = facts.map((f) => `
         <div class="report-card space-y-2 hover:border-[var(--accent-amber)] transition-all">
           <span class="material-symbols-outlined text-[var(--accent-amber)] text-[20px]">lightbulb</span>
-          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${f}</p>
+          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${escapeHtml(f)}</p>
         </div>
       `).join('');
     } else {
@@ -339,7 +339,7 @@ export function renderResultScreen(data) {
   const limEl = document.getElementById('limitations-text');
   if (limEl) {
     const limText = Array.isArray(data.limitations) ? data.limitations.join('\n\n') : data.limitations;
-    limEl.innerHTML = renderMarkdownToHtml(limText || `Analysis is grounded in 2D optical evidence and historical domain documentation.`);
+    limEl.innerHTML = renderMarkdownToHtml(limText || 'No limitations were supplied by the model. Treat image-derived claims as uncertain unless marked observed.');
   }
 
   // 14. References & Verified Sources
@@ -376,20 +376,20 @@ export function renderResultScreen(data) {
       if (refTitleEl) refTitleEl.textContent = '8. Sources';
       refListEl.innerHTML = `
         <div class="report-card p-4 rounded-xl text-xs text-[var(--text-secondary)] font-mono">
-          No independently verified sources were available for this analysis.
+          No external citation sources were provided for this analysis.
         </div>
       `;
     } else {
-      if (refTitleEl) refTitleEl.textContent = '8. References & Verified Sources';
+      if (refTitleEl) refTitleEl.textContent = '8. Source Availability';
       refListEl.innerHTML = validRefs.map((ref, i) => {
-        const cleanUrl = ref.url && ref.url.startsWith('http') ? ref.url : null;
+        const cleanUrl = sanitizeUrl(ref.url);
         return `
           <div class="report-card flex items-start gap-3">
             <span class="text-[var(--accent-link)] font-bold font-mono shrink-0">[${i + 1}]</span>
             <div class="space-y-1">
-              <p class="leading-relaxed text-[var(--text-primary)] text-xs font-semibold">${ref.title}</p>
-              <p class="text-[var(--text-secondary)] text-[11px] font-mono">${ref.source}${ref.year ? ` • ${ref.year}` : ''}</p>
-              ${cleanUrl ? `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-link)] text-[11px] hover:underline inline-flex items-center gap-1 mt-1 font-mono break-all"><span class="material-symbols-outlined text-[12px]">open_in_new</span> ${cleanUrl}</a>` : ''}
+              <p class="leading-relaxed text-[var(--text-primary)] text-xs font-semibold">${escapeHtml(ref.title)}</p>
+              <p class="text-[var(--text-secondary)] text-[11px] font-mono">${escapeHtml(ref.source)}${ref.year ? ` • ${escapeHtml(ref.year)}` : ''}</p>
+              ${cleanUrl ? `<a href="${escapeHtml(cleanUrl)}" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-link)] text-[11px] hover:underline inline-flex items-center gap-1 mt-1 font-mono break-all"><span class="material-symbols-outlined text-[12px]">open_in_new</span> ${escapeHtml(cleanUrl)}${ref.verified ? ' (reachable)' : ' (not checked)'}</a>` : ''}
             </div>
           </div>
         `;
@@ -400,7 +400,7 @@ export function renderResultScreen(data) {
   // 15. Concluding Synthesis
   const conclusionEl = document.getElementById('conclusion-text');
   if (conclusionEl) {
-    conclusionEl.innerHTML = renderMarkdownToHtml(data.conclusion || `In summary, research on ${subjectName} establishes its primary historical, career, and domain significance within ${categoryName}.`);
+    conclusionEl.innerHTML = renderMarkdownToHtml(data.conclusion || 'No conclusion was returned.');
   }
 
   // 16. Appendix Telemetry Box
@@ -409,10 +409,10 @@ export function renderResultScreen(data) {
     const timestamp = new Date().toISOString();
     appEl.innerHTML = `
       <div>Engine: InsightLens Academic Visual Intelligence System</div>
-      <div>Multimodal Model: ${activeModelStr}</div>
-      <div>Ingest Timestamp: ${timestamp}</div>
-      <div>Citation Standard: APA 7th Edition Standard</div>
-      <div>Validation Status: 13-Section Academic Paper Schema Verified (Passed)</div>
+      <div>Multimodal Model: ${escapeHtml(activeModelStr)}</div>
+      <div>Ingest Timestamp: ${escapeHtml(timestamp)}</div>
+      <div>Citation display: ${escapeHtml(systemPreferences.citationStyle || 'APA')} where supplied</div>
+      <div>Validation Status: Schema validated; claims not independently verified</div>
     `;
   }
 
@@ -471,8 +471,8 @@ export function renderDiagramStructure(data) {
         <li class="flex items-start gap-2 py-1.5 border-b border-[var(--border-color)]/40 last:border-none">
           <span class="text-indigo-400 mt-0.5 select-none">•</span>
           <div class="flex-1 min-w-0 flex items-center justify-between gap-2">
-            <span class="font-medium text-[var(--text-primary)] truncate">${n.label || 'Unlabelled Node'}</span>
-            ${n.type && n.type !== 'unknown' ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 whitespace-nowrap">${n.type}</span>` : ''}
+            <span class="font-medium text-[var(--text-primary)] truncate">${escapeHtml(n.label || 'Unlabelled Node')}</span>
+            ${n.type && n.type !== 'unknown' ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 whitespace-nowrap">${escapeHtml(n.type)}</span>` : ''}
           </div>
         </li>
       `).join('');
@@ -495,17 +495,224 @@ export function renderDiagramStructure(data) {
             <span class="text-emerald-400 mt-0.5 select-none">•</span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center flex-wrap gap-1 font-sans">
-                <span class="font-medium text-[var(--text-primary)] truncate">${srcLabel}</span>
+                <span class="font-medium text-[var(--text-primary)] truncate">${escapeHtml(srcLabel)}</span>
                 <span class="text-emerald-400 font-bold px-1">${arrow}</span>
-                <span class="font-medium text-[var(--text-primary)] truncate">${tgtLabel}</span>
+                <span class="font-medium text-[var(--text-primary)] truncate">${escapeHtml(tgtLabel)}</span>
               </div>
-              ${e.label ? `<span class="text-[10px] font-mono text-[var(--text-muted)] block mt-0.5">Label: ${e.label}</span>` : ''}
+              ${e.label ? `<span class="text-[10px] font-mono text-[var(--text-muted)] block mt-0.5">Label: ${escapeHtml(e.label)}</span>` : ''}
             </div>
           </li>
         `;
       }).join('');
     }
   }
+}
+
+export function renderEvidenceWorkbench(data) {
+  const container = document.getElementById('report-evidence-workbench-container');
+  if (!container) return;
+
+  // Resolve ledger items or synthesize fallback from legacy visualEvidence/observations
+  let ledger = Array.isArray(data?.evidenceLedger) ? data.evidenceLedger : [];
+
+  if (ledger.length === 0 && (Array.isArray(data?.visualEvidence) || Array.isArray(data?.observations))) {
+    const fallbackObs = (data.observations || []).map(obs => ({
+      claim: obs.statement,
+      evidenceType: 'visual_observation',
+      evidence: obs.statement,
+      sourceTitle: null,
+      sourceUrl: null,
+      supportStatus: 'supported',
+      reasoning: 'Observable directly within the visual frame.',
+      relatedSection: 'Visual Observations'
+    }));
+    const fallbackEv = (data.visualEvidence || []).map(ev => ({
+      claim: ev.statement,
+      evidenceType: ev.status === 'observed' ? 'visual_observation' : 'inference',
+      evidence: ev.statement,
+      sourceTitle: null,
+      sourceUrl: null,
+      supportStatus: ev.status === 'observed' ? 'supported' : (ev.status === 'inferred' ? 'partially_supported' : 'uncertain'),
+      reasoning: ev.status === 'observed' ? 'Direct visual detection from image artifact.' : 'Analytical inference derived from optical features.',
+      relatedSection: 'Visual Evidence'
+    }));
+    ledger = [...fallbackObs, ...fallbackEv].filter(item => item.claim);
+  }
+
+  if (ledger.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+
+  let activeType = 'all';
+  let activeStatus = 'all';
+
+  const typeConfig = {
+    visual_observation: {
+      label: 'Direct Visual Observation',
+      badgeClass: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+      icon: 'visibility',
+      borderAccent: 'border-l-emerald-500'
+    },
+    inference: {
+      label: 'Domain Inference',
+      badgeClass: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+      icon: 'psychology',
+      borderAccent: 'border-l-purple-500'
+    },
+    external_source: {
+      label: 'External Research',
+      badgeClass: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
+      icon: 'menu_book',
+      borderAccent: 'border-l-sky-500'
+    }
+  };
+
+  const statusConfig = {
+    supported: {
+      label: 'Supported',
+      badgeClass: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+      icon: 'check_circle'
+    },
+    partially_supported: {
+      label: 'Partially Supported',
+      badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
+      icon: 'published_with_changes'
+    },
+    uncertain: {
+      label: 'Uncertain',
+      badgeClass: 'bg-slate-500/15 text-slate-300 border border-slate-500/30',
+      icon: 'help_outline'
+    },
+    unsupported: {
+      label: 'Unsupported',
+      badgeClass: 'bg-rose-500/15 text-rose-400 border border-rose-500/30',
+      icon: 'cancel'
+    }
+  };
+
+  function updateList() {
+    const listEl = document.getElementById('workbench-claims-list');
+    const countEl = document.getElementById('workbench-claims-count');
+    if (!listEl) return;
+
+    const filtered = ledger.filter(item => {
+      const matchType = activeType === 'all' || item.evidenceType === activeType;
+      const matchStatus = activeStatus === 'all' || item.supportStatus === activeStatus;
+      return matchType && matchStatus;
+    });
+
+    if (countEl) {
+      countEl.textContent = `${filtered.length} of ${ledger.length} Claim${ledger.length === 1 ? '' : 's'}`;
+    }
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `
+        <div class="report-card p-6 text-center text-xs font-mono text-[var(--text-muted)] space-y-2">
+          <span class="material-symbols-outlined text-[28px] text-slate-500 block">filter_alt_off</span>
+          <p>No evidence ledger entries match the selected filter criteria.</p>
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = filtered.map((item, idx) => {
+      const tMeta = typeConfig[item.evidenceType] || typeConfig.inference;
+      const sMeta = statusConfig[item.supportStatus] || statusConfig.uncertain;
+      const safeUrl = sanitizeUrl(item.sourceUrl);
+
+      return `
+        <div class="report-card p-4 space-y-3 border-l-4 ${tMeta.borderAccent} shadow-sm transition-all hover:border-[var(--border-hover)]">
+          <!-- Card Header: Claim and Badges -->
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5">
+            <div class="space-y-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono font-bold text-[var(--text-muted)] uppercase">Claim #${idx + 1}</span>
+                ${item.relatedSection ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-color)]">${escapeHtml(item.relatedSection)}</span>` : ''}
+              </div>
+              <h3 class="font-serif text-sm md:text-base font-bold text-[var(--text-primary)] leading-snug">
+                ${escapeHtml(item.claim)}
+              </h3>
+            </div>
+
+            <!-- Type & Status Badges -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 font-mono text-[10px] font-semibold">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md ${tMeta.badgeClass}">
+                <span class="material-symbols-outlined text-[13px]">${tMeta.icon}</span>
+                ${tMeta.label}
+              </span>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md ${sMeta.badgeClass}">
+                <span class="material-symbols-outlined text-[13px]">${sMeta.icon}</span>
+                ${sMeta.label}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Body: Evidence & Reasoning Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-color)]">
+            <div class="space-y-1">
+              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px] text-indigo-400">fact_check</span>
+                Supporting Evidence / Cue
+              </span>
+              <p class="text-[var(--text-secondary)] leading-relaxed">${escapeHtml(item.evidence || 'No specific visual cue provided.')}</p>
+            </div>
+
+            <div class="space-y-1">
+              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px] text-purple-400">psychology_alt</span>
+                Evidentiary Reasoning
+              </span>
+              <p class="text-[var(--text-secondary)] leading-relaxed">${escapeHtml(item.reasoning || 'Derived from analytical correlation with visual artifact.')}</p>
+            </div>
+          </div>
+
+          <!-- Card Footer: Source Attribution -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] font-mono text-[var(--text-muted)] border-t border-[var(--border-color)]">
+            <div class="flex items-center gap-1.5 truncate">
+              <span class="material-symbols-outlined text-[14px] text-[var(--text-muted)]">attribution</span>
+              <span>Source:</span>
+              ${item.sourceTitle ? `<span class="text-[var(--text-primary)] font-medium truncate">${escapeHtml(item.sourceTitle)}</span>` : '<span class="text-slate-400">Direct Optical Artifact Inspection</span>'}
+            </div>
+
+            ${safeUrl ? `
+              <a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[var(--accent-link)] hover:underline">
+                <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                <span>Reference URL</span>
+              </a>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Setup button handlers
+  const typeBtns = container.querySelectorAll('.workbench-type-btn');
+  typeBtns.forEach(btn => {
+    btn.onclick = () => {
+      typeBtns.forEach(b => {
+        b.classList.remove('active', 'bg-indigo-600', 'text-white', 'font-semibold');
+        b.classList.add('text-[var(--text-secondary)]');
+      });
+      btn.classList.add('active', 'bg-indigo-600', 'text-white', 'font-semibold');
+      btn.classList.remove('text-[var(--text-secondary)]');
+      activeType = btn.getAttribute('data-type') || 'all';
+      updateList();
+    };
+  });
+
+  const statusSelect = document.getElementById('workbench-status-select');
+  if (statusSelect) {
+    statusSelect.onchange = (e) => {
+      activeStatus = e.target.value;
+      updateList();
+    };
+  }
+
+  updateList();
 }
 
 export function setupReportActions(startAnalysisPipeline) {
@@ -631,16 +838,16 @@ export function renderExplainSidePanel(data) {
   const systemPreferences = getSystemPreferences();
 
   const subjName = data.subject || 'Visual Subject Artifact';
-  const conf = data.aiConfidence || 96.8;
+  const evidenceStatus = String(data.evidenceStatus || 'uncertain').replace(/^./, c => c.toUpperCase());
 
   const subjConf = document.getElementById('explain-subject-conf');
   const subjNameEl = document.getElementById('explain-subject-name');
   const subjWhyEl = document.getElementById('explain-subject-why');
 
-  if (subjConf) subjConf.textContent = `${conf}% Conf.`;
+  if (subjConf) subjConf.textContent = `${evidenceStatus} evidence`;
   if (subjNameEl) subjNameEl.textContent = subjName;
   if (subjWhyEl) {
-    subjWhyEl.textContent = `Selected as primary subject based on spatial tensor saliency, high focal object contrast, and structural contour prominence detected during vision extraction.`;
+    subjWhyEl.textContent = 'The subject was selected by the model from the submitted image. This interface does not compute visual saliency or independently validate the identification.';
   }
 
   const objList = document.getElementById('explain-objects-list');
@@ -648,59 +855,45 @@ export function renderExplainSidePanel(data) {
   const ocrContrib = document.getElementById('explain-ocr-contrib');
 
   if (objList) {
-    const objects = data.detectedObjects || ['Focal Object', 'Line Contours', 'Background Substrate'];
+    const objects = data.detectedObjects || [];
     objList.innerHTML = objects.map(o => `
-      <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 text-[10px] font-mono border border-sky-500/20">${o}</span>
+      <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 text-[10px] font-mono border border-sky-500/20">${escapeHtml(o)}</span>
     `).join('');
   }
 
   if (visFeatures) {
-    visFeatures.textContent = data.sceneComposition || data.visualDescription || `Bilateral visual symmetry, sharp contrast vectors along central focal axis, and distinct tonal luminance separation.`;
+    visFeatures.textContent = data.sceneComposition || data.visualDescription || 'No measured visual-feature explanation is available.';
   }
 
   if (ocrContrib) {
     const ocrText = data.extractedOCR || data.extractedText;
     if (ocrText && ocrText.toLowerCase() !== 'no legible text inscriptions are present in the visual artifact.') {
-      ocrContrib.textContent = `Extracted Text Tokens: "${ocrText}" - parsed into token array for semantic domain indexing.`;
+      ocrContrib.textContent = `Extracted text reported by the model: "${ocrText}".`;
       ocrContrib.className = 'text-sky-300 text-[11px] font-mono mt-0.5';
     } else {
-      ocrContrib.textContent = 'No legible textual annotations detected in image raster; visual feature vectors provided primary grounding.';
+      ocrContrib.textContent = 'No OCR output was returned.';
       ocrContrib.className = 'text-slate-400 text-[11px] italic mt-0.5';
     }
   }
 
   const aiReasoning = document.getElementById('explain-ai-reasoning');
   if (aiReasoning) {
-    aiReasoning.textContent = `The Gemini neural engine analyzed the visual features (shapes, textures, structural vectors) of ${subjName} and mapped them against academic domain knowledge bases. This allowed the model to synthesize historical context, technical specifications, and empirical observations into a structured paper.`;
+    aiReasoning.textContent = 'The report is generated from the submitted image and model knowledge. It is not a trace of model reasoning, a saliency map, or independent fact verification.';
   }
 
-  const subjVal = document.getElementById('conf-val-subject');
-  const subjBar = document.getElementById('conf-bar-subject');
-  const ocrVal = document.getElementById('conf-val-ocr');
-  const ocrBar = document.getElementById('conf-bar-ocr');
-  const sceneVal = document.getElementById('conf-val-scene');
-  const sceneBar = document.getElementById('conf-bar-scene');
-  const researchVal = document.getElementById('conf-val-research');
-  const researchBar = document.getElementById('conf-bar-research');
+  const setExplainVal = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
 
-  const numericConf = typeof conf === 'number' ? conf : parseFloat(conf) || 96.8;
-  const sScore = (numericConf * 1.01 > 99.8 ? 99.4 : numericConf * 1.01).toFixed(1);
-  const oScore = (numericConf * 0.95).toFixed(1);
-  const scScore = (numericConf * 0.98).toFixed(1);
-  const rScore = (numericConf * 0.97).toFixed(1);
-
-  if (subjVal) subjVal.textContent = `${sScore}%`;
-  if (subjBar) subjBar.style.width = `${sScore}%`;
-  if (ocrVal) ocrVal.textContent = `${oScore}%`;
-  if (ocrBar) ocrBar.style.width = `${oScore}%`;
-  if (sceneVal) sceneVal.textContent = `${scScore}%`;
-  if (sceneBar) sceneBar.style.width = `${scScore}%`;
-  if (researchVal) researchVal.textContent = `${rScore}%`;
-  if (researchBar) researchBar.style.width = `${rScore}%`;
+  setExplainVal('explain-taxonomy-subject', evidenceStatus);
+  setExplainVal('explain-taxonomy-ocr', data.extractedOCR && data.extractedOCR.length > 2 && data.extractedOCR !== 'None detected' ? 'Direct Inscription' : 'None Detected');
+  setExplainVal('explain-taxonomy-scene', data.visualType ? `${data.visualType.toUpperCase()} Grounded` : 'Observed');
+  setExplainVal('explain-taxonomy-citations', data.references?.length ? `${data.references.length} Sources Grounded` : 'Domain Knowledge');
 
   const limitEl = document.getElementById('explain-limitations');
   if (limitEl) {
-    limitEl.textContent = data.limitations || `Cannot infer sub-surface material metallurgy, exact physical mass without scale references, or unobservable interior structural joints directly from 2D pixel input.`;
+    limitEl.textContent = data.limitations || 'No model-provided limitations are available.';
   }
 
   const promptSummary = document.getElementById('explain-prompt-summary');
@@ -711,9 +904,9 @@ export function renderExplainSidePanel(data) {
     const citation = systemPreferences.citationStyle || 'APA';
 
     promptSummary.innerHTML = `
-      <p>• Model Engine: <strong class="text-indigo-300">${activeModel}</strong></p>
-      <p>• Primary Subject Directive: <strong class="text-slate-200">Anchor sections to detected subject (${subjName})</strong></p>
-      <p>• Research Parameters: <strong class="text-slate-200">${length} depth • ${style} style • ${citation} citation</strong></p>
+      <p>• Model Engine: <strong class="text-indigo-300">${escapeHtml(activeModel)}</strong></p>
+      <p>• Primary Subject Directive: <strong class="text-slate-200">Anchor sections to detected subject (${escapeHtml(subjName)})</strong></p>
+      <p>• Research Parameters: <strong class="text-slate-200">${escapeHtml(length)} depth • ${escapeHtml(style)} style • ${escapeHtml(citation)} citation</strong></p>
       <p>• Output Schema: <strong class="text-emerald-400">Strict JSON Academic Brief Format</strong></p>
     `;
   }

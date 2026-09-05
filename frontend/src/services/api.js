@@ -24,6 +24,9 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, s
     promptObj: { 
       researchLength, 
       language: lang,
+      writingStyle,
+      citationStyle: systemPreferences.citationStyle || 'APA',
+      model: systemPreferences.model || 'auto',
       subjectContext: typeof subjectContext === 'string' ? subjectContext.trim() : ''
     },
     preferredProvider: selectedProvider !== 'auto' ? selectedProvider : null,
@@ -33,7 +36,7 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, s
   try {
     const response = await fetch(targetUrl, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders({ 'Idempotency-Key': crypto.randomUUID() }),
       body: JSON.stringify(payload)
     });
 

@@ -31,7 +31,7 @@ function ensureProfileDOM() {
           <h1 id="profile-display-name" class="font-display-lg text-2xl md:text-3xl text-on-surface font-serif font-bold">Researcher Name</h1>
           <p id="profile-display-email" class="font-body-sm text-on-surface-variant text-sm mt-1">researcher@university.edu</p>
           <div class="flex items-center gap-2 mt-2">
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold uppercase" id="profile-account-status">PostgreSQL Cloud Verified</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold uppercase" id="profile-account-status">Active Researcher</span>
           </div>
         </div>
       </header>

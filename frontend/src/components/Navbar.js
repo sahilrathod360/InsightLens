@@ -3,6 +3,7 @@ import { applyAppearancePreferences, savePreferences, hashPassword, getInitials 
 import { exportCleanPDF } from '../utils/export.js';
 import { showToast } from '../utils/toast.js';
 import { API_BASE, setAuthToken, getAuthHeaders } from '../utils/api.js';
+import { escapeHtml } from '../utils/sanitize.js';
 
 export function setupNavigation() {
   document.getElementById('nav-brand')?.addEventListener('click', () => navigateTo('landing'));
@@ -379,7 +380,7 @@ export function updateAuthUI() {
     // Update Landing Page Hero
     if (landingTitle) {
       const firstName = userSession.name.split(' ')[0];
-      landingTitle.innerHTML = `Welcome back, <span class="bg-gradient-to-r from-orange-400 via-amber-300 to-rose-400 bg-clip-text text-transparent italic font-serif">${firstName}</span>`;
+      landingTitle.innerHTML = `Welcome back, <span class="bg-gradient-to-r from-orange-400 via-amber-300 to-rose-400 bg-clip-text text-transparent italic font-serif">${escapeHtml(firstName)}</span>`;
     }
     if (landingSubtitle) {
       landingSubtitle.textContent = 'Continue where you left off and analyze your next document.';

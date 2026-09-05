@@ -11,23 +11,10 @@ export const MODEL_REGISTRY = [
     displayName: 'Gemini 3.5 Flash Lite',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 4000,
-    timeoutMs: 16000,
+    maxOutputTokens: 6000,
+    timeoutMs: 18000,
     speedTier: 'FAST',
     priority: 100,
-    enabled: true,
-    thinkingConfig: undefined
-  },
-  {
-    id: 'gemini-3.1-flash-lite',
-    provider: 'gemini',
-    displayName: 'Gemini 3.1 Flash Lite',
-    vision: true,
-    structuredJson: true,
-    maxOutputTokens: 4000,
-    timeoutMs: 16000,
-    speedTier: 'FAST',
-    priority: 98,
     enabled: true,
     thinkingConfig: undefined
   },
@@ -37,12 +24,25 @@ export const MODEL_REGISTRY = [
     displayName: 'Gemini 3.7 Flash',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 4000,
-    timeoutMs: 16000,
+    maxOutputTokens: 6000,
+    timeoutMs: 18000,
     speedTier: 'FAST',
     priority: 95,
     enabled: true,
     thinkingConfig: { thinking_budget: 0 } // Zero thinking budget for fast response
+  },
+  {
+    id: 'gemini-3.1-flash-lite',
+    provider: 'gemini',
+    displayName: 'Gemini 3.1 Flash Lite',
+    vision: true,
+    structuredJson: true,
+    maxOutputTokens: 6000,
+    timeoutMs: 18000,
+    speedTier: 'FAST',
+    priority: 92,
+    enabled: true,
+    thinkingConfig: undefined
   },
   {
     id: 'gemini-3.6-flash',
@@ -50,24 +50,11 @@ export const MODEL_REGISTRY = [
     displayName: 'Gemini 3.6 Flash',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 4000,
-    timeoutMs: 16000,
+    maxOutputTokens: 6000,
+    timeoutMs: 18000,
     speedTier: 'BALANCED',
-    priority: 85,
+    priority: 88,
     enabled: true,
-    thinkingConfig: undefined
-  },
-  {
-    id: 'gemini-3.5-flash',
-    provider: 'gemini',
-    displayName: 'Gemini 3.5 Flash',
-    vision: true,
-    structuredJson: true,
-    maxOutputTokens: 4000,
-    timeoutMs: 15000,
-    speedTier: 'BALANCED',
-    priority: 80,
-    enabled: false, // Disabled due to low free-tier quota (20 req/day)
     thinkingConfig: undefined
   },
   {
@@ -76,25 +63,37 @@ export const MODEL_REGISTRY = [
     displayName: 'Gemini 3.8 Flash',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 4000,
-    timeoutMs: 15000,
+    maxOutputTokens: 6000,
+    timeoutMs: 18000,
     speedTier: 'DEEP',
-    priority: 75,
+    priority: 82,
     enabled: true,
     thinkingConfig: undefined
   },
 
   // --- OPENROUTER VISION MODELS ---
   {
-    id: 'google/gemini-3.8-flash',
+    id: 'google/gemini-2.5-flash-lite',
     provider: 'openrouter',
-    displayName: 'OpenRouter: Gemini 3.8 Flash',
+    displayName: 'OpenRouter: Gemini 2.5 Flash Lite',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 4500,
-    timeoutMs: 10000,
+    maxOutputTokens: 6000,
+    timeoutMs: 12000,
     speedTier: 'FAST',
     priority: 90,
+    enabled: true
+  },
+  {
+    id: 'google/gemini-2.5-flash',
+    provider: 'openrouter',
+    displayName: 'OpenRouter: Gemini 2.5 Flash',
+    vision: true,
+    structuredJson: true,
+    maxOutputTokens: 6000,
+    timeoutMs: 12000,
+    speedTier: 'FAST',
+    priority: 88,
     enabled: true
   },
   {
@@ -103,22 +102,22 @@ export const MODEL_REGISTRY = [
     displayName: 'OpenRouter: Gemini 3.5 Flash Lite',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 4500,
-    timeoutMs: 10000,
+    maxOutputTokens: 6000,
+    timeoutMs: 12000,
     speedTier: 'FAST',
-    priority: 88,
+    priority: 86,
     enabled: true
   },
   {
-    id: 'qwen/qwen3.8-flash',
+    id: 'google/gemini-3.8-flash',
     provider: 'openrouter',
-    displayName: 'OpenRouter: Qwen 3.8 Flash',
+    displayName: 'OpenRouter: Gemini 3.8 Flash',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 4500,
-    timeoutMs: 12000,
-    speedTier: 'BALANCED',
-    priority: 70,
+    maxOutputTokens: 6000,
+    timeoutMs: 14000,
+    speedTier: 'FAST',
+    priority: 80,
     enabled: true
   }
 ];
@@ -153,9 +152,11 @@ class ModelRegistry {
     });
   }
 
-  getVisionCandidates({ maxCandidates = 4, hasGeminiKey = true, hasOpenRouterKey = true } = {}) {
+  getVisionCandidates({ maxCandidates = 4, hasGeminiKey = true, hasOpenRouterKey = true, allowedProviders = null, preferredProvider = null, preferredModel = null } = {}) {
+    const providerSet = Array.isArray(allowedProviders) ? new Set(allowedProviders) : null;
     const allVision = Array.from(this.models.values())
       .filter(m => m.enabled && m.vision)
+      .filter(m => !providerSet || providerSet.has(m.provider))
       .filter(m => {
         if (m.provider === 'gemini') return hasGeminiKey;
         if (m.provider === 'openrouter') return hasOpenRouterKey;
@@ -179,7 +180,24 @@ class ModelRegistry {
       return b.priority - a.priority;
     });
 
-    return pool.slice(0, maxCandidates);
+    let selectedPool = pool;
+    if (preferredProvider && ['gemini', 'openrouter'].includes(preferredProvider)) {
+      const providerSpecific = pool.filter(m => m.provider === preferredProvider);
+      const otherProviders = pool.filter(m => m.provider !== preferredProvider);
+      // Place preferred provider models first, followed by other healthy models as fallback
+      selectedPool = providerSpecific.length > 0 ? [...providerSpecific, ...otherProviders] : pool;
+    }
+
+    const preferred = preferredModel && preferredModel !== 'auto'
+      ? selectedPool.filter(m => m.id === preferredModel)
+      : [];
+
+    // A selected valid model is always tried first, but preserve the resilient
+    // multi-model race by adding healthy candidates after it.
+    const ordered = preferred.length > 0
+      ? [...preferred, ...selectedPool.filter(m => m.id !== preferred[0].id)]
+      : selectedPool;
+    return ordered.slice(0, maxCandidates);
   }
 
   // Lightweight probe to verify model availability at startup

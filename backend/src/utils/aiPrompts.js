@@ -1,16 +1,22 @@
 import { AnalysisStrategyFactory } from '../services/classification/AnalysisStrategyFactory.js';
 
-export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '') {
+export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA') {
   const strategyGuide = AnalysisStrategyFactory.buildPromptInstructions();
 
   const userContextBlock = subjectContext && subjectContext.trim() ? `
 USER-PROVIDED SUBJECT CONTEXT:
-The user has specified that the subject of this visual is: "${subjectContext.trim()}".
+The user has explicitly specified that the subject of this visual is: "${subjectContext.trim()}".
 - Treat "${subjectContext.trim()}" as the primary research subject.
 - Set the JSON "subject" to "${subjectContext.trim()}".
 - Set the JSON "title" to: "${subjectContext.trim()} — [Comprehensive Role / Career / Topic Subtitle]".
 - Conduct deep, authoritative, long-form research on "${subjectContext.trim()}" across all relevant domain dimensions.
-` : '';
+` : `
+AUTONOMOUS SUBJECT IDENTIFICATION (NO USER-PROVIDED CONTEXT):
+- Analyze all visible optical evidence in the image: prominent public entities, distinctive uniforms/insignia, readable inscriptions, architectural landmarks, equipment, charts, diagrams, or documents.
+- If the subject is a widely recognizable public figure, public institution, iconic landmark, or commercial entity, resolve the subject accurately based on visual evidence.
+- If the subject is an unidentifiable private individual or general scene, DO NOT fabricate or guess private names or make false facial recognition claims. Instead, set the subject and title to an accurate, domain-descriptive visual topic (e.g., "Visual Analysis — Professional Cricket Match Play", "Visual Analysis — Urban Architecture", "Visual Analysis — Financial Trend Chart").
+- NEVER use generic image filenames (e.g., "images (2)", "IMG_1234", "photo.jpg", "screenshot.png") or camera metadata as the subject or title.
+`;
 
   return `You are InsightLens Universal Visual Research Engine.
 Your mission is to perform deep, accurate, subject-centered empirical research based on the provided visual artifact.
@@ -38,42 +44,78 @@ CRITICAL RESEARCH DIRECTIVES:
    - For an UNIDENTIFIABLE / GENERIC VISUAL:
      * Ground the report strictly in observable visual features, setting, and domain principles without hallucinating private names or fake facts.
 
-2. NO GENERIC TITLES (HARD RULE):
-   - Report title MUST name the actual research subject:
+2. SUBJECT & TITLE GROUNDING (HARD RULE):
+   - Report title MUST name the actual research subject or domain topic:
      * "<Subject Name> — Career, Records, Statistics and Legacy"
      * "<Subject Name> — History, Architecture, Capacity and Legacy"
      * "<Subject Name> — Statistical and Quantitative Trend Analysis"
-   - NEVER use generic titles like "Images (2)", "Image Analysis", "Photograph Analysis", "Person in Green Jersey", "Professional Cricketer".
+     * "Visual Analysis — <Domain Topic & Descriptive Subtitle>" (for unidentifiable or general scenes)
+   - NEVER use generic filenames like "Images (2)", "IMG_1234", "photo.jpg", "Image Analysis", "Photograph Analysis", "Person in Green Jersey".
 
 3. ZERO GENERIC AI FILLER:
    - NEVER use generic filler phrases like "Grounded in empirical visual intelligence algorithms", "well-structured artifact with crisp edge contours", "clear spatial organization with well-defined illumination vectors", "high structural definition", or "taxonomical classification and evolutionary lineage".
    - The Conclusion MUST summarize the researched SUBJECT's career, accomplishments, or domain significance, NOT image pixels.
 
-4. HIGH INFORMATION DENSITY & LONG-FORM SECTIONS:
+4. CITATION & EVIDENCE INTEGRITY:
+   - Only cite real, authentic institutions, governing bodies, or archival sources (e.g. ICC Official Records, ESPNcricinfo, NASA Archives, Britannica, W3C Specifications, IEEE).
+   - NEVER fabricate fake DOIs or synthetic reference links.
+   - Maintain clear separation between direct visual observations ("observed") and secondary inferences ("inferred").
+
+5. HIGH INFORMATION DENSITY & LONG-FORM SECTIONS:
    - Generate substantial, detailed paragraphs with rich factual data.
    - Provide structured domain-adaptive sections in "structuredSections".
    - Executive Summary must be a substantial multi-paragraph overview explaining WHO/WHAT this is, WHY it matters, and KEY TAKEAWAYS.
 
-Synthesize in ${lang} (${researchLength} depth). Return ONLY valid JSON matching this schema:`;
+6. EVIDENCE INTELLIGENCE WORKBENCH (CRITICAL REQUIREMENT):
+   You MUST construct an "evidenceLedger" array containing 5-10 structured evidence entries that explicitly deconstruct the analysis:
+   - "claim": Specific empirical assertion made in the report.
+   - "evidenceType": Must be strictly one of:
+       * "visual_observation" (directly visible in image pixels/frame, e.g. jersey colors, emblems, structural facade, chart axis labels, circuit nodes)
+       * "external_source" (historical dates, career records, statistics, specifications, or institutional data from external knowledge)
+       * "inference" (analytical reasoning connecting visual features to domain conclusions)
+   - "evidence": The exact observable feature or cited external evidence supporting this claim.
+   - "sourceTitle": Real governing body, database, literature, or specification (or null if purely visual_observation).
+   - "sourceUrl": Authentic URL if known and verified (or null).
+   - "supportStatus": Must be strictly one of:
+       * "supported" (solidly grounded by visual observation or established external archive)
+       * "partially_supported" (supported in general but specific details or values cannot be verified)
+       * "uncertain" (ambiguous optical evidence or unconfirmed external report)
+       * "unsupported" (claim is speculative, contradicted, or optical resolution is insufficient to verify)
+   - "reasoning": 1-2 sentences explaining why the evidence supports (or fails to support) the claim.
+   - "relatedSection": Name of the report section where this claim is discussed.
+
+  Write in ${writingStyle} style. Use ${citationStyle} formatting where a source is available.
+  Synthesize in ${lang} (${researchLength} depth). Do not invent a source, a confidence percentage, or facts not supported by the image or clearly identified external knowledge. Return ONLY valid JSON matching this schema:`;
 }
 
 export function buildJsonSchemaPrompt() {
   return `{
   "visualType": "photograph | document | diagram | chart | screenshot | artwork | map | unknown",
   "classificationReason": "[1-2 sentence visual classification rationale]",
-  "classificationConfidence": "99.2%",
+  "evidenceStatus": "observed | inferred | uncertain",
   "specializedPipeline": "photograph | document | diagram | chart | screenshot | artwork | map | unknown",
   "title": "[Exact Specific Subject Name — Descriptive Domain Subtitle]",
   "subject": "[Exact Primary Subject Name]",
   "scientificName": "[Taxonomy, Full Official Name, or Domain Classification]",
   "category": "[Domain Category e.g. Sports, Cinema, Geography, Architecture, Technology, Financial Analytics]",
-  "confidenceScore": "99.4%",
   "executiveInsight": {
     "summary": "[Substantial 2-3 paragraph executive summary explaining who/what the subject is, significance, career/domain impact, and key findings]",
     "keyFinding": "[The single most critical takeaway or finding regarding the subject]",
     "keyTakeaways": ["[Key Takeaway 1]", "[Key Takeaway 2]", "[Key Takeaway 3]", "[Key Takeaway 4]"]
   },
   "executiveSummary": "[Substantial multi-paragraph executive overview of the subject]",
+  "evidenceLedger": [
+    {
+      "claim": "[Specific empirical assertion made in the report]",
+      "evidenceType": "visual_observation | external_source | inference",
+      "evidence": "[Direct observable visual cue, measurement, or external factual record]",
+      "sourceTitle": "[Governing body, institutional database, or null if visual_observation]",
+      "sourceUrl": "[Authentic URL if known, or null]",
+      "supportStatus": "supported | partially_supported | uncertain | unsupported",
+      "reasoning": "[1-2 sentences detailing the evidentiary connection or uncertainty]",
+      "relatedSection": "[Related section heading]"
+    }
+  ],
   "structuredSections": [
     {
       "heading": "[Domain-Adaptive Section Title, e.g. International Cricket Career & Multi-Format Dominance]",

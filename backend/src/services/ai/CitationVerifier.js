@@ -1,5 +1,7 @@
+import { safeFetchCitation } from '../../utils/ssrfValidator.js';
+
 // InsightLens Citation & Source Verification Service
-// Validates references concurrently against live endpoints and eliminates fabricated DOIs/URLs.
+// Validates references concurrently against live endpoints with strict SSRF defense.
 
 const FAKE_DOI_PATTERNS = [
   /10\.1038\/s41586-024-0000?1-x/i,
@@ -11,6 +13,31 @@ const FAKE_DOI_PATTERNS = [
   /placeholder/i
 ];
 
+/**
+ * Bounded Concurrency Executor (limits parallel outbound network requests to `limit`)
+ */
+async function mapConcurrent(items, limit = 5, iteratorFn) {
+  if (!items || items.length === 0) return [];
+  const results = new Array(items.length);
+  let currentIndex = 0;
+
+  const workerCount = Math.min(limit, items.length);
+  const workers = new Array(workerCount).fill(0).map(async () => {
+    while (currentIndex < items.length) {
+      const index = currentIndex++;
+      try {
+        const val = await iteratorFn(items[index], index);
+        results[index] = { status: 'fulfilled', value: val };
+      } catch (err) {
+        results[index] = { status: 'rejected', reason: err };
+      }
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
+
 export async function verifyAndCleanCitations(rawReferences = [], subjectName = '', categoryName = '') {
   if (!Array.isArray(rawReferences) || rawReferences.length === 0) {
     return [];
@@ -18,7 +45,8 @@ export async function verifyAndCleanCitations(rawReferences = [], subjectName = 
 
   const verifierStartTime = Date.now();
 
-  const results = await Promise.all(rawReferences.map(async (item) => {
+  // Limit simultaneous outbound citation requests to 5 concurrent sockets
+  const results = await mapConcurrent(rawReferences, 5, async (item) => {
     let title = '';
     let source = '';
     let year = '';
@@ -50,36 +78,25 @@ export async function verifyAndCleanCitations(rawReferences = [], subjectName = 
       return null;
     }
 
-    // Validate and verify URL if present (using 1500ms parallel timeout)
+    // Perform safe SSRF-protected citation verification
     let verifiedUrl = null;
     let isVerified = false;
 
-    if (rawUrl && (rawUrl.startsWith('http://') || rawUrl.startsWith('https://'))) {
+    if (rawUrl) {
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 1500);
-
-        const res = await fetch(rawUrl, {
-          method: 'HEAD',
-          signal: controller.signal,
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; InsightLensCitationBot/1.0)' }
-        }).catch(async () => {
-          // If HEAD fails, try GET with range
-          return await fetch(rawUrl, {
-            method: 'GET',
-            signal: controller.signal,
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; InsightLensCitationBot/1.0)' }
-          });
-        });
-
-        clearTimeout(timeout);
-
-        if (res && res.status >= 200 && res.status < 400) {
-          verifiedUrl = rawUrl;
+        const fetchResult = await safeFetchCitation(rawUrl, 2, 1500);
+        if (fetchResult && fetchResult.reachable) {
+          verifiedUrl = fetchResult.url;
           isVerified = true;
+        } else {
+          // Unsafe, non-HTTP, private IP, or unreachable URL: mark unverified / omit URL
+          verifiedUrl = null;
+          isVerified = false;
         }
       } catch (err) {
-        // Silently skip unresolvable reference URLs
+        console.warn(`[CitationVerifier] Error verifying citation "${rawUrl}": ${err.message}`);
+        verifiedUrl = null;
+        isVerified = false;
       }
     }
 
@@ -90,13 +107,16 @@ export async function verifyAndCleanCitations(rawReferences = [], subjectName = 
         source: source || 'Verified Archive',
         year: year || 'Official Record',
         url: verifiedUrl,
-        verified: isVerified || (verifiedUrl !== null)
+        verified: isVerified
       };
     }
     return null;
-  }));
+  });
 
-  const cleanedReferences = results.filter(Boolean);
-  console.log(`[CitationVerifier] Concurrently verified ${cleanedReferences.length} references in ${Date.now() - verifierStartTime} ms`);
+  const cleanedReferences = results
+    .filter(r => r.status === 'fulfilled' && r.value !== null)
+    .map(r => r.value);
+
+  console.log(`[CitationVerifier] Concurrently checked ${cleanedReferences.length} references in ${Date.now() - verifierStartTime} ms`);
   return cleanedReferences;
 }

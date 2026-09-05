@@ -19,15 +19,15 @@ import { renderResultScreen } from './ReportViewer.js';
 import { SAMPLE_DEMO_REPORT } from '../services/demoReport.js';
 
 export const PIPELINE_STEPS = [
-  { id: 'step-1', label: '1. Uploading image', weight: 10 },
-  { id: 'step-2', label: '2. Processing image', weight: 20 },
-  { id: 'step-3', label: '3. Detecting objects', weight: 30 },
-  { id: 'step-4', label: '4. Extracting visual features', weight: 40 },
-  { id: 'step-5', label: '5. Sending request to AI', weight: 55 },
-  { id: 'step-6', label: '6. Researching subject', weight: 70 },
-  { id: 'step-7', label: '7. Writing report', weight: 85 },
-  { id: 'step-8', label: '8. Formatting citations', weight: 95 },
-  { id: 'step-9', label: '9. Finalizing report', weight: 100 }
+  { id: 'step-1', label: '1. Ingesting visual artifact', weight: 10 },
+  { id: 'step-2', label: '2. Analyzing image dimensions & aspect', weight: 20 },
+  { id: 'step-3', label: '3. Calculating visual telemetry metrics', weight: 30 },
+  { id: 'step-4', label: '4. Preparing multimodal research payload', weight: 45 },
+  { id: 'step-5', label: '5. Multi-model AI visual inference', weight: 65 },
+  { id: 'step-6', label: '6. Synthesizing domain research', weight: 80 },
+  { id: 'step-7', label: '7. Grounding visual observations', weight: 90 },
+  { id: 'step-8', label: '8. Validating report schema structure', weight: 95 },
+  { id: 'step-9', label: '9. Finalizing research document', weight: 100 }
 ];
 
 export function render9StepContainer() {
@@ -150,7 +150,7 @@ export async function startAnalysisPipeline(dataUrl, filename, filesizeStr) {
   // Progressive Pre-Render: Prepare Hero Image & Initial Canvas
   const heroTitleEl = document.getElementById('report-hero-title');
   if (heroTitleEl) {
-    heroTitleEl.textContent = subjectContext || safeFilename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    heroTitleEl.textContent = subjectContext || 'Visual Research in Progress...';
   }
 
   setLastAnalysisPayload({ dataUrl, filename: safeFilename, filesizeStr: safeFilesize, researchLength, writingStyle, subjectContext });
@@ -202,28 +202,28 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
   try {
     // Fast Initial Steps (1-4)
     setStepActive('step-1');
-    if (statusTitle) statusTitle.textContent = 'Uploading image data...';
+    if (statusTitle) statusTitle.textContent = 'Ingesting visual artifact...';
     setProgress(15);
     setStepComplete('step-1');
 
     setStepActive('step-2');
-    if (statusTitle) statusTitle.textContent = 'Processing visual dimensions...';
+    if (statusTitle) statusTitle.textContent = 'Analyzing image dimensions...';
     setProgress(30);
     setStepComplete('step-2');
 
     setStepActive('step-3');
-    if (statusTitle) statusTitle.textContent = 'Detecting focal regions...';
+    if (statusTitle) statusTitle.textContent = 'Calculating visual telemetry metrics...';
     setProgress(45);
     setStepComplete('step-3');
 
     setStepActive('step-4');
-    if (statusTitle) statusTitle.textContent = 'Extracting spatial feature vectors...';
+    if (statusTitle) statusTitle.textContent = 'Preparing multimodal research payload...';
     setProgress(55);
     setStepComplete('step-4');
 
     // Step 5: Sending request to AI & Dynamic Progress Heartbeat
     setStepActive('step-5');
-    if (statusTitle) statusTitle.textContent = 'Connecting to AI Neural Inference Engine...';
+    if (statusTitle) statusTitle.textContent = 'Connecting to AI Multimodal Inference Engine...';
     setProgress(60);
 
     let currentModelName = 'Gemini Vision AI';

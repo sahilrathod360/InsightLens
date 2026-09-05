@@ -16,6 +16,8 @@ import { hashPassword } from '../../services/storage.js';
 import { getUserSession, setUserSession } from '../../state.js';
 import { showToast } from '../../utils/toast.js';
 import { updateAuthUI } from '../Navbar.js';
+import { escapeHtml } from '../../utils/sanitize.js';
+import { API_BASE, getAuthHeaders } from '../../utils/api.js';
 
 function ensureSettingsDOM() {
   let settingsContainer = document.getElementById('page-settings');
@@ -140,11 +142,11 @@ function ensureSettingsDOM() {
             <div class="space-y-2">
               <label for="pref-ai-provider" class="block font-medium text-on-surface">AI Provider</label>
               <select id="pref-ai-provider" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer font-sans">
-                <option value="auto" selected>Auto (Default — Native Failover)</option>
+                <option value="auto" selected>Auto (Configured providers)</option>
                 <option value="gemini">Google Gemini API</option>
                 <option value="openrouter">OpenRouter API (Future-Ready Cloud Gateway)</option>
               </select>
-              <p class="text-[11px] text-on-surface-variant leading-relaxed">Auto selects Google Gemini API with automatic candidate failover on quota limits.</p>
+              <p class="text-[11px] text-on-surface-variant leading-relaxed">Auto uses the configured healthy candidates. A selected provider restricts the race to that provider.</p>
             </div>
 
             <!-- Model Selector -->
@@ -152,78 +154,63 @@ function ensureSettingsDOM() {
               <label for="pref-model-selector" class="block font-medium text-on-surface">Vision Model</label>
               <select id="pref-model-selector" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer font-sans">
                 <option value="auto" selected>Auto (Dynamic Candidate Selection)</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast &amp; Accurate)</option>
-                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Low Latency)</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Visual Reasoning)</option>
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
               </select>
               <p id="model-auto-explanation" class="text-[11px] text-indigo-300 leading-relaxed font-mono">
-                When Auto is selected, the system chooses Gemini 2.5 Flash and automatically fails over if quota limits occur.
+                When Auto is selected, the server selects healthy configured candidates. A selected model is tried first when available.
               </p>
             </div>
           </div>
 
-          <!-- API KEYS SECTION -->
+          <!-- SECURE SERVER-ORCHESTRATED AI INFRASTRUCTURE -->
           <div class="space-y-4 pt-2 border-t ghost-border">
-            <h3 class="font-serif text-sm font-semibold text-on-surface flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-400 text-[18px]">key</span>
-              API Key Credentials
-            </h3>
+            <div class="flex items-center justify-between">
+              <h3 class="font-serif text-sm font-semibold text-on-surface flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-400 text-[18px]">verified_user</span>
+                AI Infrastructure &amp; Backend Connectivity
+              </h3>
+              <span class="text-[10px] font-mono text-emerald-400 font-semibold uppercase">Server-Side Managed</span>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-              <!-- Gemini API Key Input -->
-              <div class="space-y-2 bg-surface-container-lowest p-4 rounded-xl border ghost-border">
+              <!-- Gemini Status & Test Card -->
+              <div class="space-y-3 bg-surface-container-lowest p-4 rounded-xl border ghost-border">
                 <div class="flex items-center justify-between">
-                  <label for="pref-gemini-key" class="font-medium text-on-surface">Google Gemini API Key</label>
-                  <span class="text-[10px] text-indigo-400 font-mono">Primary Endpoint</span>
-                </div>
-                
-                <div class="relative">
-                  <input type="password" id="pref-gemini-key" placeholder="Enter custom Gemini API key..." class="w-full bg-surface-container border ghost-border text-on-surface rounded-lg p-2.5 pr-10 text-xs focus:border-indigo-400 focus:outline-none font-mono" />
-                  <button type="button" id="toggle-gemini-key-btn" class="absolute right-2.5 top-2.5 text-on-surface-variant hover:text-on-surface cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">visibility</span>
-                  </button>
-                </div>
-
-                <div class="flex items-center justify-between gap-2 pt-1">
-                  <div class="flex gap-2">
-                    <button type="button" id="save-gemini-key-btn" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-medium cursor-pointer transition-colors">
-                      Save Key
-                    </button>
-                    <button type="button" id="clear-gemini-key-btn" class="px-3 py-1 bg-surface-container hover:bg-surface-variant text-slate-400 hover:text-red-400 rounded text-[11px] font-medium cursor-pointer border ghost-border transition-colors">
-                      Clear
-                    </button>
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-indigo-400 text-[20px]">smart_toy</span>
+                    <strong class="font-medium text-on-surface">Google Gemini Vision</strong>
                   </div>
-                  <button type="button" id="test-gemini-conn-btn" class="px-3 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded text-[11px] font-mono border border-indigo-500/30 cursor-pointer transition-colors">
-                    Test Connection
+                  <span class="text-[10px] text-indigo-400 font-mono">Primary Engine</span>
+                </div>
+                <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                  High-speed multimodal vision models (Gemini 2.5 Flash, Flash-Lite, and Pro) managed server-side.
+                </p>
+                <div class="pt-1">
+                  <button type="button" id="test-gemini-conn-btn" class="w-full py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-lg text-[11px] font-mono border border-indigo-500/30 cursor-pointer transition-colors flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px]">sensors</span>
+                    Test Gemini Connection
                   </button>
                 </div>
               </div>
 
-              <!-- OpenRouter API Key Input -->
-              <div class="space-y-2 bg-surface-container-lowest p-4 rounded-xl border ghost-border">
+              <!-- OpenRouter Status & Test Card -->
+              <div class="space-y-3 bg-surface-container-lowest p-4 rounded-xl border ghost-border">
                 <div class="flex items-center justify-between">
-                  <label for="pref-openrouter-key" class="font-medium text-on-surface">OpenRouter API Key</label>
-                  <span class="text-[10px] text-purple-400 font-mono">Future Gateway</span>
-                </div>
-
-                <div class="relative">
-                  <input type="password" id="pref-openrouter-key" placeholder="Enter OpenRouter API key (sk-or-v1-...)" class="w-full bg-surface-container border ghost-border text-on-surface rounded-lg p-2.5 pr-10 text-xs focus:border-indigo-400 focus:outline-none font-mono" />
-                  <button type="button" id="toggle-openrouter-key-btn" class="absolute right-2.5 top-2.5 text-on-surface-variant hover:text-on-surface cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">visibility</span>
-                  </button>
-                </div>
-
-                <div class="flex items-center justify-between gap-2 pt-1">
-                  <div class="flex gap-2">
-                    <button type="button" id="save-openrouter-key-btn" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-[11px] font-medium cursor-pointer transition-colors">
-                      Save Key
-                    </button>
-                    <button type="button" id="clear-openrouter-key-btn" class="px-3 py-1 bg-surface-container hover:bg-surface-variant text-slate-400 hover:text-red-400 rounded text-[11px] font-medium cursor-pointer border ghost-border transition-colors">
-                      Clear
-                    </button>
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-400 text-[20px]">hub</span>
+                    <strong class="font-medium text-on-surface">OpenRouter Gateway</strong>
                   </div>
-                  <button type="button" id="test-openrouter-conn-btn" class="px-3 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded text-[11px] font-mono border border-purple-500/30 cursor-pointer transition-colors">
-                    Test Connection
+                  <span class="text-[10px] text-purple-400 font-mono">Failover Gateway</span>
+                </div>
+                <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                  Cloud gateway failover for multi-provider resilience and quota redundancy.
+                </p>
+                <div class="pt-1">
+                  <button type="button" id="test-openrouter-conn-btn" class="w-full py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg text-[11px] font-mono border border-purple-500/30 cursor-pointer transition-colors flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px]">sensors</span>
+                    Test OpenRouter Connection
                   </button>
                 </div>
               </div>
@@ -401,6 +388,8 @@ export function setupSettingsEvents() {
     const fName = document.getElementById('settings-first-name')?.value.trim();
     const lName = document.getElementById('settings-last-name')?.value.trim();
     const newEmail = document.getElementById('settings-email')?.value.trim().toLowerCase();
+    const currentPassword = document.getElementById('settings-current-password')?.value || '';
+    const newPassword = document.getElementById('settings-new-password')?.value || '';
 
     if (!fName || !lName || !newEmail) {
       showToast('First Name, Last Name, and Email are required.', 'warning');
@@ -410,33 +399,40 @@ export function setupSettingsEvents() {
     const newName = `${fName} ${lName}`;
     const newInitials = newName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
 
-    // Update session
-    const updatedSession = {
-      ...userSession,
-      name: newName,
-      email: newEmail,
-      initials: newInitials
-    };
+    if (newEmail !== userSession.email) {
+      showToast('Email changes are not supported in this version.', 'warning');
+      return;
+    }
+    const profileRes = await fetch(`${API_BASE}/api/auth/profile`, {
+      method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ name: newName })
+    });
+    const profileJson = await profileRes.json().catch(() => ({}));
+    if (!profileRes.ok || !profileJson.success) {
+      showToast(profileJson.message || 'Profile update failed.', 'error');
+      return;
+    }
+    const updatedSession = { ...userSession, ...profileJson.data, initials: profileJson.data.initials || newInitials };
     setUserSession(updatedSession);
     localStorage.setItem('insightlens_session', JSON.stringify(updatedSession));
-    
+    if (newPassword || currentPassword) {
+      const passwordRes = await fetch(`${API_BASE}/api/auth/password`, {
+        method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const passwordJson = await passwordRes.json().catch(() => ({}));
+      if (!passwordRes.ok || !passwordJson.success) {
+        showToast(passwordJson.message || 'Profile saved, but password was not updated.', 'warning');
+        return;
+      }
+    }
     updateAuthUI();
-    showToast('Account profile updated successfully.', 'success');
+    showToast('Account settings saved.', 'success');
     
     // Clear password fields
     if (document.getElementById('settings-current-password')) document.getElementById('settings-current-password').value = '';
     if (document.getElementById('settings-new-password')) document.getElementById('settings-new-password').value = '';
   });
 
-  const toggleGeminiBtn = document.getElementById('toggle-gemini-key-btn');
-  const toggleOpenRouterBtn = document.getElementById('toggle-openrouter-key-btn');
-
-  const saveGeminiKeyBtn = document.getElementById('save-gemini-key-btn');
-  const clearGeminiKeyBtn = document.getElementById('clear-gemini-key-btn');
   const testGeminiConnBtn = document.getElementById('test-gemini-conn-btn');
-
-  const saveOpenRouterKeyBtn = document.getElementById('save-openrouter-key-btn');
-  const clearOpenRouterKeyBtn = document.getElementById('clear-openrouter-key-btn');
   const testOpenRouterConnBtn = document.getElementById('test-openrouter-conn-btn');
 
   const dataExportBtn = document.getElementById('data-export-settings-btn');
@@ -446,84 +442,27 @@ export function setupSettingsEvents() {
 
   const testResultBox = document.getElementById('api-test-result-box');
 
-  // Toggle Password Visibility
-  toggleGeminiBtn?.addEventListener('click', () => {
-    const input = document.getElementById('pref-gemini-key');
-    const icon = toggleGeminiBtn.querySelector('.material-symbols-outlined');
-    if (!input) return;
-    if (input.type === 'password') {
-      input.type = 'text';
-      if (icon) icon.textContent = 'visibility_off';
-    } else {
-      input.type = 'password';
-      if (icon) icon.textContent = 'visibility';
-    }
-  });
-
-  toggleOpenRouterBtn?.addEventListener('click', () => {
-    const input = document.getElementById('pref-openrouter-key');
-    const icon = toggleOpenRouterBtn.querySelector('.material-symbols-outlined');
-    if (!input) return;
-    if (input.type === 'password') {
-      input.type = 'text';
-      if (icon) icon.textContent = 'visibility_off';
-    } else {
-      input.type = 'password';
-      if (icon) icon.textContent = 'visibility';
-    }
-  });
-
-  // Save / Clear Gemini Key
-  saveGeminiKeyBtn?.addEventListener('click', () => {
-    const key = document.getElementById('pref-gemini-key')?.value.trim() || '';
-    saveStoredPreferences({ geminiApiKey: key });
-    alert('Gemini API key saved to local storage!');
-  });
-
-  clearGeminiKeyBtn?.addEventListener('click', () => {
-    const input = document.getElementById('pref-gemini-key');
-    if (input) input.value = '';
-    saveStoredPreferences({ geminiApiKey: '' });
-    alert('Gemini API key cleared.');
-  });
-
-  // Save / Clear OpenRouter Key
-  saveOpenRouterKeyBtn?.addEventListener('click', () => {
-    const key = document.getElementById('pref-openrouter-key')?.value.trim() || '';
-    saveStoredPreferences({ openrouterApiKey: key });
-    alert('OpenRouter API key saved to local storage!');
-  });
-
-  clearOpenRouterKeyBtn?.addEventListener('click', () => {
-    const input = document.getElementById('pref-openrouter-key');
-    if (input) input.value = '';
-    saveStoredPreferences({ openrouterApiKey: '' });
-    alert('OpenRouter API key cleared.');
-  });
-
-  // Test Gemini Connection
+  // Test Server-Side Gemini Connection
   testGeminiConnBtn?.addEventListener('click', async () => {
-    const key = document.getElementById('pref-gemini-key')?.value.trim();
     if (testResultBox) {
       testResultBox.classList.remove('hidden');
-      testResultBox.innerHTML = '<span class="text-indigo-400 font-bold">Testing Gemini API connection...</span>';
+      testResultBox.innerHTML = '<span class="text-indigo-400 font-bold">Testing backend Gemini API connection...</span>';
     }
-    const res = await testApiConnection('gemini', key);
+    const res = await testApiConnection('gemini');
     if (testResultBox) {
-      testResultBox.innerHTML = `<span class="${res.success ? 'text-emerald-400' : 'text-amber-400'} font-bold">${res.status}:</span> ${res.message}`;
+      testResultBox.innerHTML = `<span class="${res.success ? 'text-emerald-400' : 'text-amber-400'} font-bold">${escapeHtml(res.status)}:</span> ${escapeHtml(res.message)}`;
     }
   });
 
-  // Test OpenRouter Connection
+  // Test Server-Side OpenRouter Connection
   testOpenRouterConnBtn?.addEventListener('click', async () => {
-    const key = document.getElementById('pref-openrouter-key')?.value.trim();
     if (testResultBox) {
       testResultBox.classList.remove('hidden');
-      testResultBox.innerHTML = '<span class="text-purple-400 font-bold">Testing OpenRouter API connection...</span>';
+      testResultBox.innerHTML = '<span class="text-purple-400 font-bold">Testing backend OpenRouter API connection...</span>';
     }
-    const res = await testApiConnection('openrouter', key);
+    const res = await testApiConnection('openrouter');
     if (testResultBox) {
-      testResultBox.innerHTML = `<span class="${res.success ? 'text-emerald-400' : 'text-amber-400'} font-bold">${res.status}:</span> ${res.message}`;
+      testResultBox.innerHTML = `<span class="${res.success ? 'text-emerald-400' : 'text-amber-400'} font-bold">${escapeHtml(res.status)}:</span> ${escapeHtml(res.message)}`;
     }
   });
 
@@ -537,9 +476,9 @@ export function setupSettingsEvents() {
       try {
         await importPreferencesFile(e.target.files[0]);
         renderSettingsPage();
-        alert('Settings imported successfully!');
+        showToast('Settings imported successfully.', 'success');
       } catch (err) {
-        alert(err.message || 'Failed to import settings');
+        showToast(err.message || 'Failed to import settings', 'error');
       }
     }
   });
@@ -548,7 +487,7 @@ export function setupSettingsEvents() {
   dataClearHistBtn?.addEventListener('click', () => {
     if (confirm('Clear all saved research history entries from local storage?')) {
       clearAllHistoryData();
-      alert('Research history cleared.');
+      showToast('Research history cleared.', 'info');
     }
   });
 
@@ -557,7 +496,7 @@ export function setupSettingsEvents() {
     if (confirm('DANGER: Permanently purge all local storage data, research history, and settings?')) {
       clearAllApplicationData();
       renderSettingsPage();
-      alert('Application reset to initial state.');
+      showToast('Application reset to initial state.', 'info');
     }
   });
 
@@ -566,7 +505,7 @@ export function setupSettingsEvents() {
     if (confirm('Reset all system settings to default parameters?')) {
       resetPreferencesToDefault();
       renderSettingsPage();
-      alert('Preferences reset to default values.');
+      showToast('Preferences reset to default values.', 'info');
     }
   });
 
@@ -576,12 +515,11 @@ export function setupSettingsEvents() {
 
     const provider = document.getElementById('pref-ai-provider')?.value || 'auto';
     const model = document.getElementById('pref-model-selector')?.value || 'auto';
-    const geminiApiKey = document.getElementById('pref-gemini-key')?.value.trim() || '';
-    const openrouterApiKey = document.getElementById('pref-openrouter-key')?.value.trim() || '';
     
     const theme = document.getElementById('pref-theme-mode')?.value || 'dark';
     const language = document.getElementById('pref-language')?.value || 'en';
     const researchLength = document.getElementById('pref-report-length')?.value || 'long';
+    const writingStyle = document.getElementById('pref-writing-style')?.value || 'classic';
     const citationStyle = document.getElementById('pref-citation-style')?.value || 'APA';
     const exportFormat = document.getElementById('pref-export-format')?.value || 'pdf';
 
@@ -591,11 +529,10 @@ export function setupSettingsEvents() {
     saveStoredPreferences({
       provider,
       model,
-      geminiApiKey,
-      openrouterApiKey,
       theme,
       language,
       researchLength,
+      writingStyle,
       citationStyle,
       exportFormat,
       compactMode,
@@ -603,7 +540,7 @@ export function setupSettingsEvents() {
     });
 
     renderSettingsPage();
-    alert('System preferences saved!');
+    showToast('System preferences saved and synchronized.', 'success');
   });
 
   renderSettingsPage();
@@ -635,6 +572,8 @@ export async function renderSettingsPage() {
     }
     if (emailInput) {
       emailInput.value = userSession.email || '';
+      emailInput.readOnly = true;
+      emailInput.title = 'Email changes are not supported yet.';
     }
   } else {
     if (authBarrier) authBarrier.classList.remove('hidden');
@@ -650,12 +589,6 @@ export async function renderSettingsPage() {
 
   const modelSelect = document.getElementById('pref-model-selector');
   if (modelSelect) modelSelect.value = prefs.model || 'auto';
-
-  const geminiInput = document.getElementById('pref-gemini-key');
-  if (geminiInput) geminiInput.value = prefs.geminiApiKey || '';
-
-  const openrouterInput = document.getElementById('pref-openrouter-key');
-  if (openrouterInput) openrouterInput.value = prefs.openrouterApiKey || '';
 
   const themeSelect = document.getElementById('pref-theme-mode');
   if (themeSelect) themeSelect.value = prefs.theme || 'dark';

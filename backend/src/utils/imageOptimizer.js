@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import crypto from 'crypto';
 import { APIError } from './apiUtils.js';
+import { config } from '../config/env.js';
 
 /**
  * High-performance Server-Side Image Optimizer
@@ -48,7 +49,8 @@ export async function optimizeImage(dataUrl) {
     throw new APIError(`Unsupported file format (${mimeType}). Only JPEG, PNG, and WebP images are allowed.`, 400, 'ImageOptimizer', 'UNSUPPORTED_FORMAT');
   }
 
-  // Verify image integrity using Sharp metadata
+  // Verify image integrity and reject decompression bombs before allocating
+  // large resize buffers.
   let metadata;
   try {
     metadata = await sharp(inputBuffer).metadata();
@@ -60,11 +62,21 @@ export async function optimizeImage(dataUrl) {
     throw new APIError('Invalid or corrupted image format. Only JPEG, PNG, and WebP are supported.', 400, 'ImageOptimizer', 'INVALID_FORMAT');
   }
 
+  const pixelCount = (metadata.width || 0) * (metadata.height || 0);
+  if (!metadata.width || !metadata.height || pixelCount > config.maxImagePixels) {
+    throw new APIError(
+      `Image dimensions exceed the ${config.maxImagePixels.toLocaleString()} pixel safety limit.`,
+      413,
+      'ImageOptimizer',
+      'IMAGE_TOO_LARGE'
+    );
+  }
+
   const originalSizeBytes = inputBuffer.length;
   const imageHash = crypto.createHash('sha256').update(inputBuffer).digest('hex');
 
   // Perform Sharp optimization (Max 768px for optimal vision inference speed, JPEG quality 80%)
-  const optimizedBuffer = await sharp(inputBuffer)
+  const optimizedBuffer = await sharp(inputBuffer, { limitInputPixels: config.maxImagePixels })
     .resize({
       width: 768,
       height: 768,
@@ -77,37 +89,34 @@ export async function optimizeImage(dataUrl) {
     })
     .toBuffer();
 
+  const thumbnailBuffer = await sharp(inputBuffer, { limitInputPixels: config.maxImagePixels })
+    .resize({ width: 256, height: 256, fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 65, mozjpeg: true })
+    .toBuffer();
+
   const compressedSizeBytes = optimizedBuffer.length;
   const optimizationTimeMs = Date.now() - startTime;
 
-  let finalBase64;
-  let finalDataUrl;
-  let finalMime = 'image/jpeg';
-  let keptOriginal = false;
-
-  // Rule: If compressed image is larger than original, keep original
-  if (compressedSizeBytes >= originalSizeBytes && originalSizeBytes > 0) {
-    keptOriginal = true;
-    finalMime = mimeType;
-    finalBase64 = inputBuffer.toString('base64');
-    finalDataUrl = `data:${finalMime};base64,${finalBase64}`;
-    console.log(`[ImageOptimizer] Original is smaller than re-compressed (${originalSizeBytes} <= ${compressedSizeBytes} bytes). Keeping original image.`);
-  } else {
-    finalBase64 = optimizedBuffer.toString('base64');
-    finalDataUrl = `data:image/jpeg;base64,${finalBase64}`;
-  }
-
-  const finalSizeBytes = keptOriginal ? originalSizeBytes : compressedSizeBytes;
+  // Persist a normalized 768px analysis image. Keeping an original data URL in
+  // PostgreSQL made archive pages transfer huge payloads and offered no benefit
+  // to the vision model.
+  const finalBase64 = optimizedBuffer.toString('base64');
+  const finalDataUrl = `data:image/jpeg;base64,${finalBase64}`;
+  const finalMime = 'image/jpeg';
+  const finalSizeBytes = compressedSizeBytes;
   const compressionRatioPct = (100 - (finalSizeBytes / originalSizeBytes) * 100).toFixed(1);
 
   return {
     imageHash,
     dataUrl: finalDataUrl,
+    thumbnailDataUrl: `data:image/jpeg;base64,${thumbnailBuffer.toString('base64')}`,
     base64Data: finalBase64,
     mimeType: finalMime,
     originalSizeKb: parseFloat((originalSizeBytes / 1024).toFixed(1)),
     compressedSizeKb: parseFloat((finalSizeBytes / 1024).toFixed(1)),
     compressionRatioPct: parseFloat(compressionRatioPct),
+    width: metadata.width,
+    height: metadata.height,
     optimizationTimeMs
   };
 }

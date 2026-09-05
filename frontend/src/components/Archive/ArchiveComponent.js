@@ -2,16 +2,19 @@
 
 import { setActiveReportData, navigateTo } from '../../state.js';
 import { 
-  getArchive, 
+  getArchivePage,
+  getReportById,
   deleteReport, 
   toggleFavorite, 
-  filterAndSortReports 
+  filterAndSortReports,
+  getLastArchiveError
 } from '../../services/history.js';
 import { getActivityLogs, formatTimeAgo, saveAppMetrics, getAppMetrics, logUserActivity } from '../../services/storage.js';
 import { renderResultScreen } from '../ReportViewer.js';
 import { exportCleanPDF, exportMarkdownFile, downloadBlob, recordExportMetricToBackend } from '../../utils/export.js';
 import { showToast } from '../../utils/toast.js';
 import { API_BASE, getAuthHeaders } from '../../utils/api.js';
+import { escapeHtml, sanitizeUrl } from '../../utils/sanitize.js';
 
 function exportReportToMarkdown(d) {
   if (!d) return;
@@ -23,7 +26,7 @@ function exportReportToMarkdown(d) {
 ### 📊 Research Metadata & Telemetry
 - **Primary Subject:** ${d.subject || 'Visual Subject'}
 - **Category:** ${d.category || 'General Research'}
-- **AI Confidence Score:** ${d.confidenceScore || '96.8%'}
+- **Evidence Status:** ${d.evidenceStatus || 'Uncertain'}
 - **Processing Time:** ${d.processingTimeMs ? (d.processingTimeMs / 1000).toFixed(1) + 's' : '~2.0s'}
 - **Date:** ${d.generationTimestamp || d.date || 'Recently'}
 
@@ -64,7 +67,7 @@ ${d.significance || ''}
 
 ---
 
-## Verified Academic References (APA 7th)
+## Source Availability
 ${(d.references || []).map((src, i) => `${i + 1}. ${src}`).join('\n')}
 
 ---
@@ -84,6 +87,7 @@ let currentFilters = {
   favoritesOnly: false,
   sortBy: 'newest'
 };
+let currentPage = 1;
 
 export function setupArchiveEvents() {
   const container = document.getElementById('page-archive');
@@ -105,12 +109,20 @@ export async function renderArchivePage() {
     `;
   }
 
-  const rawReports = await getArchive();
+  const archivePage = await getArchivePage(currentFilters, currentPage);
+  const rawReports = archivePage.reports;
   const filteredReports = filterAndSortReports(rawReports, currentFilters);
   const activityLogs = getActivityLogs();
 
-  // Extract unique categories for filter dropdown
-  const uniqueCategories = Array.from(new Set(rawReports.map(r => r.category || 'General Research')));
+  // Extract unique categories for filter dropdown combining standard domains and retrieved reports
+  const standardDomains = [
+    'General Research', 'Sports', 'Cinema & Entertainment', 
+    'Geography & Cartography', 'Architectural Engineering', 
+    'Automotive Engineering', 'Botany & Plant Biology', 
+    'Animal Biology & Zoology', 'Electronics & Hardware Engineering', 
+    'Medical Imaging & Diagnostics', 'Fine Arts & Cultural Heritage'
+  ];
+  const uniqueCategories = Array.from(new Set([...standardDomains, ...rawReports.map(r => r.category).filter(Boolean)]));
 
   archiveContainer.innerHTML = `
     <div id="archive-header-loaded" class="hidden"></div>
@@ -183,7 +195,7 @@ export async function renderArchivePage() {
           <select id="filter-sort" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-lg p-2 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
             <option value="newest" ${currentFilters.sortBy === 'newest' ? 'selected' : ''}>Newest First</option>
             <option value="oldest" ${currentFilters.sortBy === 'oldest' ? 'selected' : ''}>Oldest First</option>
-            <option value="confidence" ${currentFilters.sortBy === 'confidence' ? 'selected' : ''}>Highest Confidence</option>
+            <option value="confidence" ${currentFilters.sortBy === 'confidence' ? 'selected' : ''}>Evidence status</option>
             <option value="alphabetical" ${currentFilters.sortBy === 'alphabetical' ? 'selected' : ''}>Alphabetical (A-Z)</option>
           </select>
         </div>
@@ -202,9 +214,34 @@ export async function renderArchivePage() {
       </div>
     </section>
 
-    <!-- ARCHIVE CARDS GRID OR EMPTY STATE -->
-    <!-- ELEGANT EMPTY STATE -->
-    ${filteredReports.length === 0 ? `
+    <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+      <span>${archivePage.total} report${archivePage.total === 1 ? '' : 's'} · Page ${archivePage.page} of ${archivePage.totalPages}</span>
+      <div class="flex gap-2">
+        <button id="archive-prev-page" type="button" class="px-3 py-1.5 rounded-lg border ghost-border ${archivePage.page <= 1 ? 'opacity-40 pointer-events-none' : ''}">Previous</button>
+        <button id="archive-next-page" type="button" class="px-3 py-1.5 rounded-lg border ghost-border ${archivePage.page >= archivePage.totalPages ? 'opacity-40 pointer-events-none' : ''}">Next</button>
+      </div>
+    </div>
+
+    <!-- ARCHIVE CARDS GRID, ERROR STATE, OR EMPTY STATE -->
+    ${getLastArchiveError() ? `
+      <section class="p-12 text-center bg-surface-container rounded-2xl ghost-border space-y-5 error-state-container">
+        <div class="w-16 h-16 rounded-2xl bg-red-500/10 text-red-400 mx-auto flex items-center justify-center border border-red-500/20 shadow-md">
+          <span class="material-symbols-outlined text-[32px]">cloud_off</span>
+        </div>
+        <div class="space-y-1.5">
+          <h3 class="font-serif text-xl font-bold text-slate-100">Unable to load research archive</h3>
+          <p class="text-slate-400 text-sm max-w-[420px] mx-auto leading-relaxed">
+            Could not retrieve archive records from the database (${escapeHtml(getLastArchiveError())}). Please check your connection and retry.
+          </p>
+        </div>
+        <div class="pt-3">
+          <button id="archive-retry-btn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-7 py-3 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer shadow-md">
+            <span class="material-symbols-outlined text-[20px]">refresh</span>
+            Retry Database Connection
+          </button>
+        </div>
+      </section>
+    ` : filteredReports.length === 0 ? `
       <section class="p-12 text-center bg-surface-container rounded-2xl ghost-border space-y-5 empty-state-container">
         <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 mx-auto flex items-center justify-center border border-indigo-500/20 shadow-md empty-state-icon">
           <span class="material-symbols-outlined text-[32px]">folder_off</span>
@@ -227,51 +264,52 @@ export async function renderArchivePage() {
         ${filteredReports.map(rpt => {
           const data = rpt.fullData || {};
           const procTime = rpt.processingTimeMs ? (rpt.processingTimeMs / 1000).toFixed(1) + 's' : '~2.0s';
-          const conf = rpt.confidenceScore || '96.8%';
+          const conf = rpt.evidenceStatus || 'Uncertain';
+          const safeImg = sanitizeUrl(rpt.thumbnailDataUrl) || sanitizeUrl(rpt.imageDataUrl) || sanitizeUrl(rpt.fullImage) || '/images/urban-analysis.jpg';
 
           return `
-            <div class="bg-surface-container rounded-2xl ghost-border overflow-hidden card-hover-lift flex flex-col justify-between" data-id="${rpt.id}">
+            <div class="bg-surface-container rounded-2xl ghost-border overflow-hidden card-hover-lift flex flex-col justify-between" data-id="${escapeHtml(rpt.id)}">
               <div>
                 <!-- THUMBNAIL & FAVORITE STAR -->
                 <div class="relative h-44 overflow-hidden bg-black/40 border-b ghost-border">
-                  <img src="${rpt.imageDataUrl || '/images/urban-analysis.jpg'}" alt="${rpt.title}" class="w-full h-full object-cover" />
+                  <img src="${escapeHtml(safeImg)}" alt="${escapeHtml(rpt.title)}" class="w-full h-full object-cover" />
                   
                   <button 
                     type="button" 
                     class="btn-toggle-fav absolute top-3 right-3 p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 hover:scale-110 transition-transform cursor-pointer" 
-                    data-id="${rpt.id}"
+                    data-id="${escapeHtml(rpt.id)}"
                     title="${rpt.favorite ? 'Unfavorite' : 'Favorite'}"
                   >
                     <span class="material-symbols-outlined text-[18px] ${rpt.favorite ? 'text-amber-400 fill-amber-400' : 'text-slate-400'}">star</span>
                   </button>
 
                   <div class="absolute bottom-2.5 left-3 bg-black/80 backdrop-blur-xs px-2.5 py-0.5 rounded text-[10px] font-mono text-indigo-300 font-bold border border-white/10 flex items-center gap-1.5">
-                    <span>${rpt.category || 'General Research'}</span>
+                    <span>${escapeHtml(rpt.category || 'General Research')}</span>
                     <span class="text-slate-500">•</span>
-                    <span class="text-emerald-400 uppercase">${rpt.visualType || (rpt.full_data && rpt.full_data.visualType) || 'Photo'}</span>
+                    <span class="text-emerald-400 uppercase">${escapeHtml(rpt.visualType || (rpt.full_data && rpt.full_data.visualType) || 'Photo')}</span>
                   </div>
                 </div>
 
                 <!-- CARD METADATA & BODY -->
                 <div class="p-5 space-y-3">
-                  <h3 class="font-serif text-base font-bold text-slate-100 leading-snug line-clamp-2">${rpt.title}</h3>
+                  <h3 class="font-serif text-base font-bold text-slate-100 leading-snug line-clamp-2">${escapeHtml(rpt.title)}</h3>
                   
                   <div class="grid grid-cols-2 gap-2 text-[10px] font-mono text-slate-400 bg-surface-container-lowest p-2.5 rounded-xl border ghost-border">
                     <div>
                       <span class="text-slate-500 uppercase block">Model:</span>
-                      <strong class="text-indigo-300 truncate block">${rpt.modelUsed || 'gemini-2.5-flash'}</strong>
+                      <strong class="text-indigo-300 truncate block">${escapeHtml(rpt.modelUsed || 'gemini-2.5-flash')}</strong>
                     </div>
                     <div>
-                      <span class="text-slate-500 uppercase block">Confidence:</span>
-                      <strong class="text-emerald-400 block">${conf}</strong>
+                      <span class="text-slate-500 uppercase block">Evidence:</span>
+                      <strong class="text-emerald-400 block">${escapeHtml(conf)}</strong>
                     </div>
                     <div>
                       <span class="text-slate-500 uppercase block">Latency:</span>
-                      <strong class="text-sky-300 block">${procTime}</strong>
+                      <strong class="text-sky-300 block">${escapeHtml(procTime)}</strong>
                     </div>
                     <div>
                       <span class="text-slate-500 uppercase block">Date:</span>
-                      <strong class="text-slate-300 block truncate">${rpt.date || 'Recently'}</strong>
+                      <strong class="text-slate-300 block truncate">${escapeHtml(rpt.date || 'Recently')}</strong>
                     </div>
                   </div>
                 </div>
@@ -279,25 +317,25 @@ export async function renderArchivePage() {
 
               <!-- CARD ACTIONS TOOLBAR -->
               <div class="p-4 border-t ghost-border bg-surface-container-lowest flex flex-wrap items-center justify-between gap-1.5 text-xs">
-                <button type="button" class="btn-open-report bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer transition-colors text-[11px]" data-id="${rpt.id}">
+                <button type="button" class="btn-open-report bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer transition-colors text-[11px]" data-id="${escapeHtml(rpt.id)}">
                   <span class="material-symbols-outlined text-[15px]">visibility</span>
                   Open
                 </button>
 
                 <div class="flex items-center gap-1">
-                  <button type="button" class="btn-pdf-report text-slate-300 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${rpt.id}" title="Export PDF">
+                  <button type="button" class="btn-pdf-report text-slate-300 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${escapeHtml(rpt.id)}" title="Export PDF">
                     <span class="material-symbols-outlined text-[16px] text-purple-400">picture_as_pdf</span>
                   </button>
 
-                  <button type="button" class="btn-md-report text-slate-300 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${rpt.id}" title="Export Markdown">
+                  <button type="button" class="btn-md-report text-slate-300 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${escapeHtml(rpt.id)}" title="Export Markdown">
                     <span class="material-symbols-outlined text-[16px] text-sky-400">description</span>
                   </button>
 
-                  <button type="button" class="btn-dup-report text-slate-300 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${rpt.id}" title="Duplicate">
+                  <button type="button" class="btn-dup-report text-slate-300 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${escapeHtml(rpt.id)}" title="Duplicate">
                     <span class="material-symbols-outlined text-[16px] text-indigo-300">content_copy</span>
                   </button>
 
-                  <button type="button" class="btn-del-report text-slate-400 hover:text-red-400 p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${rpt.id}" title="Delete">
+                  <button type="button" class="btn-del-report text-slate-400 hover:text-red-400 p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer" data-id="${escapeHtml(rpt.id)}" title="Delete">
                     <span class="material-symbols-outlined text-[16px]">delete</span>
                   </button>
                 </div>
@@ -342,8 +380,8 @@ export async function renderArchivePage() {
                 <div class="flex items-center gap-3 min-w-0">
                   <span class="material-symbols-outlined text-[18px] ${meta.color} shrink-0">${meta.icon}</span>
                   <div class="min-w-0">
-                    <span class="font-sans text-slate-200 text-xs font-semibold block">${act.text}</span>
-                    <span class="text-[10px] text-slate-500 font-mono">${meta.label}</span>
+                    <span class="font-sans text-slate-200 text-xs font-semibold block">${escapeHtml(act.text)}</span>
+                    <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(meta.label)}</span>
                   </div>
                 </div>
                 <span class="text-[11px] text-slate-400 font-mono shrink-0 ml-2">${formatTimeAgo(act.timestamp)}</span>
@@ -358,10 +396,12 @@ export async function renderArchivePage() {
   // ATTACH DOM EVENT LISTENERS
   document.getElementById('archive-start-new-btn')?.addEventListener('click', () => navigateTo('desk'));
   document.getElementById('archive-empty-cta')?.addEventListener('click', () => navigateTo('desk'));
+  document.getElementById('archive-retry-btn')?.addEventListener('click', () => renderArchivePage());
 
   const searchInput = document.getElementById('archive-search-input');
   searchInput?.addEventListener('input', (e) => {
     currentFilters.query = e.target.value;
+    currentPage = 1;
     renderArchivePage();
     const inputNow = document.getElementById('archive-search-input');
     if (inputNow) {
@@ -371,42 +411,56 @@ export async function renderArchivePage() {
   });
 
   document.getElementById('filter-date')?.addEventListener('change', (e) => {
-    currentFilters.dateFilter = e.target.value;
+    currentFilters.dateFilter = e.target.value; currentPage = 1;
     renderArchivePage();
   });
 
   document.getElementById('filter-model')?.addEventListener('change', (e) => {
-    currentFilters.modelFilter = e.target.value;
+    currentFilters.modelFilter = e.target.value; currentPage = 1;
     renderArchivePage();
   });
 
   document.getElementById('filter-category')?.addEventListener('change', (e) => {
-    currentFilters.categoryFilter = e.target.value;
+    currentFilters.categoryFilter = e.target.value; currentPage = 1;
     renderArchivePage();
   });
 
   document.getElementById('filter-sort')?.addEventListener('change', (e) => {
-    currentFilters.sortBy = e.target.value;
+    currentFilters.sortBy = e.target.value; currentPage = 1;
     renderArchivePage();
   });
 
   document.getElementById('toggle-favorites-btn')?.addEventListener('click', () => {
-    currentFilters.favoritesOnly = !currentFilters.favoritesOnly;
+    currentFilters.favoritesOnly = !currentFilters.favoritesOnly; currentPage = 1;
     renderArchivePage();
   });
 
   // Card Actions
   document.querySelectorAll('.btn-open-report').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
-      const target = rawReports.find(r => r.id === id);
+      let target = rawReports.find(r => r.id === id);
       if (target) {
-        document.getElementById('report-source-img').src = target.fullImage || target.imageDataUrl;
-        setActiveReportData(target.fullData);
-        renderResultScreen(target.fullData);
+        if (!target.fullData) {
+          const fetched = await getReportById(id);
+          if (fetched) target = fetched;
+        }
+        const dataToRender = { 
+          ...(target.fullData || target), 
+          imageDataUrl: target.imageDataUrl || target.fullImage || target.thumbnailDataUrl || '', 
+          thumbnailDataUrl: target.thumbnailDataUrl || null,
+          id: target.id,
+          title: target.title || (target.fullData && target.fullData.title),
+          subject: target.subject || (target.fullData && target.fullData.subject)
+        };
+        setActiveReportData(dataToRender);
+        renderResultScreen(dataToRender);
       }
     };
   });
+
+  document.getElementById('archive-prev-page')?.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderArchivePage(); } });
+  document.getElementById('archive-next-page')?.addEventListener('click', () => { if (currentPage < archivePage.totalPages) { currentPage++; renderArchivePage(); } });
 
   document.querySelectorAll('.btn-toggle-fav').forEach(btn => {
     btn.onclick = async () => {
@@ -430,9 +484,13 @@ export async function renderArchivePage() {
   document.querySelectorAll('.btn-dup-report').forEach(btn => {
     btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
-      const target = rawReports.find(r => r.id === id);
+      let target = rawReports.find(r => r.id === id);
       if (target) {
         try {
+          if (!target.fullData) {
+            const fetched = await getReportById(id);
+            if (fetched) target = fetched;
+          }
           const userEmail = target.userEmail || 'guest@insightlens.edu';
           const res = await fetch(`${API_BASE}/api/report/save`, {
             method: 'POST',
@@ -457,24 +515,36 @@ export async function renderArchivePage() {
   });
 
   document.querySelectorAll('.btn-pdf-report').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
-      const target = rawReports.find(r => r.id === id);
-      if (target && target.fullData) {
-        document.getElementById('report-source-img').src = target.fullImage || target.imageDataUrl;
-        setActiveReportData(target.fullData);
-        renderResultScreen(target.fullData);
+      let target = rawReports.find(r => r.id === id);
+      if (target && !target.fullData) target = await getReportById(id);
+      if (target) {
+        const dataToRender = { 
+          ...(target.fullData || target), 
+          imageDataUrl: target.imageDataUrl || target.fullImage || target.thumbnailDataUrl || '',
+          thumbnailDataUrl: target.thumbnailDataUrl || null,
+          id: target.id,
+          title: target.title || (target.fullData && target.fullData.title),
+          subject: target.subject || (target.fullData && target.fullData.subject)
+        };
+        setActiveReportData(dataToRender);
+        renderResultScreen(dataToRender);
         setTimeout(() => exportCleanPDF(), 300);
       }
     };
   });
 
   document.querySelectorAll('.btn-md-report').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
-      const target = rawReports.find(r => r.id === id);
-      if (target && target.fullData) {
-        exportReportToMarkdown(target.fullData);
+      let target = rawReports.find(r => r.id === id);
+      if (target && !target.fullData) {
+        const fetched = await getReportById(id);
+        if (fetched) target = fetched;
+      }
+      if (target && (target.fullData || target)) {
+        exportReportToMarkdown(target.fullData || target);
         saveAppMetrics({ markdownExportsCount: (getAppMetrics().markdownExportsCount || 0) + 1 });
         logUserActivity('markdown', `Exported Markdown: ${target.title}`);
         recordExportMetricToBackend('markdown');

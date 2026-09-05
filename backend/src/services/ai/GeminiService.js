@@ -18,7 +18,7 @@ class GeminiService {
     const startTime = Date.now();
     console.log(`[RACE] Gemini / ${modelId} START (timeout: ${timeoutMs}ms)`);
 
-    const { researchLength = 'long', language = 'en', subjectContext = '' } = promptObj;
+    const { researchLength = 'long', language = 'en', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA' } = promptObj;
 
     // Extract base64 and mimetype
     let mimeType = 'image/jpeg';
@@ -31,7 +31,7 @@ class GeminiService {
       }
     }
 
-    const promptText = buildAiPrompt(language, researchLength, subjectContext);
+    const promptText = buildAiPrompt(language, researchLength, subjectContext, writingStyle, citationStyle);
     const schemaText = buildJsonSchemaPrompt();
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 

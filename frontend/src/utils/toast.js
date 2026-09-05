@@ -1,4 +1,5 @@
 // Toast Notification & Byte Formatting Utilities
+import { escapeHtml } from './sanitize.js';
 
 export function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
@@ -30,7 +31,7 @@ export function showToast(message, type = 'info') {
     <span class="material-symbols-outlined text-[20px] ${iconColor} mt-0.5 shrink-0">
       ${iconName}
     </span>
-    <span class="font-body-sm font-medium leading-relaxed pr-2">${message}</span>
+    <span class="font-body-sm font-medium leading-relaxed pr-2">${escapeHtml(message)}</span>
     
     <!-- Progress bar at bottom -->
     <div class="absolute bottom-0 left-0 h-0.5 bg-current opacity-20 toast-progress-bar ${iconColor}"></div>

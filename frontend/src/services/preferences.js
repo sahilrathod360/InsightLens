@@ -7,10 +7,9 @@ export const DEFAULT_PREFERENCES = {
   theme: 'dark', // 'dark' | 'light' | 'system'
   provider: 'auto', // 'auto' | 'gemini' | 'openrouter'
   model: 'auto', // 'auto' | 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' | 'gemini-2.5-pro'
-  geminiApiKey: '',
-  openrouterApiKey: '',
   language: 'en', // 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja'
   researchLength: 'long', // 'long' | 'short'
+  writingStyle: 'classic', // 'classic' | 'concise' | 'exhaustive'
   citationStyle: 'APA', // 'APA' | 'MLA' | 'IEEE' | 'Chicago'
   exportFormat: 'pdf', // 'pdf' | 'markdown' | 'json'
   autoModelFallback: true,
@@ -58,6 +57,7 @@ export async function fetchPreferencesFromBackend() {
       if (json.success && json.data) {
         const backendPrefs = {
           theme: json.data.theme || 'dark',
+          provider: json.data.provider || 'auto',
           model: json.data.model || 'auto',
           autoModelFallback: json.data.autoModelFallback ?? true,
           compactMode: json.data.compactMode ?? false,
@@ -140,7 +140,7 @@ export async function testApiConnection(provider, apiKey) {
   try {
     const res = await fetch(targetUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ provider, apiKey })
     });
     const json = await res.json();

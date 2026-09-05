@@ -1,9 +1,21 @@
 import { config } from '../config/env.js';
 import pool from '../config/db.js';
 
+/**
+ * Retrieve User Preferences from PostgreSQL.
+ * Scoped strictly to the authenticated user from req.user.
+ */
 export const getPreferences = async (req, res, next) => {
   try {
-    const userEmail = (req.user?.email || req.query.email || 'guest@insightlens.edu').toLowerCase().trim();
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required. No valid session token provided.',
+        data: null
+      });
+    }
 
     if (!pool) {
       console.error('[SettingsController Error] PostgreSQL pool is uninitialized.');
@@ -21,6 +33,7 @@ export const getPreferences = async (req, res, next) => {
         data: {
           userEmail,
           theme: 'dark',
+          provider: 'auto',
           model: 'auto',
           autoModelFallback: true,
           compactMode: false,
@@ -42,6 +55,7 @@ export const getPreferences = async (req, res, next) => {
       data: {
         userEmail: row.user_email,
         theme: row.theme,
+        provider: row.provider || 'auto',
         model: row.model,
         autoModelFallback: row.auto_model_fallback,
         compactMode: row.compact_mode,
@@ -60,11 +74,25 @@ export const getPreferences = async (req, res, next) => {
   }
 };
 
+/**
+ * Save / Update User Preferences in PostgreSQL.
+ * Scoped strictly to the authenticated user from req.user.
+ */
 export const updatePreferences = async (req, res, next) => {
   try {
-    const userEmail = (req.user?.email || req.body.userEmail || 'guest@insightlens.edu').toLowerCase().trim();
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required. No valid session token provided.',
+        data: null
+      });
+    }
+
     const {
       theme,
+      provider,
       model,
       autoModelFallback,
       compactMode,
@@ -89,28 +117,20 @@ export const updatePreferences = async (req, res, next) => {
 
     const query = `
       INSERT INTO user_preferences (
-        user_email, theme, model, auto_model_fallback, compact_mode,
+        user_email, theme, provider, model, auto_model_fallback, compact_mode,
         font_size, animations_on, writing_style, research_length,
         citation_style, language, export_format, auto_save_reports, updated_at
       )
       VALUES (
-        $1,
-        COALESCE($2, 'dark'),
-        COALESCE($3, 'auto'),
-        COALESCE($4, TRUE),
-        COALESCE($5, FALSE),
-        COALESCE($6, 'medium'),
-        COALESCE($7, TRUE),
-        COALESCE($8, 'classic'),
-        COALESCE($9, 'long'),
-        COALESCE($10, 'APA'),
-        COALESCE($11, 'en'),
-        COALESCE($12, 'pdf'),
-        COALESCE($13, TRUE),
+        $1, COALESCE($2, 'dark'), COALESCE($3, 'auto'), COALESCE($4, 'auto'),
+        COALESCE($5, TRUE), COALESCE($6, FALSE), COALESCE($7, 'medium'),
+        COALESCE($8, TRUE), COALESCE($9, 'classic'), COALESCE($10, 'long'),
+        COALESCE($11, 'APA'), COALESCE($12, 'en'), COALESCE($13, 'pdf'), COALESCE($14, TRUE),
         NOW()
       )
       ON CONFLICT (user_email) DO UPDATE SET
         theme = COALESCE(EXCLUDED.theme, user_preferences.theme),
+        provider = COALESCE(EXCLUDED.provider, user_preferences.provider),
         model = COALESCE(EXCLUDED.model, user_preferences.model),
         auto_model_fallback = COALESCE(EXCLUDED.auto_model_fallback, user_preferences.auto_model_fallback),
         compact_mode = COALESCE(EXCLUDED.compact_mode, user_preferences.compact_mode),
@@ -129,16 +149,12 @@ export const updatePreferences = async (req, res, next) => {
     const values = [
       userEmail,
       theme !== undefined ? theme : null,
-      model !== undefined ? model : null,
-      autoModelFallback !== undefined ? autoModelFallback : null,
-      compactMode !== undefined ? compactMode : null,
-      fontSize !== undefined ? fontSize : null,
-      animationsOn !== undefined ? animationsOn : null,
-      writingStyle !== undefined ? writingStyle : null,
-      researchLength !== undefined ? researchLength : null,
-      citationStyle !== undefined ? citationStyle : null,
-      language !== undefined ? language : null,
-      exportFormat !== undefined ? exportFormat : null,
+      provider === 'gemini' || provider === 'openrouter' ? provider : 'auto',
+      model !== undefined ? model : null, autoModelFallback !== undefined ? autoModelFallback : null,
+      compactMode !== undefined ? compactMode : null, fontSize !== undefined ? fontSize : null,
+      animationsOn !== undefined ? animationsOn : null, writingStyle !== undefined ? writingStyle : null,
+      researchLength !== undefined ? researchLength : null, citationStyle !== undefined ? citationStyle : null,
+      language !== undefined ? language : null, exportFormat !== undefined ? exportFormat : null,
       autoSaveReports !== undefined ? autoSaveReports : null
     ];
 
@@ -151,6 +167,7 @@ export const updatePreferences = async (req, res, next) => {
       data: {
         userEmail: row.user_email,
         theme: row.theme,
+        provider: row.provider || 'auto',
         model: row.model,
         autoModelFallback: row.auto_model_fallback,
         compactMode: row.compact_mode,
@@ -169,6 +186,9 @@ export const updatePreferences = async (req, res, next) => {
   }
 };
 
+/**
+ * Diagnostic Provider Connection Test.
+ */
 export const testProviderConnection = async (req, res, next) => {
   const { provider, apiKey } = req.body;
   const startMs = Date.now();

@@ -623,11 +623,11 @@
 
       <div class="bg-surface-container p-5 md:p-6 rounded-2xl ghost-border card-hover-lift flex flex-col justify-between">
         <div class="flex justify-between items-center mb-2">
-          <span class="text-xs font-medium text-on-surface-variant">Avg Confidence</span>
+          <span class="text-xs font-medium text-on-surface-variant">Evidence Protocol</span>
           <span class="material-symbols-outlined text-emerald-400 text-[22px]">verified</span>
         </div>
-        <div id="stat-avg-confidence" class="font-display-lg text-2xl md:text-3xl text-emerald-400 font-serif font-bold">96.8%</div>
-        <span class="text-[11px] text-on-surface-variant mt-1">Gemini 3.6 Flash</span>
+        <div id="stat-avg-confidence" class="font-display-lg text-2xl md:text-3xl text-emerald-400 font-serif font-bold">Active</div>
+        <span class="text-[11px] text-on-surface-variant mt-1">Multi-Source Ledger</span>
       </div>
 
       <div class="bg-surface-container p-5 md:p-6 rounded-2xl ghost-border card-hover-lift flex flex-col justify-between">
@@ -1154,9 +1154,9 @@
         <div>
           <span id="result-status-badge" class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold flex items-center gap-1.5 inline-flex">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Verified Analysis
+            Active Analysis
           </span>
-          <span id="result-timestamp" class="text-xs text-on-surface-variant ml-2.5 font-mono">Aug 13, 2026</span>
+          <span id="result-bar-timestamp" class="text-xs text-on-surface-variant ml-2.5 font-mono">Real-time</span>
         </div>
       </div>
 
@@ -1232,8 +1232,8 @@
               <span class="text-[10px] tracking-wider opacity-75 font-normal uppercase">ANALYSIS PIPELINE</span>
               <span id="report-pipeline-val" class="font-bold text-emerald-300">Photo Analysis</span>
             </span>
-            <span id="result-timestamp" class="text-xs text-[var(--text-muted)] font-mono">
-              Generated Aug 13, 2026
+            <span id="report-hero-timestamp" class="text-xs text-[var(--text-muted)] font-mono">
+              Generated in Real-time
             </span>
           </div>
         </div>
@@ -1267,10 +1267,10 @@
             <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Scientific Name</span>
             <strong id="grid-scientific" class="text-[var(--accent-purple)] text-xs font-serif italic font-bold block truncate">Canis lupus familiaris</strong>
           </div>
-          <!-- Card 3: Confidence -->
+          <!-- Card 3: Evidence Status -->
           <div class="report-card space-y-1 hover:border-[var(--accent-emerald)] transition-all">
-            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Confidence Score</span>
-            <strong id="grid-confidence" class="text-[var(--accent-emerald)] text-xs font-bold block">99.4% High</strong>
+            <span class="text-[10px] text-[var(--text-muted)] uppercase font-semibold block">Evidence Status</span>
+            <strong id="grid-confidence" class="text-[var(--accent-emerald)] text-xs font-bold block">Calibrated</strong>
           </div>
           <!-- Card 4: Processing Time -->
           <div class="report-card space-y-1 hover:border-[var(--accent-link)] transition-all">
@@ -1310,7 +1310,7 @@
         </div>
       </section>
 
-      <!-- 3. VISUAL SOURCE TARGET & MULTI-METRIC BREAKDOWN -->
+      <!-- 3. VISUAL SOURCE TARGET & EVIDENCE TELEMETRY -->
       <section id="report-visual-target-section" class="report-image-section grid grid-cols-1 lg:grid-cols-12 gap-8 items-start report-section-divider">
         <!-- LEFT (7 COLS): UPLOADED IMAGE & CAPTION -->
         <div id="report-image-card" class="report-image-card lg:col-span-7 report-card space-y-3.5 shadow-md">
@@ -1331,41 +1331,26 @@
           </figcaption>
         </div>
 
-        <!-- RIGHT (5 COLS): MULTI-METRIC CONFIDENCE -->
-        <div class="lg:col-span-5 report-card space-y-6 shadow-md text-xs font-sans">
-          <div class="space-y-3.5 border-b border-[var(--border-color)] pb-5">
+        <!-- RIGHT (5 COLS): EVIDENCE & GROUNDING TELEMETRY -->
+        <div class="lg:col-span-5 report-card space-y-5 shadow-md text-xs font-sans">
+          <div class="space-y-3 border-b border-[var(--border-color)] pb-4">
             <h3 class="text-[var(--accent-link)] font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px]">bar_chart</span>
-              Multi-Metric Confidence Breakdown
+              <span class="material-symbols-outlined text-[18px]">verified</span>
+              Evidence &amp; Grounding Telemetry
             </h3>
             
-            <div class="space-y-3 font-mono text-[11px]">
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-[var(--text-secondary)]">Overall Confidence</span>
-                  <span id="label-conf-overall" class="text-[var(--accent-emerald)] font-bold">99.4%</span>
-                </div>
-                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
-                  <div id="bar-conf-overall" class="bg-[var(--accent-emerald)] h-full transition-all duration-500" style="width: 99.4%"></div>
-                </div>
+            <div class="space-y-2 font-mono text-[11px]">
+              <div class="flex items-center justify-between p-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">
+                <span class="text-[var(--text-secondary)]">Support Status</span>
+                <span id="telemetry-evidence-status" class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">Supported</span>
               </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-[var(--text-secondary)]">Object Detection</span>
-                  <span id="label-conf-objects" class="text-[var(--accent-link)] font-bold">97.8%</span>
-                </div>
-                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
-                  <div id="bar-conf-objects" class="bg-[var(--accent-link)] h-full transition-all duration-500" style="width: 97.8%"></div>
-                </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">
+                <span class="text-[var(--text-secondary)]">Grounding Protocol</span>
+                <span id="telemetry-grounding-mode" class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-bold border border-indigo-500/20">Empirical Visual Ingest</span>
               </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-[var(--text-secondary)]">Subject Classification</span>
-                  <span id="label-conf-subject" class="text-[var(--accent-purple)] font-bold">99.1%</span>
-                </div>
-                <div class="w-full bg-[var(--bg-card-subtle)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
-                  <div id="bar-conf-subject" class="bg-[var(--accent-purple)] h-full transition-all duration-500" style="width: 99.1%"></div>
-                </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">
+                <span class="text-[var(--text-secondary)]">Verification Scope</span>
+                <span id="telemetry-verification-scope" class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 font-bold border border-purple-500/20">Citations &amp; Visual Anchor</span>
               </div>
             </div>
           </div>
@@ -1409,7 +1394,7 @@
               Key Findings
             </div>
             <p id="exec-card-findings" class="text-[var(--text-secondary)] text-xs leading-relaxed">
-              High confidence classification confirming primary subject markers. Crisp focal contrast and distinct contour boundaries.
+              Direct visual classification confirming primary subject markers. Crisp focal contrast and distinct contour boundaries.
             </p>
           </div>
 
@@ -1501,6 +1486,55 @@
           </div>
         </div>
 
+        <!-- EVIDENCE INTELLIGENCE WORKBENCH (PHASE 9) -->
+        <section id="report-evidence-workbench-container" class="space-y-4 report-section-divider">
+          <div class="border-b border-[var(--border-color)] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 font-mono text-[11px] font-bold border border-indigo-500/20 mb-1.5 uppercase">
+                <span class="material-symbols-outlined text-[14px]">account_tree</span>
+                Empirical Evidence Ledger
+              </div>
+              <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+                Evidence Intelligence Workbench
+              </h2>
+              <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">
+                Traceable audit trail distinguishing direct visual observations, domain inferences, and external research citations
+              </p>
+            </div>
+            <!-- Quick ledger summary badge -->
+            <div id="workbench-summary-badge" class="flex items-center gap-2 self-start sm:self-auto font-mono text-xs">
+              <span id="workbench-claims-count" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] font-bold">0 Claims</span>
+            </div>
+          </div>
+
+          <!-- Workbench Filters & Interactive Controls -->
+          <div class="flex flex-wrap items-center justify-between gap-3 text-xs font-mono bg-[var(--bg-card-subtle)] p-3 rounded-xl border border-[var(--border-color)] no-print">
+            <div class="flex flex-wrap items-center gap-1.5" id="workbench-type-filters">
+              <span class="text-[11px] text-[var(--text-muted)] uppercase font-semibold mr-1">Type:</span>
+              <button type="button" class="workbench-type-btn active px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer bg-indigo-600 text-white font-semibold" data-type="all">All</button>
+              <button type="button" class="workbench-type-btn px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer text-[var(--text-secondary)] hover:text-white" data-type="visual_observation">Visual Observations</button>
+              <button type="button" class="workbench-type-btn px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer text-[var(--text-secondary)] hover:text-white" data-type="inference">Inferences</button>
+              <button type="button" class="workbench-type-btn px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer text-[var(--text-secondary)] hover:text-white" data-type="external_source">External Research</button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5" id="workbench-status-filters">
+              <span class="text-[11px] text-[var(--text-muted)] uppercase font-semibold mr-1">Status:</span>
+              <select id="workbench-status-select" class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-md px-2 py-1 text-[11px] focus:outline-none cursor-pointer">
+                <option value="all">All Statuses</option>
+                <option value="supported">Supported</option>
+                <option value="partially_supported">Partially Supported</option>
+                <option value="uncertain">Uncertain</option>
+                <option value="unsupported">Unsupported</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Claims Ledger List -->
+          <div id="workbench-claims-list" class="space-y-3 font-sans">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
         <!-- DYNAMIC DOMAIN-ADAPTIVE SECTIONS CONTAINER (PHASE 5B) -->
         <div id="report-dynamic-sections-container" class="space-y-8 hidden"></div>
 
@@ -1559,8 +1593,8 @@
               <strong class="text-xs text-[var(--accent-purple)] block font-semibold">Veterinary Zoology</strong>
             </div>
             <div class="report-card space-y-1">
-              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Detection Fidelity</span>
-              <strong class="text-xs text-[var(--accent-emerald)] block font-semibold">99.4% High</strong>
+              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Evidence Grounding</span>
+              <strong id="specs-evidence-grounding" class="text-xs text-[var(--accent-emerald)] block font-semibold">Direct Visual Anchor</strong>
             </div>
           </div>
         </div>
@@ -1678,7 +1712,7 @@
         <div id="appendix-telemetry-box" class="p-5 bg-[var(--bg-card-subtle)] rounded-2xl border border-[var(--border-color)] text-xs font-mono text-[var(--text-muted)] space-y-1.5">
           <div>Engine: InsightLens Academic Visual Intelligence System</div>
           <div>Multimodal Model: Gemini 3.6 Flash</div>
-          <div>Validation Status: 13-Section Academic Paper Schema Verified (Passed)</div>
+          <div>Evidence Protocol: Empirical Evidence Ledger Verified</div>
         </div>
 
       </section>
@@ -2297,52 +2331,29 @@
           </p>
         </section>
 
-        <!-- 4. CONFIDENCE BREAKDOWN -->
+        <!-- 4. EVIDENCE GROUNDING TAXONOMY -->
         <section class="bg-[#05060a] p-5 rounded-2xl border ghost-border space-y-3.5">
           <h4 class="font-serif font-bold text-emerald-300 text-xs flex items-center gap-2 border-b border-white/10 pb-2.5">
-            <span class="material-symbols-outlined text-[18px]">equalizer</span>
-            4. Confidence Breakdown
+            <span class="material-symbols-outlined text-[18px]">account_tree</span>
+            4. Evidence Grounding Taxonomy
           </h4>
 
-          <div class="space-y-2.5 font-mono text-[11px]">
-            <div>
-              <div class="flex justify-between text-slate-300 mb-1">
-                <span>Subject Detection</span>
-                <span id="conf-val-subject" class="text-emerald-400 font-bold">98.2%</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                <div id="conf-bar-subject" class="h-full bg-emerald-400 rounded-full transition-all duration-500" style="width: 98.2%"></div>
-              </div>
+          <div class="space-y-2 font-mono text-[11px]">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+              <span class="text-slate-300">Subject Classification</span>
+              <span id="explain-taxonomy-subject" class="text-emerald-400 font-bold">Observed</span>
             </div>
-
-            <div>
-              <div class="flex justify-between text-slate-300 mb-1">
-                <span>OCR Text Extraction</span>
-                <span id="conf-val-ocr" class="text-sky-400 font-bold">92.0%</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                <div id="conf-bar-ocr" class="h-full bg-sky-400 rounded-full transition-all duration-500" style="width: 92%"></div>
-              </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+              <span class="text-slate-300">OCR &amp; Inscriptions</span>
+              <span id="explain-taxonomy-ocr" class="text-sky-400 font-bold">Direct Detection</span>
             </div>
-
-            <div>
-              <div class="flex justify-between text-slate-300 mb-1">
-                <span>Scene Understanding</span>
-                <span id="conf-val-scene" class="text-purple-400 font-bold">95.6%</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                <div id="conf-bar-scene" class="h-full bg-purple-400 rounded-full transition-all duration-500" style="width: 95.6%"></div>
-              </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+              <span class="text-slate-300">Scene Understanding</span>
+              <span id="explain-taxonomy-scene" class="text-purple-400 font-bold">Visual Context</span>
             </div>
-
-            <div>
-              <div class="flex justify-between text-slate-300 mb-1">
-                <span>Research Generation</span>
-                <span id="conf-val-research" class="text-indigo-400 font-bold">94.5%</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                <div id="conf-bar-research" class="h-full bg-indigo-400 rounded-full transition-all duration-500" style="width: 94.5%"></div>
-              </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+              <span class="text-slate-300">Academic Citations</span>
+              <span id="explain-taxonomy-citations" class="text-indigo-400 font-bold">Domain Grounded</span>
             </div>
           </div>
         </section>

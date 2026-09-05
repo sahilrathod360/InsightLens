@@ -66,7 +66,6 @@ export function validateAiReportSchema(data) {
   const category = getStr(data.category);
   const summary = getStr(data.executiveInsight?.summary || data.executiveSummary);
   const keyFinding = getStr(data.executiveInsight?.keyFinding || data.detectionSummary);
-  const confidence = getStr(data.confidenceScore || data.confidence);
 
   // Check required non-empty identification fields
   if (!title || /unknown|placeholder|demo|to be replaced/i.test(title)) return false;
@@ -74,7 +73,6 @@ export function validateAiReportSchema(data) {
   if (!category || /unknown|placeholder|demo|to be replaced/i.test(category)) return false;
   if (!summary || summary.length < 15) return false;
   if (!keyFinding || keyFinding.length < 5) return false;
-  if (!confidence) return false;
 
   // Check evidence/observations
   const hasEvidence = Array.isArray(data.visualEvidence) && data.visualEvidence.length > 0;
@@ -140,7 +138,10 @@ export function parseAIResponse(rawText, provider, model) {
 
   // Normalize aliases if necessary
   parsedData.analysis = parsedData.detailedAnalysis || parsedData.analysis || '';
-  parsedData.confidence = parsedData.confidenceScore || parsedData.confidence || '99.2%';
+  // Confidence percentages from a generative model are not calibrated error
+  // estimates. Preserve only explicit evidence-status labels.
+  delete parsedData.confidence;
+  delete parsedData.confidenceScore;
 
   // STRICT SCHEMA VALIDATION - Never fabricate data!
   const validationStartTime = Date.now();
@@ -167,7 +168,7 @@ export function parseAIResponse(rawText, provider, model) {
   parsedData.aiProvider = provider;
   parsedData.modelUsed = model;
   parsedData.actualModel = model;
-  parsedData.confidenceScore = parsedData.confidence;
+  delete parsedData.confidenceScore;
   parsedData.generationTimestamp = nowStr;
   parsedData.jsonParsingTimeMs = jsonParsingTimeMs;
   parsedData.schemaValidationTimeMs = schemaValidationTimeMs;

@@ -1,130 +1,134 @@
-/**
- * Backend Report 2.0 Normalizer
- * Enforces structured domain-adaptive research data before persistence in PostgreSQL reports.full_data
- */
+/** Conservatively normalizes shape without inventing missing research facts. */
+const EVIDENCE_STATUSES = new Set(['observed', 'inferred', 'uncertain']);
+
+function statusOf(value, fallback = 'uncertain') {
+  const normalized = String(value || fallback).toLowerCase();
+  return EVIDENCE_STATUSES.has(normalized) ? normalized : fallback;
+}
+
+function normalizeEvidence(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map(item => typeof item === 'string'
+      ? { statement: item, status: 'uncertain' }
+      : { statement: String(item?.statement || '').trim(), status: statusOf(item?.status) })
+    .filter(item => item.statement);
+}
+
+const VALID_EVIDENCE_TYPES = new Set(['visual_observation', 'external_source', 'inference']);
+const VALID_SUPPORT_STATUSES = new Set(['supported', 'partially_supported', 'uncertain', 'unsupported']);
+
+function normalizeEvidenceLedger(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map(item => {
+      if (!item || typeof item !== 'object') return null;
+      const claim = String(item.claim || '').trim();
+      if (!claim) return null;
+
+      const rawType = String(item.evidenceType || '').toLowerCase().trim();
+      const evidenceType = VALID_EVIDENCE_TYPES.has(rawType) ? rawType : 'inference';
+
+      const rawStatus = String(item.supportStatus || '').toLowerCase().trim();
+      const supportStatus = VALID_SUPPORT_STATUSES.has(rawStatus) ? rawStatus : 'uncertain';
+
+      const evidence = String(item.evidence || item.observation || '').trim();
+      const reasoning = String(item.reasoning || '').trim();
+      const sourceTitle = item.sourceTitle ? String(item.sourceTitle).trim() : null;
+      const sourceUrl = item.sourceUrl ? String(item.sourceUrl).trim() : null;
+      const relatedSection = item.relatedSection ? String(item.relatedSection).trim() : '';
+
+      return {
+        claim,
+        evidenceType,
+        evidence,
+        sourceTitle,
+        sourceUrl,
+        supportStatus,
+        reasoning,
+        relatedSection
+      };
+    })
+    .filter(Boolean);
+}
+
+export function sanitizeSubjectTitle(str = '') {
+  if (!str || typeof str !== 'string') return '';
+  let clean = str.trim();
+  clean = clean.replace(/^(Research Analysis of|Visual Analysis of|Analysis of|Visual Intelligence Report:|Visual Research Report:)\s+/i, '').trim();
+  clean = clean.replace(/\.(jpe?g|png|webp|gif|bmp|tiff|svg)$/i, '');
+  clean = clean.replace(/\b\d{2,5}x\d{2,5}\b/gi, '').trim();
+  clean = clean.replace(/^[a-z0-9]{6,12}\s+([A-Z])/i, '$1').trim();
+  return clean.trim();
+}
 
 export function normalizeReport(raw) {
   if (!raw || typeof raw !== 'object') return raw;
 
-  const visualType = (raw.visualType || 'unknown').toLowerCase();
-  const subject = (raw.subject || raw.title || 'Visual Artifact Subject').trim();
+  const visualEvidence = normalizeEvidence(raw.visualEvidence);
+  const observations = normalizeEvidence(raw.observations);
+  let evidenceLedger = normalizeEvidenceLedger(raw.evidenceLedger);
+  if (evidenceLedger.length === 0 && (observations.length > 0 || visualEvidence.length > 0)) {
+    const obsItems = observations.map(o => ({
+      claim: o.statement,
+      evidenceType: 'visual_observation',
+      evidence: o.statement,
+      sourceTitle: null,
+      sourceUrl: null,
+      supportStatus: o.status === 'observed' ? 'supported' : (o.status === 'inferred' ? 'partially_supported' : 'uncertain'),
+      reasoning: 'Observed directly within the visual frame.',
+      relatedSection: 'Visual Observations'
+    }));
+    const evItems = visualEvidence.map(e => ({
+      claim: e.statement,
+      evidenceType: e.status === 'observed' ? 'visual_observation' : 'inference',
+      evidence: e.statement,
+      sourceTitle: null,
+      sourceUrl: null,
+      supportStatus: e.status === 'observed' ? 'supported' : (e.status === 'inferred' ? 'partially_supported' : 'uncertain'),
+      reasoning: e.status === 'observed' ? 'Direct visual detection from image artifact.' : 'Analytical inference derived from optical features.',
+      relatedSection: 'Visual Evidence'
+    }));
+    evidenceLedger = [...obsItems, ...evItems].filter(item => item.claim);
+  }
+  const statuses = [...visualEvidence, ...observations].map(item => item.status);
+  const evidenceStatus = statuses.includes('observed')
+    ? 'observed'
+    : (statuses.includes('inferred') ? 'inferred' : statusOf(raw.evidenceStatus));
 
-  // 1. Executive Insight
-  const executiveInsight = raw.executiveInsight && typeof raw.executiveInsight === 'object'
-    ? {
-        summary: raw.executiveInsight.summary || raw.executiveSummary || `Comprehensive visual research analysis focusing on ${subject}.`,
-        keyFinding: raw.executiveInsight.keyFinding || raw.detectionSummary || `Primary focal subject identified as ${subject}.`,
-        keyTakeaways: Array.isArray(raw.executiveInsight.keyTakeaways) && raw.executiveInsight.keyTakeaways.length > 0
-          ? raw.executiveInsight.keyTakeaways
-          : (Array.isArray(raw.applications) ? raw.applications.slice(0, 4) : [`Empirical research and domain analysis of ${subject}.`])
-      }
-    : {
-        summary: raw.executiveSummary || raw.identification || `Comprehensive visual research analysis focusing on ${subject}.`,
-        keyFinding: raw.detectionSummary || (Array.isArray(raw.keyFacts) && raw.keyFacts[0] ? `${raw.keyFacts[0].label}: ${raw.keyFacts[0].detail}` : `Primary subject ${subject} observed with high fidelity.`),
-        keyTakeaways: Array.isArray(raw.applications) ? raw.applications.slice(0, 4) : [`Empirical research and domain analysis of ${subject}.`]
-      };
-
-  // 2. Structured Domain Sections
-  const structuredSections = Array.isArray(raw.structuredSections) && raw.structuredSections.length > 0
-    ? raw.structuredSections.map(sec => ({
-        heading: sec.heading || 'Domain Analysis',
-        icon: sec.icon || 'analytics',
-        content: sec.content || ''
+  const structuredSections = Array.isArray(raw.structuredSections)
+    ? raw.structuredSections
+      .map(section => ({
+        heading: String(section?.heading || '').trim(),
+        icon: String(section?.icon || 'article').trim(),
+        content: String(section?.content || '').trim()
       }))
+      .filter(section => section.heading && section.content)
     : [];
 
-  // 3. Visual Evidence
-  const visualEvidence = Array.isArray(raw.visualEvidence) && raw.visualEvidence.length > 0
-    ? raw.visualEvidence.map(item => ({
-        statement: typeof item === 'string' ? item : item.statement,
-        status: (item.status && ['observed', 'inferred', 'undeterminable'].includes(item.status.toLowerCase()))
-          ? item.status.toLowerCase()
-          : 'observed'
-      }))
-    : [
-        { statement: `Visual inspection confirms observable features of ${subject}.`, status: 'observed' },
-        ...(raw.extractedOCR && raw.extractedOCR !== 'None detected' ? [{ statement: `Textual inscription: "${raw.extractedOCR.slice(0, 80)}"`, status: 'observed' }] : []),
-        { statement: `Visual characteristics correspond to ${raw.category || 'domain'} classification.`, status: 'inferred' },
-        { statement: 'Sub-surface composition and unobservable context cannot be determined from 2D visual input.', status: 'undeterminable' }
-      ];
+  const title = sanitizeSubjectTitle(raw.title) || 'Visual Research Brief';
+  const subject = sanitizeSubjectTitle(raw.subject) || 'Visual Artifact Subject';
 
-  // 4. Observations
-  const observations = Array.isArray(raw.observations) && raw.observations.length > 0
-    ? raw.observations
-    : [
-        ...(Array.isArray(raw.detectedObjects) && raw.detectedObjects.length > 0 ? [{ category: 'Subjects & Entities', statement: `Observed focal entities: ${raw.detectedObjects.join(', ')}.`, status: 'observed' }] : []),
-        ...(raw.extractedOCR && raw.extractedOCR !== 'None detected' ? [{ category: 'Textual Inscriptions', statement: `Extracted text: ${raw.extractedOCR.slice(0, 100)}`, status: 'observed' }] : []),
-        ...(raw.dominantColors ? [{ category: 'Visual Palette', statement: `Dominant chromatic palette: ${raw.dominantColors}.`, status: 'observed' }] : [])
-      ];
-
-  // 5. Interpretations
-  const interpretations = Array.isArray(raw.interpretations) && raw.interpretations.length > 0
-    ? raw.interpretations
-    : [
-        {
-          statement: raw.identification ? raw.identification.split(/\.\s+/)[0] + '.' : `Subject features correspond to ${raw.category || 'domain'} classification.`,
-          basis: 'Derived from visual evidence and verified domain taxonomy.'
-        }
-      ];
-
-  // 6. Findings
-  const findings = Array.isArray(raw.findings) && raw.findings.length > 0
-    ? raw.findings
-    : [
-        {
-          statement: executiveInsight.keyFinding,
-          basis: 'Subject research and visual evidence synthesis.'
-        }
-      ];
-
-  // 7. Limitations
-  const limitations = Array.isArray(raw.limitations) && raw.limitations.length > 0
-    ? raw.limitations
-    : (typeof raw.limitations === 'string' ? raw.limitations.split(/\n+/).filter(Boolean) : [
-        'Analysis is grounded in 2D optical evidence and historical domain documentation.',
-        'Unseen context outside the image frame cannot be independently verified.'
-      ]);
-
-  // 8. Conclusion
-  const conclusion = raw.conclusion || `In summary, research on ${subject} establishes its primary historical, career, and domain significance within ${raw.category || 'the field'}.`;
-
-  // 9. Sources
-  const sources = Array.isArray(raw.sources) && raw.sources.length > 0
-    ? raw.sources
-    : (Array.isArray(raw.references) ? raw.references.map(ref => ({
-        title: ref.title || `${subject} Documentation`,
-        source: ref.source || 'Institutional Archive',
-        year: ref.year || '',
-        url: ref.url || ''
-      })) : []);
-
-  // 10. Technical Metadata
-  const technicalMetadata = {
-    reportVersion: raw.reportVersion || '2.0',
-    visualType,
-    specializedPipeline: raw.specializedPipeline || `${visualType.toUpperCase()} Pipeline`,
-    modelUsed: raw.actualModel || raw.modelUsed || 'gemini-2.5-flash',
-    aiProvider: raw.aiProvider || 'AI Multimodal Vision',
-    confidenceScore: raw.confidenceScore || raw.confidence || '98.5%',
-    processingTimeMs: raw.processingTimeMs || 1800,
-    validationStatus: 'Report 2.0 Schema Verified',
-    timestamp: raw.generationTimestamp || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  };
-
-  return {
+  const normalized = {
     ...raw,
-    reportVersion: '2.0',
-    executiveInsight,
-    structuredSections,
-    conclusion,
+    title,
+    subject,
+    reportVersion: '2.2',
     visualEvidence,
     observations,
-    interpretations,
-    findings,
-    limitations,
-    sources,
-    technicalMetadata
+    evidenceLedger,
+    structuredSections,
+    references: Array.isArray(raw.references) ? raw.references : [],
+    limitations: Array.isArray(raw.limitations)
+      ? raw.limitations.filter(Boolean)
+      : (typeof raw.limitations === 'string' && raw.limitations.trim() ? [raw.limitations.trim()] : []),
+    evidenceStatus,
+    validationStatus: 'Schema validated; claims are not independently verified.'
   };
+  delete normalized.confidence;
+  delete normalized.confidenceScore;
+  delete normalized.aiConfidence;
+  return normalized;
 }
 
 export default normalizeReport;

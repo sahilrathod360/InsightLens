@@ -183,6 +183,41 @@ export const logout = (req, res) => {
   });
 };
 
+export const updateProfile = async (req, res, next) => {
+  try {
+    const email = req.user?.email;
+    const name = String(req.body?.name || '').trim();
+    if (!email || !name || name.length > 150) {
+      return res.status(400).json({ success: false, message: 'A valid display name is required.', data: null });
+    }
+    const initials = getInitials(name);
+    const result = await pool.query(
+      'UPDATE users SET name = $1, initials = $2, updated_at = NOW() WHERE email = $3 RETURNING id, email, name, initials, role, avatar',
+      [name, initials, email]
+    );
+    if (!result.rows[0]) return res.status(404).json({ success: false, message: 'User profile not found.', data: null });
+    return res.status(200).json({ success: true, message: 'Profile updated.', data: result.rows[0] });
+  } catch (err) { next(err); }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const email = req.user?.email;
+    const currentPassword = String(req.body?.currentPassword || '');
+    const newPassword = String(req.body?.newPassword || '');
+    if (!email || !currentPassword || newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'Current password and a new password of at least 8 characters are required.', data: null });
+    }
+    const userResult = await pool.query('SELECT password_hash FROM users WHERE email = $1', [email]);
+    if (!userResult.rows[0] || !(await bcrypt.compare(currentPassword, userResult.rows[0].password_hash))) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect.', data: null });
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await pool.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE email = $2', [passwordHash, email]);
+    return res.status(200).json({ success: true, message: 'Password updated.', data: null });
+  } catch (err) { next(err); }
+};
+
 export const getMe = async (req, res, next) => {
   try {
     // Only derive identity from verified JWT in req.user

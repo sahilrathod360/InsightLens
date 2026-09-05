@@ -2,6 +2,7 @@ export class APIError extends Error {
   constructor(message, statusCode, provider, type) {
     super(message);
     this.statusCode = statusCode;
+    this.status = statusCode;
     this.provider = provider;
     this.type = type;
   }

@@ -22,6 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE TABLE IF NOT EXISTS user_preferences (
     user_email VARCHAR(255) PRIMARY KEY,
     theme VARCHAR(20) DEFAULT 'dark',
+    provider VARCHAR(20) DEFAULT 'auto',
     model VARCHAR(50) DEFAULT 'auto',
     auto_model_fallback BOOLEAN DEFAULT TRUE,
     compact_mode BOOLEAN DEFAULT FALSE,
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS reports (
     date_formatted VARCHAR(100),
     timestamp BIGINT NOT NULL,
     image_data_url TEXT,
+    thumbnail_data_url TEXT,
     full_image TEXT,
     model_used VARCHAR(100) DEFAULT 'gemini-2.5-flash',
     processing_time_ms INT DEFAULT 0,
@@ -59,8 +61,7 @@ CREATE TABLE IF NOT EXISTS reports (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_reports_user_email ON reports(user_email);
-CREATE INDEX IF NOT EXISTS idx_reports_timestamp ON reports(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_reports_user_timestamp ON reports(user_email, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);
 CREATE INDEX IF NOT EXISTS idx_reports_favorite ON reports(favorite);
 
@@ -78,8 +79,8 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_user_timestamp ON activity_logs(use
 
 -- 5. Application Telemetry & Cumulative Metrics
 CREATE TABLE IF NOT EXISTS app_metrics (
-    metric_key VARCHAR(100) PRIMARY KEY DEFAULT 'global_metrics',
-    user_email VARCHAR(255) DEFAULT 'guest@insightlens.edu',
+    metric_key VARCHAR(100) PRIMARY KEY,
+    user_email VARCHAR(255) NOT NULL,
     total_images_analyzed INT DEFAULT 0,
     total_reports_generated INT DEFAULT 0,
     pdf_exports_count INT DEFAULT 0,
@@ -89,3 +90,5 @@ CREATE TABLE IF NOT EXISTS app_metrics (
     last_successful_time BIGINT,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_app_metrics_user_email ON app_metrics(user_email);

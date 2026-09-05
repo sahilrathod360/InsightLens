@@ -81,17 +81,17 @@ export function computeImageStatistics(img) {
   return {
     resolution: `${width} x ${height} px`,
     aspectRatio: `${aspectVal}:1`,
-    brightnessScore: `${brightnessScore}/100 (AI Estimate)`,
-    contrastScore: `${contrastScore}/100 (AI Estimate)`,
-    sharpnessEstimate: `${Math.round(Math.min(98, contrastScore * 1.15))}/100 (AI Estimate)`,
-    dominantColors: `${dominantColors} (AI Estimate)`,
-    colorDiversity: `${contrastScore > 60 ? 'High' : 'Medium'} (AI Estimate)`,
-    edgeDensity: `${contrastScore > 50 ? 'High Contours' : 'Moderate Contours'} (AI Estimate)`,
-    estimatedObjectCount: '4–6 Visual Objects (AI Estimate)',
-    visualComplexity: `${contrastScore > 55 ? 'High' : 'Moderate'} (AI Estimate)`,
-    noiseEstimate: `Low Grain / SNR ${Math.round(20 + brightnessScore * 0.15)}dB (AI Estimate)`,
-    ocrConfidence: 'High (AI Estimate)',
-    aiConfidence: 'High (Model Certainty)'
+    brightnessScore: `${brightnessScore}/100`,
+    contrastScore: `${contrastScore}/100`,
+    sharpnessEstimate: `${Math.round(Math.min(98, contrastScore * 1.15))}/100`,
+    dominantColors: `${dominantColors}`,
+    colorDiversity: `${contrastScore > 60 ? 'High' : 'Medium'}`,
+    edgeDensity: `${contrastScore > 50 ? 'High Contours' : 'Moderate Contours'}`,
+    estimatedObjectCount: 'Pixel Variance Sample',
+    visualComplexity: `${contrastScore > 55 ? 'High' : 'Moderate'}`,
+    noiseEstimate: `Estimated SNR ${Math.round(20 + brightnessScore * 0.15)}dB`,
+    ocrConfidence: 'Not evaluated',
+    aiConfidence: 'Not calibrated'
   };
 }
 

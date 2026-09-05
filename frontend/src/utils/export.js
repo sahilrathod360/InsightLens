@@ -62,6 +62,17 @@ export function exportMarkdownFile() {
 
   const ocrSection = d.extractedOCR && d.extractedOCR !== 'None detected' ? `\n---\n\n## Extracted Text (OCR)\n\`\`\`\n${d.extractedOCR}\n\`\`\`\n` : '';
 
+  let evidenceSection = '';
+  if (Array.isArray(d.evidenceLedger) && d.evidenceLedger.length > 0) {
+    const claimsRows = d.evidenceLedger.map((item, idx) => {
+      const typeLabel = (item.evidenceType || 'claim').replace(/_/g, ' ').toUpperCase();
+      const statusLabel = (item.supportStatus || 'uncertain').replace(/_/g, ' ').toUpperCase();
+      const source = item.sourceUrl ? `[${item.sourceTitle || 'Source'}](${item.sourceUrl})` : (item.sourceTitle || 'Visual Observation');
+      return `### Claim ${idx + 1}: ${item.claim}\n- **Type:** ${typeLabel}\n- **Support Status:** ${statusLabel}\n- **Grounding Evidence:** ${item.evidence || 'N/A'}\n- **Analytical Reasoning:** ${item.reasoning || 'N/A'}\n- **Citation / Reference:** ${source}\n`;
+    }).join('\n');
+    evidenceSection = `\n---\n\n## Evidence Intelligence Workbench\n*Traceable empirical claims ledger with source grounding and verification status.*\n\n${claimsRows}`;
+  }
+
   const md = `# ${d.title || d.subject || 'Visual Research Brief'}
 *Synthesized by InsightLens AI Visual Research Engine (${d.modelUsed || d.actualModel || systemPreferences.model || 'Gemini'})*
 
@@ -73,14 +84,14 @@ export function exportMarkdownFile() {
 - **Primary Subject:** ${d.subject}
 - **Scientific/Technical Name:** ${d.scientificName || 'N/A'}
 - **Domain Category:** ${d.category || 'Visual Science'}
-- **AI Confidence Score:** ${d.confidenceScore || d.aiConfidence || '99.2%'}
+- **Evidence Status:** ${d.evidenceStatus || 'Uncertain (not calibrated)'}
 - **Detected Objects:** ${(d.detectedObjects || []).join(', ')}
 
 ---
 
 ## Executive Summary Abstract
 ${d.executiveSummary || d.summaryLead || d.executiveInsight?.summary || ''}
-${diagramSection}${ocrSection}
+${diagramSection}${ocrSection}${evidenceSection}
 ---
 
 ${bodySections}
@@ -92,7 +103,7 @@ ${d.conclusion || 'Empirical visual research assessment concluded successfully.'
 
 ---
 
-## Verified References & Sources (${systemPreferences.citationStyle || 'APA'})
+## Academic References & Sources (${systemPreferences.citationStyle || 'APA'})
 ${(Array.isArray(d.references) && d.references.length > 0)
   ? d.references.map((src, i) => {
       if (typeof src === 'object' && src !== null) {

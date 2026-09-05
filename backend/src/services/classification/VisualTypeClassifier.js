@@ -80,19 +80,13 @@ export class VisualTypeClassifier {
     const rawType = report.visualType || report.imageType || report.type || 'unknown';
     const visualType = VisualTypeClassifier.normalizeType(rawType);
     
-    // AI estimated confidence (model estimate, not calibrated probability)
-    let rawConf = report.classificationConfidence || report.confidenceScore || report.confidence || '95.0%';
-    if (typeof rawConf === 'number') {
-      rawConf = `${(rawConf * 100).toFixed(1)}%`;
-    }
-
-    const reason = report.classificationReason || report.reason || `Identified as ${visualType} based on dominant visual composition and features.`;
+    const reason = report.classificationReason || report.reason || 'No classification rationale was returned.';
 
     return {
       visualType,
       reason,
       specializedPipeline: visualType,
-      classificationConfidence: rawConf
+      classificationEvidenceStatus: ['observed', 'inferred', 'uncertain'].includes(report.evidenceStatus) ? report.evidenceStatus : 'uncertain'
     };
   }
 }

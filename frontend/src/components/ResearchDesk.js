@@ -70,54 +70,13 @@ export function setupUploadEvents(startAnalysisPipeline) {
   });
 }
 
-export function extractSuggestedSubjectFromFilename(filename) {
-  if (!filename || typeof filename !== 'string') return '';
-  // Strip extension
-  let base = filename.replace(/\.[^/.]+$/, '').trim();
-  
-  // Strip copy indicators like (1), (2), [1], _copy, -copy, etc.
-  base = base.replace(/[\(\[\{]\s*\d+\s*[\)\]\}]/g, '').replace(/[-_]?(copy|duplicate|edit|cropped|resized)/gi, '').trim();
-
-  // If pure numbers, hex, UUIDs, or timestamps (e.g. 1787759819925, 20260903_123456, 8fc4849)
-  if (/^[0-9a-f_\-\s]+$/i.test(base) && (!/[a-z]/i.test(base) || /^[0-9a-f]{8,}$/i.test(base.replace(/[-_\s]/g, '')))) {
-    return '';
-  }
-
-  // Split into words
-  const words = base.split(/[-_\s.]+/).filter(Boolean);
-  if (words.length === 0) return '';
-
-  const genericStopwords = new Set([
-    'image', 'images', 'img', 'imgs', 'photo', 'photos', 'pic', 'pics', 'picture', 'pictures',
-    'screenshot', 'screenshots', 'screen', 'shot', 'capture', 'scan', 'scans', 'document', 'documents',
-    'doc', 'docs', 'file', 'files', 'download', 'downloads', 'upload', 'uploads', 'asset', 'assets',
-    'untitled', 'camera', 'cam', 'frame', 'clip', 'wallpaper', 'avatar', 'temp', 'tmp', 'raw',
-    'thumbnail', 'thumb', 'preview', 'dsc', 'dcim', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'
-  ]);
-
-  // Check if ALL non-numeric words are generic stopwords
-  const meaningfulWords = words.filter(w => {
-    const clean = w.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return clean.length >= 2 && !genericStopwords.has(clean) && !/^\d+$/.test(clean);
-  });
-
-  if (meaningfulWords.length === 0) {
-    return '';
-  }
-
-  // Format as Title Case
-  return meaningfulWords
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ');
-}
-
 export function handleFileSelected(file, startAnalysisPipeline) {
   if (!file) return;
 
   // Validate supported image MIME and extensions (Strictly JPEG, PNG, WebP)
   const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  const ext = (file.name || '').split('.').pop().toLowerCase();
   const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+  const ext = (file.name || '').split('.').pop().toLowerCase();
 
   const isMimeOk = file.type ? allowedMimes.includes(file.type.toLowerCase()) : false;
   const isExtOk = allowedExts.includes(ext);
@@ -137,14 +96,8 @@ export function handleFileSelected(file, startAnalysisPipeline) {
     return;
   }
 
-  // Suggest context from filename if subject input is empty
-  const subjectInput = document.getElementById('input-subject-context');
-  if (subjectInput && !subjectInput.value.trim()) {
-    const suggested = extractSuggestedSubjectFromFilename(file.name);
-    if (suggested) {
-      subjectInput.value = suggested;
-    }
-  }
+  // Note: We intentionally DO NOT infer or populate subject context from the filename.
+  // The subject context input is strictly for explicit, deliberate user input.
 
   setActiveFile(file);
   const reader = new FileReader();
