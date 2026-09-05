@@ -17,12 +17,12 @@ const source = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 // ITEM 1: Archived reports always display their OWN saved image
 // ============================================================================
 const archiveSrc = source('../frontend/src/components/Archive/ArchiveComponent.js');
-assert.match(archiveSrc, /sanitizeUrl\(rpt\.thumbnailDataUrl\) \|\| sanitizeUrl\(rpt\.imageDataUrl\) \|\| sanitizeUrl\(rpt\.fullImage\)/, 'Archive cards must fallback through thumbnail -> imageDataUrl -> fullImage');
-assert.match(archiveSrc, /imageDataUrl: target\.imageDataUrl \|\| target\.fullImage \|\| target\.thumbnailDataUrl/, 'Opening report must resolve own image');
+assert.match(archiveSrc, /rpt\.thumbnailDataUrl \|\| rpt\.imageDataUrl \|\| rpt\.fullImage/, 'Archive cards must fallback through thumbnail -> imageDataUrl -> fullImage');
+assert.match(archiveSrc, /imageDataUrl: sourceImage/, 'Opening report must resolve own image');
 
 const dashSrc = source('../frontend/src/components/Dashboard/DashboardComponent.js');
-assert.match(dashSrc, /sanitizeUrl\(rpt\.thumbnailDataUrl\) \|\| sanitizeUrl\(rpt\.imageDataUrl\) \|\| sanitizeUrl\(rpt\.fullImage\)/, 'Dashboard recent cards must resolve report image');
-assert.match(dashSrc, /imageDataUrl: selected\.imageDataUrl \|\| selected\.fullImage \|\| selected\.thumbnailDataUrl/, 'Reopening report from dashboard must resolve own image');
+assert.match(dashSrc, /rpt\.thumbnailDataUrl \|\| rpt\.imageDataUrl \|\| rpt\.fullImage/, 'Dashboard recent cards must resolve report image');
+assert.match(dashSrc, /imageDataUrl: sourceImage/, 'Reopening report from dashboard must resolve own image');
 
 // ============================================================================
 // ITEM 2: Real Frontend/Backend Pagination for history/archive

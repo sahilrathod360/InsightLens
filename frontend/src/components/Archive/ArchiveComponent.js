@@ -265,25 +265,43 @@ export async function renderArchivePage() {
           const data = rpt.fullData || {};
           const procTime = rpt.processingTimeMs ? (rpt.processingTimeMs / 1000).toFixed(1) + 's' : '~2.0s';
           const conf = rpt.evidenceStatus || 'Uncertain';
-          const safeImg = sanitizeUrl(rpt.thumbnailDataUrl) || sanitizeUrl(rpt.imageDataUrl) || sanitizeUrl(rpt.fullImage) || '/images/urban-analysis.jpg';
+          const rawImg = rpt.thumbnailDataUrl || rpt.imageDataUrl || rpt.fullImage || data.thumbnailDataUrl || data.imageDataUrl || data.fullImage || null;
+          const safeImg = rawImg ? sanitizeUrl(rawImg) : null;
 
           return `
             <div class="bg-surface-container rounded-2xl ghost-border overflow-hidden card-hover-lift flex flex-col justify-between" data-id="${escapeHtml(rpt.id)}">
               <div>
                 <!-- THUMBNAIL & FAVORITE STAR -->
-                <div class="relative h-44 overflow-hidden bg-black/40 border-b ghost-border">
-                  <img src="${escapeHtml(safeImg)}" alt="${escapeHtml(rpt.title)}" class="w-full h-full object-cover" />
+                <div class="relative h-44 overflow-hidden bg-surface-container-lowest border-b ghost-border flex items-center justify-center">
+                  ${safeImg ? `
+                    <img 
+                      src="${escapeHtml(safeImg)}" 
+                      alt="${escapeHtml(rpt.title)}" 
+                      class="w-full h-full object-cover" 
+                      loading="lazy"
+                      onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" 
+                    />
+                    <div class="hidden flex flex-col items-center justify-center p-4 text-center space-y-1.5 w-full h-full bg-surface-container-lowest text-slate-500">
+                      <span class="material-symbols-outlined text-[28px]">image_not_supported</span>
+                      <span class="text-[10px] font-mono text-slate-400">Image unavailable</span>
+                    </div>
+                  ` : `
+                    <div class="flex flex-col items-center justify-center p-4 text-center space-y-1.5 w-full h-full bg-surface-container-lowest text-slate-500">
+                      <span class="material-symbols-outlined text-[28px]">image_not_supported</span>
+                      <span class="text-[10px] font-mono text-slate-400">Image unavailable</span>
+                    </div>
+                  `}
                   
                   <button 
                     type="button" 
-                    class="btn-toggle-fav absolute top-3 right-3 p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 hover:scale-110 transition-transform cursor-pointer" 
+                    class="btn-toggle-fav absolute top-3 right-3 p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 hover:scale-110 transition-transform cursor-pointer z-10" 
                     data-id="${escapeHtml(rpt.id)}"
                     title="${rpt.favorite ? 'Unfavorite' : 'Favorite'}"
                   >
                     <span class="material-symbols-outlined text-[18px] ${rpt.favorite ? 'text-amber-400 fill-amber-400' : 'text-slate-400'}">star</span>
                   </button>
 
-                  <div class="absolute bottom-2.5 left-3 bg-black/80 backdrop-blur-xs px-2.5 py-0.5 rounded text-[10px] font-mono text-indigo-300 font-bold border border-white/10 flex items-center gap-1.5">
+                  <div class="absolute bottom-2.5 left-3 bg-black/80 backdrop-blur-xs px-2.5 py-0.5 rounded text-[10px] font-mono text-indigo-300 font-bold border border-white/10 flex items-center gap-1.5 z-10">
                     <span>${escapeHtml(rpt.category || 'General Research')}</span>
                     <span class="text-slate-500">•</span>
                     <span class="text-emerald-400 uppercase">${escapeHtml(rpt.visualType || (rpt.full_data && rpt.full_data.visualType) || 'Photo')}</span>
@@ -441,14 +459,16 @@ export async function renderArchivePage() {
       const id = btn.getAttribute('data-id');
       let target = rawReports.find(r => r.id === id);
       if (target) {
-        if (!target.fullData) {
-          const fetched = await getReportById(id);
-          if (fetched) target = fetched;
-        }
+        const fetched = await getReportById(id);
+        if (fetched) target = fetched;
+        
+        const fullDataObj = target.fullData || {};
+        const sourceImage = target.imageDataUrl || target.fullImage || fullDataObj.imageDataUrl || fullDataObj.processedImageDataUrl || target.thumbnailDataUrl || fullDataObj.thumbnailDataUrl || '';
         const dataToRender = { 
-          ...(target.fullData || target), 
-          imageDataUrl: target.imageDataUrl || target.fullImage || target.thumbnailDataUrl || '', 
-          thumbnailDataUrl: target.thumbnailDataUrl || null,
+          ...fullDataObj, 
+          ...target,
+          imageDataUrl: sourceImage,
+          thumbnailDataUrl: target.thumbnailDataUrl || fullDataObj.thumbnailDataUrl || null,
           id: target.id,
           title: target.title || (target.fullData && target.fullData.title),
           subject: target.subject || (target.fullData && target.fullData.subject)
@@ -518,12 +538,16 @@ export async function renderArchivePage() {
     btn.onclick = async () => {
       const id = btn.getAttribute('data-id');
       let target = rawReports.find(r => r.id === id);
-      if (target && !target.fullData) target = await getReportById(id);
+      const fetched = await getReportById(id);
+      if (fetched) target = fetched;
       if (target) {
+        const fullDataObj = target.fullData || {};
+        const sourceImage = target.imageDataUrl || target.fullImage || fullDataObj.imageDataUrl || fullDataObj.processedImageDataUrl || target.thumbnailDataUrl || fullDataObj.thumbnailDataUrl || '';
         const dataToRender = { 
-          ...(target.fullData || target), 
-          imageDataUrl: target.imageDataUrl || target.fullImage || target.thumbnailDataUrl || '',
-          thumbnailDataUrl: target.thumbnailDataUrl || null,
+          ...fullDataObj, 
+          ...target,
+          imageDataUrl: sourceImage,
+          thumbnailDataUrl: target.thumbnailDataUrl || fullDataObj.thumbnailDataUrl || null,
           id: target.id,
           title: target.title || (target.fullData && target.fullData.title),
           subject: target.subject || (target.fullData && target.fullData.subject)

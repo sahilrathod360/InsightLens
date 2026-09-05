@@ -99,17 +99,41 @@ export function applySmartSectionTitles(subject = '', category = '') {
 export function renderResultScreen(data) {
   if (!data) return;
   const systemPreferences = getSystemPreferences();
-  const actualImgSrc = data.imageDataUrl || data.fullImage || data.dataUrl || '';
+  const actualImgSrc = data.imageDataUrl || data.fullImage || (data.fullData && (data.fullData.imageDataUrl || data.fullData.processedImageDataUrl || data.fullData.fullImage || data.fullData.thumbnailDataUrl)) || data.thumbnailDataUrl || data.dataUrl || '';
 
   // 1. Assign Real Image
   const reportSourceImg = document.getElementById('report-source-img');
+  const reportImageWrapper = document.getElementById('report-image-wrapper');
+  
+  if (reportImageWrapper) {
+    const existingUnavailable = reportImageWrapper.querySelector('.report-img-unavailable');
+    if (existingUnavailable) existingUnavailable.remove();
+  }
+
   if (reportSourceImg && actualImgSrc) {
+    reportSourceImg.style.display = 'block';
     reportSourceImg.src = actualImgSrc;
+    reportSourceImg.onerror = () => {
+      reportSourceImg.style.display = 'none';
+      if (reportImageWrapper && !reportImageWrapper.querySelector('.report-img-unavailable')) {
+        const ph = document.createElement('div');
+        ph.className = 'report-img-unavailable flex flex-col items-center justify-center p-6 text-center space-y-2 text-slate-500';
+        ph.innerHTML = '<span class="material-symbols-outlined text-[36px]">image_not_supported</span><span class="text-xs text-slate-400 font-mono">Image unavailable</span>';
+        reportImageWrapper.appendChild(ph);
+      }
+    };
     const imgObj = new Image();
     imgObj.onload = () => updateTelemetryUI(computeImageStatistics(imgObj));
     imgObj.src = actualImgSrc;
   } else if (reportSourceImg) {
     reportSourceImg.removeAttribute('src');
+    reportSourceImg.style.display = 'none';
+    if (reportImageWrapper && !reportImageWrapper.querySelector('.report-img-unavailable')) {
+      const ph = document.createElement('div');
+      ph.className = 'report-img-unavailable flex flex-col items-center justify-center p-6 text-center space-y-2 text-slate-500';
+      ph.innerHTML = '<span class="material-symbols-outlined text-[36px]">image_not_supported</span><span class="text-xs text-slate-400 font-mono">Image unavailable</span>';
+      reportImageWrapper.appendChild(ph);
+    }
   }
 
   const imgFilenameEl = document.getElementById('report-image-filename');

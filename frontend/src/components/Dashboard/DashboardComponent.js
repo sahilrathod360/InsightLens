@@ -254,12 +254,28 @@ export async function renderRealDashboard() {
               const model = data.actualModel || data.modelUsed || 'gemini-2.5-flash';
               const procTime = data.processingTimeMs ? (data.processingTimeMs / 1000).toFixed(1) + 's' : '~2.0s';
               const conf = data.evidenceStatus || 'Uncertain';
-              const safeImg = sanitizeUrl(rpt.thumbnailDataUrl) || sanitizeUrl(rpt.imageDataUrl) || sanitizeUrl(rpt.fullImage) || '/images/urban-analysis.jpg';
+              const rawImg = rpt.thumbnailDataUrl || rpt.imageDataUrl || rpt.fullImage || data.thumbnailDataUrl || data.imageDataUrl || data.fullImage || null;
+              const safeImg = rawImg ? sanitizeUrl(rawImg) : null;
 
               return `
                 <div class="bg-surface-container-lowest p-3.5 rounded-xl border ghost-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
-                    <img src="${escapeHtml(safeImg)}" alt="${escapeHtml(rpt.title)}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border ghost-border" />
+                    ${safeImg ? `
+                      <img 
+                        src="${escapeHtml(safeImg)}" 
+                        alt="${escapeHtml(rpt.title)}" 
+                        class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border ghost-border" 
+                        loading="lazy"
+                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');" 
+                      />
+                      <div class="hidden w-12 h-12 rounded-lg bg-surface-container flex flex-col items-center justify-center flex-shrink-0 border ghost-border text-slate-500">
+                        <span class="material-symbols-outlined text-[18px]">image_not_supported</span>
+                      </div>
+                    ` : `
+                      <div class="w-12 h-12 rounded-lg bg-surface-container flex flex-col items-center justify-center flex-shrink-0 border ghost-border text-slate-500">
+                        <span class="material-symbols-outlined text-[18px]">image_not_supported</span>
+                      </div>
+                    `}
                     <div class="min-w-0 space-y-1">
                       <h4 class="font-serif text-xs font-bold text-slate-100 truncate">${escapeHtml(rpt.title)}</h4>
                       <div class="flex flex-wrap items-center gap-2 text-[10px] font-mono text-slate-400">
@@ -453,14 +469,16 @@ export async function renderRealDashboard() {
       const idx = parseInt(btn.getAttribute('data-idx'), 10);
       let selected = stats.reportsList[idx];
       if (selected) {
-        if (!selected.fullData) {
-          const fetched = await getReportById(selected.id);
-          if (fetched) selected = fetched;
-        }
+        const fetched = await getReportById(selected.id);
+        if (fetched) selected = fetched;
+        
+        const fullDataObj = selected.fullData || {};
+        const sourceImage = selected.imageDataUrl || selected.fullImage || fullDataObj.imageDataUrl || fullDataObj.processedImageDataUrl || selected.thumbnailDataUrl || fullDataObj.thumbnailDataUrl || '';
         const dataToRender = { 
-          ...(selected.fullData || selected), 
-          imageDataUrl: selected.imageDataUrl || selected.fullImage || selected.thumbnailDataUrl || '', 
-          thumbnailDataUrl: selected.thumbnailDataUrl || null,
+          ...fullDataObj, 
+          ...selected,
+          imageDataUrl: sourceImage,
+          thumbnailDataUrl: selected.thumbnailDataUrl || fullDataObj.thumbnailDataUrl || null,
           id: selected.id,
           title: selected.title || (selected.fullData && selected.fullData.title),
           subject: selected.subject || (selected.fullData && selected.fullData.subject)

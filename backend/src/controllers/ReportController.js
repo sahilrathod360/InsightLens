@@ -180,6 +180,10 @@ export const getReportById = async (req, res, next) => {
     }
 
     const row = result.rows[0];
+    const fullData = typeof row.full_data === 'object' && row.full_data !== null ? row.full_data : {};
+    const resolvedImage = row.image_data_url || row.full_image || fullData.imageDataUrl || fullData.processedImageDataUrl || fullData.fullImage || row.thumbnail_data_url || fullData.thumbnailDataUrl || null;
+    const resolvedThumb = row.thumbnail_data_url || fullData.thumbnailDataUrl || resolvedImage || null;
+
     return res.status(200).json({
       success: true,
       data: {
@@ -191,9 +195,9 @@ export const getReportById = async (req, res, next) => {
         summaryLead: row.summary_lead,
         date: row.date_formatted,
         timestamp: Number(row.timestamp),
-        imageDataUrl: row.image_data_url || row.full_image,
-        thumbnailDataUrl: row.thumbnail_data_url || null,
-        fullImage: row.full_image || row.image_data_url,
+        imageDataUrl: resolvedImage,
+        thumbnailDataUrl: resolvedThumb,
+        fullImage: resolvedImage,
         modelUsed: row.model_used,
         processingTimeMs: row.processing_time_ms,
         confidenceScore: row.confidence_score,
@@ -280,7 +284,7 @@ export const listReports = async (req, res, next) => {
     params.push(offset);
     const sql = `
       SELECT id, user_email, title, subject, category, summary_lead, date_formatted,
-             timestamp, thumbnail_data_url, model_used, processing_time_ms,
+             timestamp, thumbnail_data_url, image_data_url, full_image, model_used, processing_time_ms,
              confidence_score, favorite, created_at
       FROM reports${whereSql}
       ORDER BY ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`;
@@ -298,7 +302,8 @@ export const listReports = async (req, res, next) => {
       summaryLead: r.summary_lead,
       date: r.date_formatted,
       timestamp: Number(r.timestamp),
-      thumbnailDataUrl: r.thumbnail_data_url || null,
+      thumbnailDataUrl: r.thumbnail_data_url || r.image_data_url || r.full_image || null,
+      imageDataUrl: r.image_data_url || r.full_image || r.thumbnail_data_url || null,
       modelUsed: r.model_used,
       processingTimeMs: r.processing_time_ms,
       confidenceScore: r.confidence_score,
