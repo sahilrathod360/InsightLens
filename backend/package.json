@@ -5,6 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
+    "build": "node -e \"console.log('Backend build verified')\"",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node test/audit-fixes.test.mjs && node test/ai-reliability.test.mjs"

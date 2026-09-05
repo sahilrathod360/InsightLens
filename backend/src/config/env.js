@@ -5,26 +5,51 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const explicitPort = process.env.PORT;
+const explicitNodeEnv = process.env.NODE_ENV;
+const explicitJwtSecret = process.env.JWT_SECRET;
+const explicitDatabaseUrl = process.env.DATABASE_URL;
+
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-const isProduction = (process.env.NODE_ENV === 'production');
-const envJwtSecret = (process.env.JWT_SECRET || '').trim();
-const envDatabaseUrl = (process.env.DATABASE_URL || '').trim();
+const isProduction = ((explicitNodeEnv || process.env.NODE_ENV) === 'production');
+const envJwtSecret = (explicitJwtSecret !== undefined ? explicitJwtSecret : (process.env.JWT_SECRET || '')).trim();
+const envDatabaseUrl = (explicitDatabaseUrl !== undefined ? explicitDatabaseUrl : (process.env.DATABASE_URL || '')).trim();
+const resolvedPort = explicitPort || process.env.PORT || 3000;
+
+const INSECURE_PLACEHOLDERS = new Set([
+  'super_secret_jwt_key_replace_me_in_production',
+  'insightlens_dev_insecure_key_never_use_in_prod',
+  'secret',
+  'changeme',
+  'jwt_secret',
+  'your_jwt_secret_key_here'
+]);
+
+let jwtSecret = null;
+let isJwtConfigured = false;
 
 if (isProduction) {
-  if (!envJwtSecret || envJwtSecret === 'super_secret_jwt_key_replace_me_in_production' || envJwtSecret.length < 16) {
-    throw new Error('FATAL: JWT_SECRET is required in production.');
+  if (!envJwtSecret || INSECURE_PLACEHOLDERS.has(envJwtSecret.toLowerCase()) || envJwtSecret.length < 16) {
+    console.error('[CRITICAL AUTH WARNING] JWT_SECRET is missing, insecure placeholder, or < 16 characters in production. Token signing and authentication endpoints will be disabled.');
+    jwtSecret = null;
+    isJwtConfigured = false;
+  } else {
+    jwtSecret = envJwtSecret;
+    isJwtConfigured = true;
   }
-  if (!envDatabaseUrl) {
-    throw new Error('FATAL: DATABASE_URL is required in production.');
-  }
+} else {
+  // Development mode: permit local testing fallback if explicit key is not provided
+  jwtSecret = envJwtSecret || 'insightlens_dev_insecure_key_never_use_in_prod';
+  isJwtConfigured = true;
 }
 
 export const config = {
-  port: process.env.PORT || 3000,
+  port: resolvedPort,
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   databaseUrl: envDatabaseUrl,
-  jwtSecret: envJwtSecret || 'insightlens_dev_insecure_key_never_use_in_prod',
+  jwtSecret: jwtSecret,
+  isJwtConfigured: isJwtConfigured,
   aiProvider: process.env.AI_PROVIDER || 'gemini',
   aiProviders: (process.env.AI_PROVIDERS || 'gemini,openrouter').split(',').map(s => s.trim().toLowerCase()),
   apiKeys: {

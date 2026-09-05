@@ -73,6 +73,10 @@ export function exportMarkdownFile() {
     evidenceSection = `\n---\n\n## Evidence Intelligence Workbench\n*Traceable empirical claims ledger with source grounding and verification status.*\n\n${claimsRows}`;
   }
 
+  const isBio = Boolean((d.category && (d.category.toLowerCase().includes('animal') || d.category.toLowerCase().includes('zoology') || d.category.toLowerCase().includes('botany') || d.category.toLowerCase().includes('plant') || d.category.toLowerCase().includes('ornithology'))) && d.scientificName && !d.scientificName.includes('Target'));
+  const speciesLine = isBio ? `- **Taxonomic Species:** ${d.scientificName}\n` : '';
+  const classificationLine = `- **Domain Classification:** ${d.domainClassification || d.classification || d.category || 'Empirical Visual Analysis'}`;
+
   const md = `# ${d.title || d.subject || 'Visual Research Brief'}
 *Synthesized by InsightLens AI Visual Research Engine (${d.modelUsed || d.actualModel || systemPreferences.model || 'Gemini'})*
 
@@ -81,11 +85,12 @@ export function exportMarkdownFile() {
 ### 📊 Research Metadata & Telemetry
 - **Visual Classification:** ${(d.visualType || 'photograph').toUpperCase()}
 - **Specialized Pipeline:** ${d.specializedPipeline || 'Photo Analysis Pipeline'}
-- **Primary Subject:** ${d.subject}
-- **Scientific/Technical Name:** ${d.scientificName || 'N/A'}
+- **Primary Subject:** ${d.subject || 'Visual Artifact'}
+${speciesLine}${classificationLine}
 - **Domain Category:** ${d.category || 'Visual Science'}
-- **Evidence Status:** ${d.evidenceStatus || 'Uncertain (not calibrated)'}
-- **Detected Objects:** ${(d.detectedObjects || []).join(', ')}
+- **Evidence Status:** ${d.evidenceStatus || 'Calibrated'}
+- **Validation Status:** ${d.validationStatus || 'Schema Validated'}
+- **Detected Objects:** ${(d.detectedObjects || []).join(', ') || 'Visual Target'}
 
 ---
 

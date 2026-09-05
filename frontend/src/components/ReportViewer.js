@@ -9,14 +9,24 @@ import { renderMarkdownToHtml } from '../utils/markdown.js';
 import { escapeHtml, sanitizeUrl } from '../utils/sanitize.js';
 import { updateTelemetryUI } from './LoadingPipeline.js';
 
+export function isBiologicalEntity(subject = '', category = '') {
+  const combined = `${subject} ${category}`.toLowerCase();
+  const nonBio = ['person', 'human', 'actor', 'athlete', 'wrestler', 'cricketer', 'footballer', 'car', 'vehicle', 'automotive', 'stadium', 'building', 'architecture', 'chart', 'diagram', 'screenshot', 'document', 'map', 'gadget', 'circuit', 'phone'];
+  for (const nb of nonBio) {
+    if (combined.includes(nb)) return false;
+  }
+  const bio = ['animal', 'zoology', 'botany', 'plant', 'species', 'wildlife', 'bird', 'ornithology', 'mammal', 'reptile', 'insect', 'flora', 'fauna', 'canis', 'felis'];
+  return bio.some(b => combined.includes(b));
+}
+
 export function resolveDynamicCategory(subject = '', rawCategory = '') {
   const subLower = (subject || '').toLowerCase();
   const catLower = (rawCategory || '').toLowerCase();
   
   if (subLower.includes('dog') || subLower.includes('puppy') || subLower.includes('cat') || subLower.includes('tiger') || subLower.includes('animal') || subLower.includes('canis')) return 'Animal Biology & Zoology';
-  if (subLower.includes('car') || subLower.includes('vehicle') || subLower.includes('automotive') || subLower.includes('engine') || subLower.includes('truck')) return 'Automotive Engineering';
+  if (subLower.includes('car') || subLower.includes('vehicle') || subLower.includes('automotive') || subLower.includes('engine') || subLower.includes('truck') || subLower.includes('mustang')) return 'Automotive Engineering';
   if (subLower.includes('stadium') || subLower.includes('building') || subLower.includes('skyscraper') || subLower.includes('architecture') || subLower.includes('blueprint') || subLower.includes('tower') || subLower.includes('house')) return 'Architectural Engineering';
-  if (subLower.includes('human') || subLower.includes('person') || subLower.includes('face') || subLower.includes('anatomy') || subLower.includes('hand')) return 'Human Anatomy & Physiology';
+  if (subLower.includes('human') || subLower.includes('person') || subLower.includes('wrestler') || subLower.includes('athlete') || subLower.includes('actor') || subLower.includes('player')) return 'Sports & Entertainment';
   if (subLower.includes('map') || subLower.includes('country') || subLower.includes('continent') || subLower.includes('terrain') || subLower.includes('geography')) return 'Geographical Sciences';
   if (subLower.includes('food') || subLower.includes('dish') || subLower.includes('cuisine') || subLower.includes('meal') || subLower.includes('fruit')) return 'Food Science & Nutrition';
   if (subLower.includes('plant') || subLower.includes('flower') || subLower.includes('leaf') || subLower.includes('tree') || subLower.includes('botany')) return 'Botany & Plant Biology';
@@ -67,7 +77,7 @@ export function applySmartSectionTitles(subject = '', category = '') {
     sec1Title = '1. Fine Art Composition & Medium Analysis';
     sec2Title = '2. Artist Provenance & Art Style Classification';
     sec3Title = '3. Historical Context & Period Movement';
-  } else if (subLower.includes('car') || subLower.includes('vehicle') || subLower.includes('automotive')) {
+  } else if (subLower.includes('car') || subLower.includes('vehicle') || subLower.includes('automotive') || subLower.includes('mustang')) {
     sec1Title = '1. Automotive Engineering & Body Architecture';
     sec2Title = '2. Vehicle Classification & Performance Attributes';
     sec3Title = '3. Mechanical Specifications & Powertrain Specs';
@@ -107,12 +117,13 @@ export function renderResultScreen(data) {
     imgFilenameEl.textContent = document.getElementById('info-filename')?.textContent || 'uploaded_visual_artifact.png';
   }
 
-  // 2. Resolve Subject & Category
+  // 2. Resolve Subject & Category & Classification
   const subjectName = data.subject || 'Visual Artifact Subject';
   const categoryName = resolveDynamicCategory(subjectName, data.category);
-  const scientificNameStr = data.scientificName || (subjectName.toLowerCase().includes('dog') ? 'Canis lupus familiaris' : (subjectName.toLowerCase().includes('cat') ? 'Felis catus' : `${subjectName} Target`));
+  const isBio = isBiologicalEntity(subjectName, categoryName);
+  const classificationStr = data.domainClassification || (isBio && data.scientificName ? data.scientificName : (data.category || categoryName));
 
-  // 3. Hero Header Section - Hierarchy: Subject -> Scientific Name -> Category
+  // 3. Hero Header Section - Hierarchy: Subject -> Classification -> Category
   const heroTitleEl = document.getElementById('report-hero-title');
   if (heroTitleEl) {
     heroTitleEl.textContent = formatReportTitle(subjectName, data.title);
@@ -120,7 +131,13 @@ export function renderResultScreen(data) {
 
   const scientificNameEl = document.getElementById('report-scientific-name');
   if (scientificNameEl) {
-    scientificNameEl.textContent = scientificNameStr;
+    if (isBio && data.scientificName) {
+      scientificNameEl.textContent = data.scientificName;
+      scientificNameEl.classList.remove('hidden');
+    } else {
+      scientificNameEl.textContent = '';
+      scientificNameEl.classList.add('hidden');
+    }
   }
 
   const categorySubEl = document.getElementById('report-category-subtitle');
@@ -181,8 +198,13 @@ export function renderResultScreen(data) {
 
   const evidenceStatus = String(data.evidenceStatus || 'uncertain').replace(/^./, c => c.toUpperCase());
 
+  const labelEl = document.getElementById('grid-scientific-label');
+  if (labelEl) {
+    labelEl.textContent = isBio && data.scientificName ? 'Taxonomic Species' : 'Classification';
+  }
+
   setVal('grid-subject', subjectName);
-  setVal('grid-scientific', scientificNameStr);
+  setVal('grid-scientific', isBio && data.scientificName ? data.scientificName : classificationStr);
   setVal('grid-confidence', evidenceStatus);
   setVal('grid-time', data.processingTimeMs ? `${(data.processingTimeMs / 1000).toFixed(1)}s Latency` : 'Not recorded');
   setVal('grid-category', categoryName);
@@ -264,9 +286,9 @@ export function renderResultScreen(data) {
   if (specsComparisonGrid) {
     const facts = (Array.isArray(data.keyFacts) && data.keyFacts.length > 0) ? data.keyFacts : [
       { label: 'Primary Subject', detail: subjectName },
-      { label: 'Scientific Lineage', detail: scientificNameStr },
-      { label: 'Domain Classification', detail: categoryName },
-      { label: 'Evidence status', detail: evidenceStatus },
+      { label: isBio && data.scientificName ? 'Taxonomic Species' : 'Domain Classification', detail: isBio && data.scientificName ? data.scientificName : classificationStr },
+      { label: 'Domain Category', detail: categoryName },
+      { label: 'Evidence Status', detail: evidenceStatus },
       { label: 'Analysis Model', detail: activeModelStr }
     ];
     specsComparisonGrid.innerHTML = facts.map(f => `

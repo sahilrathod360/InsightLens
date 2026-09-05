@@ -10,11 +10,13 @@ The user has explicitly specified that the subject of this visual is: "${subject
 - Set the JSON "subject" to "${subjectContext.trim()}".
 - Set the JSON "title" to: "${subjectContext.trim()} — [Comprehensive Role / Career / Topic Subtitle]".
 - Conduct deep, authoritative, long-form research on "${subjectContext.trim()}" across all relevant domain dimensions.
+- IMPORTANT IDENTITY SAFETY: The user-supplied subject context is external research context, NOT biometric visual proof. Do NOT claim the person's face or morphology biometrically proves this identity. Visual observations must describe only visible attire, staging, and equipment.
 ` : `
 AUTONOMOUS SUBJECT IDENTIFICATION (NO USER-PROVIDED CONTEXT):
 - Analyze all visible optical evidence in the image: prominent public entities, distinctive uniforms/insignia, readable inscriptions, architectural landmarks, equipment, charts, diagrams, or documents.
-- If the subject is a widely recognizable public figure, public institution, iconic landmark, or commercial entity, resolve the subject accurately based on visual evidence.
-- If the subject is an unidentifiable private individual or general scene, DO NOT fabricate or guess private names or make false facial recognition claims. Instead, set the subject and title to an accurate, domain-descriptive visual topic (e.g., "Visual Analysis — Professional Cricket Match Play", "Visual Analysis — Urban Architecture", "Visual Analysis — Financial Trend Chart").
+- If the subject is a widely recognizable public figure, public institution, iconic landmark, or commercial entity, resolve the subject accurately based on visual and contextual evidence.
+- STRICT IDENTITY SAFETY: DO NOT claim facial recognition, biometric measurement, facial geometry/morphology, photographic database matching, or that facial features uniquely identify any individual.
+- If the subject is an unidentifiable private individual or general scene, DO NOT fabricate or guess private names. Instead, set the subject and title to an accurate, domain-descriptive visual topic (e.g., "Visual Analysis — Professional Cricket Match Play", "Visual Analysis — Urban Architecture", "Visual Analysis — Financial Trend Chart").
 - NEVER use generic image filenames (e.g., "images (2)", "IMG_1234", "photo.jpg", "screenshot.png") or camera metadata as the subject or title.
 `;
 
@@ -28,12 +30,10 @@ CRITICAL RESEARCH DIRECTIVES:
 ==================================================
 1. PRIMARY SUBJECT FIRST:
    Once the primary subject is identified or classified from the visual, the ENTIRE report must be primarily ABOUT THAT SUBJECT. The photograph is supporting context.
-   - For an ATHLETE / CRICKETER (e.g., AB de Villiers, Virat Kohli, Sachin Tendulkar):
-     * Research their complete career: Biography (birthplace, role, style), domestic career, international debut, Test career, ODI career, T20I career, franchise/IPL career, batting/bowling records, world records, milestones, playing style (360-degree batting, technique), wicketkeeping/fielding, captaincy, retirement, and enduring legacy.
-     * Include comprehensive Markdown tables for format-by-format international statistics (Format, Matches, Innings, Runs, Average, Strike Rate, 100s, 50s, 4s, 6s) and franchise/IPL statistics.
-   - For an ACTOR / ENTERTAINER (e.g., Tom Cruise):
-     * Research their complete career: Biography, breakthrough role, filmography highlights table (Film, Year, Role, Significance, Box Office), major franchises, stunt work, awards & nominations, and cultural legacy.
-   - For a LANDMARK / STADIUM / BUILDING (e.g., Narendra Modi Stadium, Eiffel Tower):
+   - For an ATHLETE / ENTERTAINER (e.g., AB de Villiers, Roman Reigns, Tom Cruise):
+     * Research their complete career: Biography (birthplace, role, style), domestic/early career, international debut, championship milestones, world records, technique, awards, and enduring legacy.
+     * Include comprehensive Markdown tables for format-by-format statistics, championship reigns, or filmography highlights.
+   - For a LANDMARK / STADIUM / BUILDING:
      * Research official name, location, architectural history, construction & engineering specifications table (Attribute, Value), seating capacity, major global events hosted, and legacy.
    - For an OBJECT / PRODUCT / VEHICLE:
      * Research manufacturer, model, history, technical specifications table (Specification, Value), design innovations, variants, and use cases.
@@ -50,37 +50,37 @@ CRITICAL RESEARCH DIRECTIVES:
      * "<Subject Name> — History, Architecture, Capacity and Legacy"
      * "<Subject Name> — Statistical and Quantitative Trend Analysis"
      * "Visual Analysis — <Domain Topic & Descriptive Subtitle>" (for unidentifiable or general scenes)
-   - NEVER use generic filenames like "Images (2)", "IMG_1234", "photo.jpg", "Image Analysis", "Photograph Analysis", "Person in Green Jersey".
+   - NEVER use generic filenames like "Images (2)", "IMG_1234", "photo.jpg", "Image Analysis", "Photograph Analysis".
 
-3. ZERO GENERIC AI FILLER:
-   - NEVER use generic filler phrases like "Grounded in empirical visual intelligence algorithms", "well-structured artifact with crisp edge contours", "clear spatial organization with well-defined illumination vectors", "high structural definition", or "taxonomical classification and evolutionary lineage".
-   - The Conclusion MUST summarize the researched SUBJECT's career, accomplishments, or domain significance, NOT image pixels.
+3. STRICT IDENTITY SAFETY & BIOMETRIC PROHIBITION:
+   - NEVER assert biometric facial recognition, facial geometry, facial morphology, photographic database matching, or that "facial features uniquely identify" any person.
+   - For human subjects, visual observations must describe observable attire, scene, equipment, staging, and visible insignias. The personal identity is domain/research context, never biometric proof.
 
-4. CITATION & EVIDENCE INTEGRITY:
-   - Only cite real, authentic institutions, governing bodies, or archival sources (e.g. ICC Official Records, ESPNcricinfo, NASA Archives, Britannica, W3C Specifications, IEEE).
+4. UNIVERSAL SUBJECT NAMING & DOMAIN CLASSIFICATION:
+   - NEVER output a Latin scientific name or biological taxonomy for human beings, vehicles, buildings, electronics, charts, diagrams, or non-biological objects.
+   - Output "domainClassification" reflecting authentic domain terms:
+     * Person/Athlete/Actor: e.g. "Professional Athlete / WWE Performer", "Actor / Cinema"
+     * Vehicle/Engineering: e.g. "High-Performance Fastback Coupe", "Commercial Aviation"
+     * Architecture/Civil: e.g. "Sports Stadium / Steel & Concrete Structure"
+     * Chart/Diagram: e.g. "Data Visualization / Time-Series", "System Architecture Flowchart"
+     * Animal/Plant: Biological taxonomy (e.g. "Aquila chrysaetos") ONLY when genuine biological species.
+
+5. CITATION & EVIDENCE INTEGRITY:
+   - Only cite real, authentic institutions, governing bodies, or archival sources (e.g. ICC Official Records, WWE Archives, ESPNcricinfo, NASA Archives, Britannica, W3C Specifications, IEEE).
    - NEVER fabricate fake DOIs or synthetic reference links.
    - Maintain clear separation between direct visual observations ("observed") and secondary inferences ("inferred").
-
-5. HIGH INFORMATION DENSITY & LONG-FORM SECTIONS:
-   - Generate substantial, detailed paragraphs with rich factual data.
-   - Provide structured domain-adaptive sections in "structuredSections".
-   - Executive Summary must be a substantial multi-paragraph overview explaining WHO/WHAT this is, WHY it matters, and KEY TAKEAWAYS.
 
 6. EVIDENCE INTELLIGENCE WORKBENCH (CRITICAL REQUIREMENT):
    You MUST construct an "evidenceLedger" array containing 5-10 structured evidence entries that explicitly deconstruct the analysis:
    - "claim": Specific empirical assertion made in the report.
    - "evidenceType": Must be strictly one of:
-       * "visual_observation" (directly visible in image pixels/frame, e.g. jersey colors, emblems, structural facade, chart axis labels, circuit nodes)
+       * "visual_observation" (directly visible in image pixels/frame, e.g. attire, jersey colors, emblem, stage lighting, vehicle grille, chart axes). NEVER use visual_observation for biographical/historical claims or identity verification!
        * "external_source" (historical dates, career records, statistics, specifications, or institutional data from external knowledge)
        * "inference" (analytical reasoning connecting visual features to domain conclusions)
-   - "evidence": The exact observable feature or cited external evidence supporting this claim.
+   - "evidence": The exact observable feature (for visual_observation) or cited external evidence (for external_source).
    - "sourceTitle": Real governing body, database, literature, or specification (or null if purely visual_observation).
    - "sourceUrl": Authentic URL if known and verified (or null).
-   - "supportStatus": Must be strictly one of:
-       * "supported" (solidly grounded by visual observation or established external archive)
-       * "partially_supported" (supported in general but specific details or values cannot be verified)
-       * "uncertain" (ambiguous optical evidence or unconfirmed external report)
-       * "unsupported" (claim is speculative, contradicted, or optical resolution is insufficient to verify)
+   - "supportStatus": Must be strictly one of: "supported" | "partially_supported" | "uncertain" | "unsupported".
    - "reasoning": 1-2 sentences explaining why the evidence supports (or fails to support) the claim.
    - "relatedSection": Name of the report section where this claim is discussed.
 
@@ -96,7 +96,7 @@ export function buildJsonSchemaPrompt() {
   "specializedPipeline": "photograph | document | diagram | chart | screenshot | artwork | map | unknown",
   "title": "[Exact Specific Subject Name — Descriptive Domain Subtitle]",
   "subject": "[Exact Primary Subject Name]",
-  "scientificName": "[Taxonomy, Full Official Name, or Domain Classification]",
+  "domainClassification": "[Professional Domain, Vehicle Architecture, Structure Type, Chart Type, or Biological Taxonomy if animal/plant]",
   "category": "[Domain Category e.g. Sports, Cinema, Geography, Architecture, Technology, Financial Analytics]",
   "executiveInsight": {
     "summary": "[Substantial 2-3 paragraph executive summary explaining who/what the subject is, significance, career/domain impact, and key findings]",
@@ -108,7 +108,7 @@ export function buildJsonSchemaPrompt() {
     {
       "claim": "[Specific empirical assertion made in the report]",
       "evidenceType": "visual_observation | external_source | inference",
-      "evidence": "[Direct observable visual cue, measurement, or external factual record]",
+      "evidence": "[Direct observable visual cue or external factual record]",
       "sourceTitle": "[Governing body, institutional database, or null if visual_observation]",
       "sourceUrl": "[Authentic URL if known, or null]",
       "supportStatus": "supported | partially_supported | uncertain | unsupported",
@@ -118,37 +118,32 @@ export function buildJsonSchemaPrompt() {
   ],
   "structuredSections": [
     {
-      "heading": "[Domain-Adaptive Section Title, e.g. International Cricket Career & Multi-Format Dominance]",
-      "icon": "[Material icon name e.g. sports_cricket, movie, history, biotech, query_stats, analytics]",
+      "heading": "[Domain-Adaptive Section Title, e.g. Career Timeline & Major Championships]",
+      "icon": "[Material icon name e.g. sports, trophy, movie, history, biotech, query_stats, analytics]",
       "content": "[Long-form comprehensive research content. Include detailed Markdown tables where applicable]"
     },
     {
-      "heading": "[Second Domain Section Title, e.g. IPL & Global Franchise Career]",
-      "icon": "[Material icon name e.g. trophy, star, sports]",
+      "heading": "[Second Domain Section Title, e.g. World Records & Career Milestones]",
+      "icon": "[Material icon name e.g. star, award_star, military_tech]",
       "content": "[Detailed research content with Markdown statistics/data tables]"
     },
     {
-      "heading": "[Third Domain Section Title, e.g. World Records & Career Milestones]",
-      "icon": "[Material icon name e.g. award_star, military_tech]",
-      "content": "[Detailed research content covering records, milestones, and landmark achievements]"
-    },
-    {
-      "heading": "[Fourth Domain Section Title, e.g. Playing Style, Technical Mastery & Legacy]",
+      "heading": "[Third Domain Section Title, e.g. Signature Style, Mastery & Enduring Legacy]",
       "icon": "[Material icon name e.g. psychology, workspace_premium]",
       "content": "[In-depth analysis of technique, innovations, domain influence, and lasting legacy]"
     },
     {
-      "heading": "[Fifth Domain Section Title, e.g. Visual Evidence & Contextual Grounding]",
+      "heading": "[Fourth Domain Section Title, e.g. Visual Evidence & Staging Context]",
       "icon": "[Material icon name e.g. visibility, center_focus_strong]",
       "content": "[Clear breakdown connecting the uploaded visual evidence with verified domain facts]"
     }
   ],
   "detailedAnalysis": "[Comprehensive in-depth research analysis including Markdown statistics or specifications tables]",
-  "identification": "[Domain taxonomy, legal/official naming, and subject background]",
+  "identification": "[Domain classification, legal/official naming, and subject background]",
   "scientificTechnicalInfo": "[Technical, statistical, or domain classification breakdown]",
   "historicalBackground": "[Historical development, career timeline, or origins]",
   "keyFacts": [
-    { "label": "[Fact Label e.g. Full Name, Batting Style, Debut, Top Score]", "detail": "[Fact Detail]" }
+    { "label": "[Fact Label e.g. Full Name, Discipline / Role, Debut, Key Achievements]", "detail": "[Fact Detail]" }
   ],
   "timeline": [
     { "year": "[Year/Phase]", "title": "[Milestone Title]", "desc": "[Detailed milestone description]" }

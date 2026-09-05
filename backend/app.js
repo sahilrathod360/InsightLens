@@ -60,7 +60,7 @@ app.get('/healthz', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// API Health Check for Frontend & Monitoring (Checks Server + PostgreSQL)
+// API Health Check for Frontend & Monitoring (Checks Server + PostgreSQL + Auth Readiness)
 app.get('/api/health', async (req, res) => {
   let dbStatus = 'disconnected';
   if (pool) {
@@ -79,13 +79,20 @@ app.get('/api/health', async (req, res) => {
   }
 
   const isHealthy = dbStatus === 'connected';
+  const isAuthHealthy = Boolean(config.isJwtConfigured && config.jwtSecret);
+  const isFullyReady = isHealthy && isAuthHealthy;
   const httpStatus = isHealthy ? 200 : 503;
+
+  const issues = [];
+  if (!isHealthy) issues.push('database is unavailable or not configured');
+  if (!isAuthHealthy) issues.push('JWT_SECRET is missing or invalid in production');
 
   res.status(httpStatus).json({
     success: isHealthy,
     status: isHealthy ? 'healthy' : 'degraded',
     database: dbStatus,
-    message: isHealthy ? 'InsightLens Backend is healthy.' : 'InsightLens Backend degraded: database is unavailable or not configured.',
+    auth: isAuthHealthy ? 'configured' : 'unconfigured',
+    message: isHealthy ? 'InsightLens Backend is healthy.' : `InsightLens Backend degraded: ${issues.join('; ')}.`,
     timestamp: new Date().toISOString()
   });
 });

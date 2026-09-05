@@ -26,6 +26,15 @@ export const requireAuth = (req, res, next) => {
     });
   }
 
+  if (!config.isJwtConfigured || !config.jwtSecret) {
+    console.error('[Auth Middleware Error] Rejecting request: JWT verification secret is not configured.');
+    return res.status(503).json({
+      success: false,
+      message: 'Authentication service is unavailable: token verification is not configured.',
+      data: null
+    });
+  }
+
   try {
     const decoded = jwt.verify(token, config.jwtSecret);
     if (!decoded || !decoded.email) {

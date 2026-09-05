@@ -18,22 +18,52 @@ function normalizeEvidence(items) {
 const VALID_EVIDENCE_TYPES = new Set(['visual_observation', 'external_source', 'inference']);
 const VALID_SUPPORT_STATUSES = new Set(['supported', 'partially_supported', 'uncertain', 'unsupported']);
 
+export function sanitizeBiometricText(text = '') {
+  if (!text || typeof text !== 'string') return '';
+  let clean = text;
+  clean = clean.replace(/facial (structure|geometry|morphology|features|characteristics)\s+(uniquely\s+)?identif(ies|y|ied)(\s+the\s+subject)?/gi, 'observable visual attire and staging are consistent with');
+  clean = clean.replace(/uniquely identif(ies|y|ied)\s+(as|the\s+subject|the\s+individual)?/gi, 'is consistent with');
+  clean = clean.replace(/identity (is\s+)?(verified|confirmed|proven)(\s+by\s+facial\s+features)?/gi, 'contextual classification grounded in visual features');
+  clean = clean.replace(/photographic database(s)?(\s+matching)?/gi, 'domain archival records');
+  clean = clean.replace(/biometric\s+(identification|analysis|matching|measurement)/gi, 'visual feature analysis');
+  clean = clean.replace(/confirmed by facial (features|structure|geometry)/gi, 'indicated by visible contextual markers');
+  clean = clean.replace(/facial (features|structure|geometry|morphology)/gi, 'observable visual presentation');
+  return clean.trim();
+}
+
+function isBiologicalDomain(subject = '', category = '') {
+  const combined = `${subject} ${category}`.toLowerCase();
+  const biologicalKeywords = ['animal', 'zoology', 'botany', 'plant', 'species', 'wildlife', 'bird', 'ornithology', 'canis', 'felis', 'mammal', 'reptile', 'insect', 'flora', 'fauna'];
+  const nonBiologicalKeywords = ['person', 'human', 'actor', 'athlete', 'wrestler', 'cricketer', 'footballer', 'car', 'vehicle', 'automotive', 'stadium', 'building', 'architecture', 'chart', 'diagram', 'screenshot', 'document', 'map', 'gadget', 'circuit', 'phone'];
+  for (const nb of nonBiologicalKeywords) {
+    if (combined.includes(nb)) return false;
+  }
+  return biologicalKeywords.some(bk => combined.includes(bk));
+}
+
 function normalizeEvidenceLedger(items) {
   if (!Array.isArray(items)) return [];
   return items
     .map(item => {
       if (!item || typeof item !== 'object') return null;
-      const claim = String(item.claim || '').trim();
+      let claim = sanitizeBiometricText(String(item.claim || '').trim());
       if (!claim) return null;
 
-      const rawType = String(item.evidenceType || '').toLowerCase().trim();
-      const evidenceType = VALID_EVIDENCE_TYPES.has(rawType) ? rawType : 'inference';
+      let rawType = String(item.evidenceType || '').toLowerCase().trim();
+      let evidenceType = VALID_EVIDENCE_TYPES.has(rawType) ? rawType : 'inference';
+
+      // If a claim is an explicit named identity assertion (e.g. "Subject is Roman Reigns"), visual_observation is invalid -> downgrade to inference
+      const isNamedIdentityAssertion = /\b(identity (is\s+)?(verified|confirmed)|uniquely identif|facial|biometric)\b/i.test(claim) ||
+        (/\b(subject|person|individual) is [A-Z][a-z]+\s+[A-Z][a-z]+/i.test(claim) && !/\b(wearing|holding|standing|running|positioned|seated|dressed|equipped)\b/i.test(claim));
+      if (evidenceType === 'visual_observation' && isNamedIdentityAssertion) {
+        evidenceType = 'inference';
+      }
 
       const rawStatus = String(item.supportStatus || '').toLowerCase().trim();
       const supportStatus = VALID_SUPPORT_STATUSES.has(rawStatus) ? rawStatus : 'uncertain';
 
-      const evidence = String(item.evidence || item.observation || '').trim();
-      const reasoning = String(item.reasoning || '').trim();
+      const evidence = sanitizeBiometricText(String(item.evidence || item.observation || '').trim());
+      const reasoning = sanitizeBiometricText(String(item.reasoning || '').trim());
       const sourceTitle = item.sourceTitle ? String(item.sourceTitle).trim() : null;
       const sourceUrl = item.sourceUrl ? String(item.sourceUrl).trim() : null;
       const relatedSection = item.relatedSection ? String(item.relatedSection).trim() : '';
@@ -108,14 +138,30 @@ export function normalizeReport(raw) {
 
   const title = sanitizeSubjectTitle(raw.title) || 'Visual Research Brief';
   const subject = sanitizeSubjectTitle(raw.subject) || 'Visual Artifact Subject';
+  const category = String(raw.category || '').trim();
+
+  // Sanitize all visual statements
+  const sanitizedVisualEvidence = visualEvidence.map(v => ({
+    ...v,
+    statement: sanitizeBiometricText(v.statement)
+  }));
+  const sanitizedObservations = observations.map(o => ({
+    ...o,
+    statement: sanitizeBiometricText(o.statement)
+  }));
+
+  const isBiological = isBiologicalDomain(subject, category);
+  const domainClassification = String(raw.domainClassification || (isBiological ? (raw.scientificName || 'Biological Specimen') : (category || 'Empirical Visual Analysis'))).trim();
 
   const normalized = {
     ...raw,
     title,
     subject,
+    category: category || 'Visual Science',
+    domainClassification,
     reportVersion: '2.2',
-    visualEvidence,
-    observations,
+    visualEvidence: sanitizedVisualEvidence,
+    observations: sanitizedObservations,
     evidenceLedger,
     structuredSections,
     references: Array.isArray(raw.references) ? raw.references : [],
@@ -125,6 +171,10 @@ export function normalizeReport(raw) {
     evidenceStatus,
     validationStatus: 'Schema validated; claims are not independently verified.'
   };
+
+  if (!isBiological) {
+    delete normalized.scientificName;
+  }
   delete normalized.confidence;
   delete normalized.confidenceScore;
   delete normalized.aiConfidence;

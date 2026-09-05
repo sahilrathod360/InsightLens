@@ -10,7 +10,8 @@ export class PhotoAnalysisStrategy extends BaseAnalysisStrategy {
 InsightLens is a Universal Visual Research Engine. The photograph is the entry point for deep, accurate, subject-centered research:
 
 1. SUBJECT IDENTIFICATION & GROUNDING:
-   - Identify the primary subject (public figure, athlete, actor, landmark, stadium, product, vehicle, artwork, or natural feature) using all available visual cues (facial features, uniforms, team crests, logos, contextual markers, readable text).
+   - Identify the primary subject (public figure, athlete, actor, landmark, stadium, product, vehicle, artwork, or natural feature) using observable non-biometric cues (uniforms, team crests, logos, contextual staging, equipment, readable inscriptions, architectural landmarks).
+   - STRICT IDENTITY SAFETY: NEVER claim facial recognition, biometric measurement, facial geometry, facial morphology, photographic database matching, or that facial features uniquely identify any person.
    - If the subject is a known public entity (e.g., Sachin Tendulkar, Tom Cruise, Narendra Modi Stadium, Ray-Ban Aviator), name the subject explicitly and conduct rigorous research on their career, specifications, history, and achievements.
    - If the subject cannot be reliably identified as a known public entity, use an accurate, descriptive domain title (e.g., "Professional Cricket Batsman during Match Play") without inventing a name.
    - NEVER use generic filenames (e.g., "images (2)", "photo.jpg") as the subject or title.
@@ -23,7 +24,8 @@ InsightLens is a Universal Visual Research Engine. The photograph is the entry p
 
 3. EMPIRICAL VISUAL EVIDENCE:
    - Record directly visible visual attributes (posture, uniform/attire colors, equipment, spatial composition, lighting, environmental setting) under "visualEvidence" and "observations" as empirical grounding.
-   - Never confuse direct visual observation with external domain research.`;
+   - Never confuse direct visual observation with external domain research.
+   - When a person appears in an image, visual observations MUST describe observable clothing, scene, and action only. The person's identity is research context or domain inference, NEVER direct biometric proof.`;
   }
 }
 

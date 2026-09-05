@@ -43,6 +43,15 @@ export const register = async (req, res, next) => {
       });
     }
 
+    if (!config.isJwtConfigured || !config.jwtSecret) {
+      console.error('[AuthController Error] Cannot process registration: JWT_SECRET is unconfigured in production.');
+      return res.status(503).json({
+        success: false,
+        message: 'Authentication service is unavailable: secure token signing is not configured.',
+        data: null
+      });
+    }
+
     if (!pool) {
       console.error('[AuthController Error] PostgreSQL pool is uninitialized.');
       return res.status(500).json({
@@ -80,6 +89,15 @@ export const register = async (req, res, next) => {
       [cleanEmail]
     );
 
+    if (!config.isJwtConfigured || !config.jwtSecret) {
+      console.error('[AuthController Error] Cannot sign user registration token: JWT_SECRET is unconfigured in production.');
+      return res.status(503).json({
+        success: false,
+        message: 'Authentication service is unavailable: secure token signing is not configured.',
+        data: null
+      });
+    }
+
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email, name: newUser.name },
       config.jwtSecret,
@@ -108,6 +126,15 @@ export const login = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Please provide both email and password.',
+        data: null
+      });
+    }
+
+    if (!config.isJwtConfigured || !config.jwtSecret) {
+      console.error('[AuthController Error] Cannot process login: JWT_SECRET is unconfigured in production.');
+      return res.status(503).json({
+        success: false,
+        message: 'Authentication service is unavailable: secure token signing is not configured.',
         data: null
       });
     }
@@ -146,6 +173,15 @@ export const login = async (req, res, next) => {
     }
 
     await pool.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [user.id]);
+
+    if (!config.isJwtConfigured || !config.jwtSecret) {
+      console.error('[AuthController Error] Cannot sign user login token: JWT_SECRET is unconfigured in production.');
+      return res.status(503).json({
+        success: false,
+        message: 'Authentication service is unavailable: secure token signing is not configured.',
+        data: null
+      });
+    }
 
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
