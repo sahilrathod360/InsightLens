@@ -3,6 +3,7 @@
 import { navigateTo, getActiveReportData, setActiveReportData, getSystemPreferences, getLastAnalysisPayload } from '../state.js';
 import { computeImageStatistics } from '../utils/canvas.js';
 import { exportMarkdownFile, exportJSONFile, exportCleanPDF } from '../utils/export.js';
+import { normalizeReportId } from '../utils/idUtils.js';
 
 import { showToast } from '../utils/toast.js';
 import { renderMarkdownToHtml } from '../utils/markdown.js';
@@ -178,10 +179,19 @@ export function renderResultScreen(data) {
   const modelUsedEl = document.getElementById('report-model-used');
   if (modelUsedEl) modelUsedEl.textContent = `Model: ${activeModelStr}`;
 
+  const isDemo = Boolean(data.isDemo || data.isSample || String(data.id || '').startsWith('DEMO-'));
+  const demoBannerEl = document.getElementById('report-demo-banner');
+  if (demoBannerEl) {
+    if (isDemo) {
+      demoBannerEl.classList.remove('hidden');
+    } else {
+      demoBannerEl.classList.add('hidden');
+    }
+  }
+
   const reportIdEl = document.getElementById('report-id-display');
   if (reportIdEl) {
-    const rawId = String(data.id || '').trim();
-    reportIdEl.textContent = rawId.startsWith('RPT-') ? rawId : `RPT-${rawId || Date.now().toString().slice(-6)}`;
+    reportIdEl.textContent = normalizeReportId(data.id || Date.now().toString().slice(-6));
   }
 
   const now = new Date();
@@ -462,12 +472,204 @@ export function renderResultScreen(data) {
     `;
   }
 
-  // Phase 4: Compact Visual Structure Extraction for Diagrams
+  // Phase 1 & 4: Compact Visual Structure Extraction for Charts and Diagrams
+  renderChartStructure(data);
   renderDiagramStructure(data);
 
   setActiveReportData(data);
   navigateTo('result');
   showToast(`Visual Research Report rendered (${activeModelStr})`, 'success');
+}
+
+export function renderChartStructure(data) {
+  const container = document.getElementById('chart-structure-container');
+  if (!container) return;
+
+  const isChart = data && (data.visualType === 'chart' || (data.chartStructure && ((Array.isArray(data.chartStructure.dataPoints) && data.chartStructure.dataPoints.length > 0) || data.chartStructure.chartType)));
+  const structure = data?.chartStructure;
+
+  if (!isChart || !structure) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+
+  const rawType = structure.chartType || 'generic chart';
+  const chartType = rawType.replace(/_/g, ' ').toUpperCase();
+  const dataPoints = Array.isArray(structure.dataPoints) ? structure.dataPoints : [];
+  const trends = Array.isArray(structure.trends) ? structure.trends : [];
+  const anomalies = Array.isArray(structure.anomalies) ? structure.anomalies : [];
+  const observations = Array.isArray(structure.observations) ? structure.observations : [];
+  const series = Array.isArray(structure.series) ? structure.series : [];
+
+  const typePill = document.getElementById('chart-type-pill');
+  if (typePill) typePill.textContent = `${chartType} CHART`;
+
+  const statType = document.getElementById('chart-stat-type');
+  if (statType) statType.textContent = rawType.replace(/_/g, ' ');
+
+  const statX = document.getElementById('chart-stat-xaxis');
+  if (statX) {
+    const xLabel = structure.xAxis?.label ? `${structure.xAxis.label}${structure.xAxis.unit ? ` (${structure.xAxis.unit})` : ''}` : 'Categories';
+    statX.textContent = xLabel;
+  }
+
+  const statY = document.getElementById('chart-stat-yaxis');
+  if (statY) {
+    const yLabel = structure.yAxis?.label ? `${structure.yAxis.label}${structure.yAxis.unit ? ` (${structure.yAxis.unit})` : ''}` : 'Values';
+    statY.textContent = yLabel;
+  }
+
+  const statPoints = document.getElementById('chart-stat-points');
+  if (statPoints) statPoints.textContent = `${dataPoints.length} Points`;
+
+  const pointsBadge = document.getElementById('chart-points-count-badge');
+  if (pointsBadge) pointsBadge.textContent = `${dataPoints.length} items`;
+
+  const inconclusiveBox = document.getElementById('chart-inconclusive-box');
+  const contentGrid = document.getElementById('chart-content-grid');
+
+  if (dataPoints.length === 0 && trends.length === 0) {
+    if (inconclusiveBox) {
+      inconclusiveBox.classList.remove('hidden');
+      const incText = document.getElementById('chart-inconclusive-text');
+      if (incText && structure.classificationReason) {
+        incText.textContent = structure.classificationReason;
+      }
+    }
+    if (contentGrid) contentGrid.classList.add('hidden');
+    return;
+  }
+
+  if (inconclusiveBox) inconclusiveBox.classList.add('hidden');
+  if (contentGrid) contentGrid.classList.remove('hidden');
+
+  // Render Series Chips
+  const seriesContainer = document.getElementById('chart-series-chips');
+  if (seriesContainer) {
+    if (series.length > 0) {
+      seriesContainer.innerHTML = series.map((s, idx) => {
+        const name = typeof s === 'string' ? s : (s.name || `Series ${idx + 1}`);
+        const color = typeof s === 'object' && s.color ? s.color : null;
+        return `
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 font-mono text-[10px] border border-indigo-500/20">
+            <span class="w-2 h-2 rounded-full" style="background-color: ${color || 'var(--accent-purple, #818cf8)'}"></span>
+            ${escapeHtml(name)}
+          </span>
+        `;
+      }).join('');
+      seriesContainer.classList.remove('hidden');
+    } else {
+      seriesContainer.innerHTML = '';
+      seriesContainer.classList.add('hidden');
+    }
+  }
+
+  // Render Data Points List
+  const pointsList = document.getElementById('chart-points-list');
+  if (pointsList) {
+    if (dataPoints.length === 0) {
+      pointsList.innerHTML = '<div class="text-[var(--text-muted)] italic font-mono text-xs py-2 text-center">No explicit data callouts transcribed.</div>';
+    } else {
+      // Find maximum numeric value for proportional bar representation
+      const numericValues = dataPoints.map(dp => typeof dp.value === 'number' ? dp.value : parseFloat(dp.value)).filter(v => !isNaN(v) && v > 0);
+      const maxVal = numericValues.length > 0 ? Math.max(...numericValues) : 100;
+
+      pointsList.innerHTML = dataPoints.map(dp => {
+        const val = typeof dp.value === 'number' ? dp.value : parseFloat(dp.value);
+        const formatted = dp.formattedValue || (isNaN(val) ? 'N/A' : String(val));
+        const percent = (!isNaN(val) && val > 0 && maxVal > 0) ? Math.min(100, Math.round((val / maxVal) * 100)) : 0;
+        const certBadge = dp.certainty === 'estimated'
+          ? '<span class="text-[9px] font-mono px-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">EST</span>'
+          : '<span class="text-[9px] font-mono px-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">OBS</span>';
+
+        return `
+          <div class="p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]/60 space-y-1.5 transition-colors hover:border-indigo-500/40">
+            <div class="flex items-center justify-between font-mono text-xs">
+              <span class="font-medium text-[var(--text-primary)] truncate max-w-[65%]">${escapeHtml(dp.label || 'Data Point')}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-emerald-400">${escapeHtml(formatted)}</span>
+                ${certBadge}
+              </div>
+            </div>
+            ${percent > 0 ? `
+              <div class="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+              </div>
+            ` : ''}
+            ${dp.series ? `
+              <div class="text-[10px] text-[var(--text-muted)] font-mono">
+                Series: <span class="text-[var(--text-secondary)]">${escapeHtml(dp.series)}</span>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // Render Trends & Observations List
+  const trendsList = document.getElementById('chart-trends-list');
+  if (trendsList) {
+    const trendItems = [];
+
+    for (const t of trends) {
+      const dir = t.direction || 'stable';
+      let icon = 'trending_flat';
+      let colorClass = 'text-sky-400';
+      if (dir === 'increasing') {
+        icon = 'trending_up';
+        colorClass = 'text-emerald-400';
+      } else if (dir === 'decreasing') {
+        icon = 'trending_down';
+        colorClass = 'text-rose-400';
+      } else if (dir === 'volatile') {
+        icon = 'query_stats';
+        colorClass = 'text-amber-400';
+      }
+
+      trendItems.push(`
+        <li class="flex items-start gap-2 p-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]/50">
+          <span class="material-symbols-outlined text-[16px] ${colorClass} mt-0.5 select-none">${icon}</span>
+          <div class="flex-1 min-w-0">
+            <span class="text-[10px] font-mono uppercase font-bold ${colorClass} block">${escapeHtml(dir)}</span>
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed mt-0.5">${escapeHtml(t.description || '')}</p>
+          </div>
+        </li>
+      `);
+    }
+
+    for (const a of anomalies) {
+      trendItems.push(`
+        <li class="flex items-start gap-2 p-2 rounded-lg bg-amber-500/5 border border-amber-500/20">
+          <span class="material-symbols-outlined text-[16px] text-amber-400 mt-0.5 select-none">warning</span>
+          <div class="flex-1 min-w-0">
+            <span class="text-[10px] font-mono uppercase font-bold text-amber-300 block">Anomaly / Outlier</span>
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed mt-0.5">${escapeHtml(a)}</p>
+          </div>
+        </li>
+      `);
+    }
+
+    for (const obs of observations) {
+      trendItems.push(`
+        <li class="flex items-start gap-2 p-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]/50">
+          <span class="material-symbols-outlined text-[16px] text-indigo-400 mt-0.5 select-none">lightbulb</span>
+          <div class="flex-1 min-w-0">
+            <span class="text-[10px] font-mono uppercase font-bold text-indigo-300 block">Observation</span>
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed mt-0.5">${escapeHtml(obs)}</p>
+          </div>
+        </li>
+      `);
+    }
+
+    if (trendItems.length === 0) {
+      trendsList.innerHTML = '<li class="text-[var(--text-muted)] italic font-mono text-xs py-2 text-center">No trend patterns or observations recorded.</li>';
+    } else {
+      trendsList.innerHTML = `<ul class="space-y-2">${trendItems.join('')}</ul>`;
+    }
+  }
 }
 
 export function renderDiagramStructure(data) {
@@ -507,6 +709,24 @@ export function renderDiagramStructure(data) {
   const edgesBadge = document.getElementById('diagram-edges-count-badge');
   if (edgesBadge) edgesBadge.textContent = `${edges.length} links`;
 
+  const inconclusiveBox = document.getElementById('diagram-inconclusive-box');
+  const contentGrid = document.getElementById('diagram-content-grid');
+
+  if (nodes.length === 0 && edges.length === 0) {
+    if (inconclusiveBox) {
+      inconclusiveBox.classList.remove('hidden');
+      const incText = document.getElementById('diagram-inconclusive-text');
+      if (incText && structure.classificationReason) {
+        incText.textContent = structure.classificationReason;
+      }
+    }
+    if (contentGrid) contentGrid.classList.add('hidden');
+    return;
+  }
+
+  if (inconclusiveBox) inconclusiveBox.classList.add('hidden');
+  if (contentGrid) contentGrid.classList.remove('hidden');
+
   // Render Nodes List
   const nodesList = document.getElementById('diagram-nodes-list');
   if (nodesList) {
@@ -518,7 +738,10 @@ export function renderDiagramStructure(data) {
           <span class="text-indigo-400 mt-0.5 select-none">•</span>
           <div class="flex-1 min-w-0 flex items-center justify-between gap-2">
             <span class="font-medium text-[var(--text-primary)] truncate">${escapeHtml(n.label || 'Unlabelled Node')}</span>
-            ${n.type && n.type !== 'unknown' ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 whitespace-nowrap">${escapeHtml(n.type)}</span>` : ''}
+            <div class="flex items-center gap-1.5">
+              ${n.subtype ? `<span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20 whitespace-nowrap">${escapeHtml(n.subtype)}</span>` : ''}
+              ${n.type && n.type !== 'unknown' ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 whitespace-nowrap">${escapeHtml(n.type)}</span>` : ''}
+            </div>
           </div>
         </li>
       `).join('');
@@ -546,11 +769,31 @@ export function renderDiagramStructure(data) {
                 <span class="font-medium text-[var(--text-primary)] truncate">${escapeHtml(tgtLabel)}</span>
               </div>
               ${e.label ? `<span class="text-[10px] font-mono text-[var(--text-muted)] block mt-0.5">Label: ${escapeHtml(e.label)}</span>` : ''}
+              ${e.type && e.type !== 'directed' ? `<span class="text-[9px] font-mono text-indigo-300 block">Type: ${escapeHtml(e.type)}</span>` : ''}
             </div>
           </li>
         `;
       }).join('');
     }
+  }
+
+  // Render Structural Issues if detected
+  const existingIssuesBox = container.querySelector('.diagram-structural-issues-box');
+  if (existingIssuesBox) existingIssuesBox.remove();
+
+  if (Array.isArray(structure.structuralIssues) && structure.structuralIssues.length > 0) {
+    const issuesBox = document.createElement('div');
+    issuesBox.className = 'diagram-structural-issues-box report-card p-3.5 border border-amber-500/30 bg-amber-500/5 rounded-xl space-y-2 mt-3';
+    issuesBox.innerHTML = `
+      <div class="flex items-center gap-2 font-mono font-bold text-amber-300 text-xs">
+        <span class="material-symbols-outlined text-[16px]">warning</span>
+        <span>Potential Structural Observations</span>
+      </div>
+      <ul class="space-y-1 text-xs text-[var(--text-secondary)] font-sans">
+        ${structure.structuralIssues.map(issue => `<li>• ${escapeHtml(issue)}</li>`).join('')}
+      </ul>
+    `;
+    container.appendChild(issuesBox);
   }
 }
 
@@ -558,27 +801,52 @@ export function renderEvidenceWorkbench(data) {
   const container = document.getElementById('report-evidence-workbench-container');
   if (!container) return;
 
-  // Resolve ledger items or synthesize fallback from legacy visualEvidence/observations
-  let ledger = Array.isArray(data?.evidenceLedger) ? data.evidenceLedger : [];
-
-  if (ledger.length === 0 && (Array.isArray(data?.visualEvidence) || Array.isArray(data?.observations))) {
+  // Resolve claims list from claims or evidenceLedger
+  let ledger = [];
+  if (Array.isArray(data?.claims) && data.claims.length > 0) {
+    ledger = data.claims.map(c => {
+      const st = String(c.status || 'UNDETERMINABLE').toUpperCase();
+      const normStatus = (st === 'OBSERVED' || st === 'INFERRED') ? st : 'UNDETERMINABLE';
+      const evidenceType = normStatus === 'OBSERVED' ? 'visual_observation' : (c.source && !c.source.includes('Optical') ? 'external_source' : 'inference');
+      return {
+        claim: c.statement,
+        status: normStatus,
+        evidenceType,
+        evidence: c.evidence,
+        sourceTitle: c.source || 'Visual Optical Frame',
+        sourceUrl: c.sourceUrl || null,
+        reasoning: c.reasoning,
+        relatedSection: c.relatedSection || ''
+      };
+    });
+  } else if (Array.isArray(data?.evidenceLedger) && data.evidenceLedger.length > 0) {
+    ledger = data.evidenceLedger.map(item => {
+      let st = 'UNDETERMINABLE';
+      if (item.supportStatus === 'supported' || item.evidenceType === 'visual_observation') st = 'OBSERVED';
+      else if (item.supportStatus === 'partially_supported' || item.evidenceType === 'inference') st = 'INFERRED';
+      return {
+        ...item,
+        status: st
+      };
+    });
+  } else if (Array.isArray(data?.visualEvidence) || Array.isArray(data?.observations)) {
     const fallbackObs = (data.observations || []).map(obs => ({
       claim: obs.statement,
       evidenceType: 'visual_observation',
+      status: 'OBSERVED',
       evidence: obs.statement,
       sourceTitle: null,
       sourceUrl: null,
-      supportStatus: 'supported',
       reasoning: 'Observable directly within the visual frame.',
       relatedSection: 'Visual Observations'
     }));
     const fallbackEv = (data.visualEvidence || []).map(ev => ({
       claim: ev.statement,
       evidenceType: ev.status === 'observed' ? 'visual_observation' : 'inference',
+      status: ev.status === 'observed' ? 'OBSERVED' : (ev.status === 'inferred' ? 'INFERRED' : 'UNDETERMINABLE'),
       evidence: ev.statement,
       sourceTitle: null,
       sourceUrl: null,
-      supportStatus: ev.status === 'observed' ? 'supported' : (ev.status === 'inferred' ? 'partially_supported' : 'uncertain'),
       reasoning: ev.status === 'observed' ? 'Direct visual detection from image artifact.' : 'Analytical inference derived from optical features.',
       relatedSection: 'Visual Evidence'
     }));
@@ -617,23 +885,38 @@ export function renderEvidenceWorkbench(data) {
   };
 
   const statusConfig = {
-    supported: {
-      label: 'Supported',
+    OBSERVED: {
+      label: 'OBSERVED',
       badgeClass: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
-      icon: 'check_circle'
+      icon: 'visibility'
+    },
+    INFERRED: {
+      label: 'INFERRED',
+      badgeClass: 'bg-purple-500/15 text-purple-400 border border-purple-500/30',
+      icon: 'psychology'
+    },
+    UNDETERMINABLE: {
+      label: 'UNDETERMINABLE',
+      badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
+      icon: 'help_outline'
+    },
+    supported: {
+      label: 'OBSERVED',
+      badgeClass: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+      icon: 'visibility'
     },
     partially_supported: {
-      label: 'Partially Supported',
-      badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
-      icon: 'published_with_changes'
+      label: 'INFERRED',
+      badgeClass: 'bg-purple-500/15 text-purple-400 border border-purple-500/30',
+      icon: 'psychology'
     },
     uncertain: {
-      label: 'Uncertain',
-      badgeClass: 'bg-slate-500/15 text-slate-300 border border-slate-500/30',
+      label: 'UNDETERMINABLE',
+      badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
       icon: 'help_outline'
     },
     unsupported: {
-      label: 'Unsupported',
+      label: 'UNDETERMINABLE',
       badgeClass: 'bg-rose-500/15 text-rose-400 border border-rose-500/30',
       icon: 'cancel'
     }
@@ -645,8 +928,9 @@ export function renderEvidenceWorkbench(data) {
     if (!listEl) return;
 
     const filtered = ledger.filter(item => {
+      const itemStatus = (item.status || item.supportStatus || 'UNDETERMINABLE').toUpperCase();
       const matchType = activeType === 'all' || item.evidenceType === activeType;
-      const matchStatus = activeStatus === 'all' || item.supportStatus === activeStatus;
+      const matchStatus = activeStatus === 'all' || itemStatus === activeStatus.toUpperCase() || item.supportStatus === activeStatus;
       return matchType && matchStatus;
     });
 
@@ -666,7 +950,8 @@ export function renderEvidenceWorkbench(data) {
 
     listEl.innerHTML = filtered.map((item, idx) => {
       const tMeta = typeConfig[item.evidenceType] || typeConfig.inference;
-      const sMeta = statusConfig[item.supportStatus] || statusConfig.uncertain;
+      const itemStatusKey = item.status || item.supportStatus || 'UNDETERMINABLE';
+      const sMeta = statusConfig[itemStatusKey] || statusConfig[item.supportStatus] || statusConfig.UNDETERMINABLE;
       const safeUrl = sanitizeUrl(item.sourceUrl);
 
       return `

@@ -1,11 +1,13 @@
 import AIManager from '../services/ai/AIManager.js';
 import pool from '../config/db.js';
 import { getCompletedAnalysis, storeCompletedAnalysis } from '../middleware/analysisAdmission.js';
+import { normalizeReportId } from '../utils/idUtils.js';
 
 export const analyzeArtifact = async (req, res, next) => {
   const reqStartTime = Date.now();
+  const requestId = req.idempotencyKey || `REQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   try {
-    console.log(`[Backend] Request received for visual analysis`);
+    console.log(`[Backend] [${requestId}] Request received for visual analysis`);
     const { dataUrl, promptObj = {}, preferredProvider } = req.body;
     const email = req.user?.email;
     if (!email) {
@@ -79,13 +81,13 @@ export const analyzeArtifact = async (req, res, next) => {
 
     console.log(`[AnalysisController] Persisting report for authenticated user: ${email}`);
     
-    // Always assign a fresh unique report ID for every analysis
-    const reportId = `RPT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    // Always assign a normalized unique report ID for every analysis
+    const reportId = normalizeReportId(report.id || `RPT-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
     const now = Date.now();
     const modelName = report.meta?.modelUsed || report.modelUsed || report.actualModel || 'gemini-2.5-flash';
     const formattedDate = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const processingTime = parseInt(report.meta?.inferenceLatencyMs || report.processingTimeMs || 0, 10);
-    const evidenceStatus = report.evidenceStatus || 'uncertain';
+    const evidenceStatus = report.evidenceStatus || 'undeterminable';
     const storedImageDataUrl = report.processedImageDataUrl;
     const thumbnailDataUrl = report.thumbnailDataUrl;
     delete report.processedImageDataUrl;
@@ -174,9 +176,11 @@ export const analyzeArtifact = async (req, res, next) => {
     const totalRequestTimeMs = Date.now() - reqStartTime;
 
     console.log('\n================ ANALYSIS TIMING ================');
+    console.log(`Request ID:                          ${requestId}`);
     console.log(`Visual Classification:               [${(report.visualType || 'unknown').toUpperCase()}] -> ${report.specializedPipeline || 'Standard'}`);
     console.log(`AI Pipeline (Inference + Citations): ${report.processingTimeMs || 0} ms`);
     console.log(`Winning AI Provider:                 ${report.aiProvider || 'Unknown'}`);
+    console.log(`Winning Model:                       ${report.actualModel || modelName}`);
     console.log(`PostgreSQL Report Insert:            ${dbInsertDurationMs} ms`);
     console.log(`Telemetry / Metrics Update:          ${telemetryDurationMs} ms`);
     console.log(`Total Request Latency:               ${totalRequestTimeMs} ms (${(totalRequestTimeMs / 1000).toFixed(2)}s)`);
@@ -198,6 +202,10 @@ export const analyzeArtifact = async (req, res, next) => {
     storeCompletedAnalysis(email, req.idempotencyKey, responsePayload);
     return res.status(200).json(responsePayload);
   } catch (err) {
+    const elapsed = Date.now() - reqStartTime;
+    const errorStatus = err.status || err.statusCode || 500;
+    const errorCategory = err.code || err.name || 'UNKNOWN_ERROR';
+    console.error(`[AnalysisController Error] [${requestId}] Failed in ${elapsed}ms | Status: ${errorStatus} | Category: ${errorCategory} | Message: ${err.message}`);
     next(err);
   }
 };

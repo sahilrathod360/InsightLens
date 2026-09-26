@@ -2,18 +2,22 @@
 
 export const SAMPLE_DEMO_REPORT = {
   id: 'DEMO-89420',
-  title: 'Golden Eagle Aerial Dynamics (Sample Demo Analysis)',
+  isDemo: true,
+  isSample: true,
+  demoNotice: 'SAMPLE DEMONSTRATION — NOT A LIVE AI ANALYSIS',
+  title: 'Golden Eagle Aerial Dynamics (Sample Demonstration)',
   subject: 'Golden Eagle (Aquila chrysaetos)',
   scientificName: 'Aquila chrysaetos',
+  domainClassification: 'Aquila chrysaetos (Avian Raptor)',
   category: 'Ornithology & Aerodynamics',
   evidenceStatus: 'observed',
   imageFilename: 'sample_golden_eagle_soaring.jpg',
   visualType: 'photograph',
   specializedPipeline: 'Photo Analysis Pipeline',
-  summaryLead: 'Comprehensive visual intelligence analysis of an adult Golden Eagle in active soaring flight, highlighting aerodynamic wing slotting, plumage maturity, and thermal soaring posture.',
-  executiveSummary: 'Comprehensive visual intelligence analysis of an adult Golden Eagle in active soaring flight, highlighting aerodynamic wing slotting, plumage maturity, and thermal soaring posture.',
+  summaryLead: 'Sample demonstration brief analyzing an adult Golden Eagle in active soaring flight, highlighting aerodynamic wing slotting, plumage maturity, and thermal soaring posture.',
+  executiveSummary: 'SAMPLE DEMONSTRATION: Comprehensive visual research analysis of an adult Golden Eagle in active soaring flight, highlighting aerodynamic wing slotting, plumage maturity, and thermal soaring posture.',
   executiveInsight: {
-    summary: 'Comprehensive visual intelligence analysis of an adult Golden Eagle in active soaring flight, highlighting aerodynamic wing slotting and plumage maturity.',
+    summary: 'Sample demonstration brief of an adult Golden Eagle in active soaring flight, highlighting aerodynamic wing slotting and plumage maturity.',
     keyFinding: 'Deeply emarginated primary feathers (wing-tip slots) indicate thermal soaring with minimal induced aerodynamic vortex drag.',
     keyTakeaways: [
       'Characteristic slotted primaries function as individual aerodynamic winglets to attenuate wingtip vortices.',
@@ -21,6 +25,74 @@ export const SAMPLE_DEMO_REPORT = {
       'High-contrast overhead daylight provides distinct contour separation against ambient sky.'
     ]
   },
+  claims: [
+    {
+      id: 'claim_1',
+      statement: 'Deeply emarginated primary flight feathers (wing-tip slots) are visible at both wingtips.',
+      status: 'OBSERVED',
+      evidence: 'Fanned primary remiges visible with distinct slotted emarginations at wingtips in visual frame.',
+      source: 'Visual Optical Frame',
+      reasoning: 'Direct optical detection from image artifact.'
+    },
+    {
+      id: 'claim_2',
+      statement: 'Golden-buff nape and crown plumage indicates adult specimen maturity.',
+      status: 'OBSERVED',
+      evidence: 'Golden-buff crown contrasting against dark brown mantle.',
+      source: 'Visual Optical Frame',
+      reasoning: 'Visible plumage coloration matches definitive basic phase.'
+    },
+    {
+      id: 'claim_3',
+      statement: 'Emarginated primaries attenuate induced vortex drag during thermal soaring.',
+      status: 'INFERRED',
+      evidence: 'Fluid dynamic aerodynamics of avian wingtip slots.',
+      source: 'Journal of Experimental Biology',
+      reasoning: 'Aerodynamic theory corroborating visible dihedral wing geometry.'
+    },
+    {
+      id: 'claim_4',
+      statement: 'Absolute flight speed and altitude cannot be measured without ground sensor calibration.',
+      status: 'UNDETERMINABLE',
+      evidence: 'Single uncalibrated 2D optical frame without spatial telemetry.',
+      source: 'Visual Optical Frame',
+      reasoning: 'Geometric limitation of uncalibrated single-view imaging.'
+    }
+  ],
+  structuredFindings: [
+    {
+      id: 'finding_1',
+      statement: 'Deeply slotted primary flight feathers visible at both wingtips.',
+      category: 'Visual Observation',
+      status: 'OBSERVED',
+      evidence: 'Fanned primary remiges visible with distinct slotted emarginations.',
+      reasoning: 'Direct visual detection from visual artifact.'
+    },
+    {
+      id: 'finding_2',
+      statement: 'Golden-buff nape feathers visible against dark brown mantle.',
+      category: 'Visual Observation',
+      status: 'OBSERVED',
+      evidence: 'Nape feather coloration.',
+      reasoning: 'Direct optical detection in visual frame.'
+    },
+    {
+      id: 'finding_3',
+      statement: 'Flight posture indicates utilization of thermal updraft for soaring.',
+      category: 'Aerodynamic Analysis',
+      status: 'INFERRED',
+      evidence: 'Dihedral wing angle and fanned tail.',
+      reasoning: 'Inferred from flight posture.'
+    },
+    {
+      id: 'finding_4',
+      statement: 'Exact physical wingspan and flight altitude cannot be determined from 2D aspect alone.',
+      category: 'Physical Measurement',
+      status: 'UNDETERMINABLE',
+      evidence: 'Lack of ground scale reference.',
+      reasoning: '2D optical perspective boundary.'
+    }
+  ],
   visualEvidence: [
     { statement: 'Deeply slotted primary flight feathers visible at both wingtips.', status: 'observed' },
     { statement: 'Golden-buff nape feathers visible against dark brown mantle.', status: 'observed' },
@@ -105,11 +177,12 @@ export const SAMPLE_DEMO_REPORT = {
   technicalMetadata: {
     visualType: 'photograph',
     specializedPipeline: 'Photo Analysis Pipeline',
-    modelUsed: 'Demo Fixture Engine',
-    aiProvider: 'InsightLens Sample Analysis',
+    modelUsed: 'Demo Fixture (Offline)',
+    aiProvider: 'InsightLens Sample Demonstration',
     evidenceStatus: 'observed',
     processingTimeMs: 85,
-    validationStatus: 'Schema validated (demo fixture)',
+    validationStatus: 'Sample Demonstration Fixture',
     timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 };
+

@@ -1191,6 +1191,18 @@
     <!-- MAIN ACADEMIC PAPER REPORT CANVAS -->
     <div id="paper-canvas" class="report-paper-wrapper space-y-10 shadow-2xl relative overflow-hidden transition-colors">
       
+      <!-- SAMPLE DEMONSTRATION WARNING BANNER -->
+      <div id="report-demo-banner" class="hidden p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 no-print">
+        <div class="flex items-start sm:items-center gap-3">
+          <span class="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5 sm:mt-0">info</span>
+          <div>
+            <h3 class="font-bold text-xs sm:text-sm tracking-wide uppercase font-mono">SAMPLE DEMONSTRATION — NOT A LIVE AI ANALYSIS</h3>
+            <p class="text-[11px] sm:text-xs text-amber-200/80 font-sans mt-0.5">This report is an offline demonstration fixture to showcase report structure, claims analysis, and visualization layout without live API inference.</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono text-[11px] font-bold shrink-0 self-start sm:self-auto">SAMPLE / DEMO</span>
+      </div>
+
       <!-- 1. HERO SECTION: SUBJECT NAME -> CLASSIFICATION -> CATEGORY PILL -->
       <header class="border-b border-[var(--border-color)] pb-8 space-y-4 relative">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1423,6 +1435,84 @@
       <!-- 5. STRUCTURED ACADEMIC RESEARCH SECTIONS -->
       <section class="space-y-10 report-section-divider font-sans">
         
+        <!-- PHASE 1: QUANTITATIVE CHART & DATA STRUCTURE (HIDDEN UNLESS VISUAL TYPE IS CHART) -->
+        <div id="chart-structure-container" class="hidden space-y-4">
+          <div class="border-b border-[var(--border-color)] pb-2 flex items-center justify-between">
+            <div>
+              <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[var(--accent-purple)] text-[24px]">query_stats</span>
+                Quantitative Chart &amp; Data Structure
+              </h2>
+              <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Machine-readable data points, axes, series, and analytical trends extraction</p>
+            </div>
+            <span id="chart-type-pill" class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 font-mono text-xs font-bold border border-indigo-500/20 uppercase">Chart</span>
+          </div>
+
+          <!-- Quick Metrics Bar -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+            <div class="report-card p-3 space-y-0.5">
+              <span class="text-[10px] text-[var(--text-muted)] uppercase block">Chart Type</span>
+              <strong id="chart-stat-type" class="text-indigo-400 block font-bold text-sm">Bar Chart</strong>
+            </div>
+            <div class="report-card p-3 space-y-0.5">
+              <span class="text-[10px] text-[var(--text-muted)] uppercase block">X-Axis (Independent)</span>
+              <strong id="chart-stat-xaxis" class="text-sky-400 block font-bold text-sm truncate">Categories</strong>
+            </div>
+            <div class="report-card p-3 space-y-0.5">
+              <span class="text-[10px] text-[var(--text-muted)] uppercase block">Y-Axis (Dependent)</span>
+              <strong id="chart-stat-yaxis" class="text-emerald-400 block font-bold text-sm truncate">Values</strong>
+            </div>
+            <div class="report-card p-3 space-y-0.5">
+              <span class="text-[10px] text-[var(--text-muted)] uppercase block">Data Points</span>
+              <strong id="chart-stat-points" class="text-amber-400 block font-bold text-sm">0 Points</strong>
+            </div>
+          </div>
+
+          <!-- Inconclusive state box (shown when extraction is uncertain) -->
+          <div id="chart-inconclusive-box" class="hidden report-card p-4 border border-amber-500/30 bg-amber-500/5 rounded-xl space-y-1 text-xs">
+            <div class="flex items-center gap-2 font-mono font-bold text-amber-300">
+              <span class="material-symbols-outlined text-base">info</span>
+              <span>Structured Chart Extraction Inconclusive</span>
+            </div>
+            <p id="chart-inconclusive-text" class="text-[var(--text-secondary)] leading-relaxed">
+              Quantitative data points could not be extracted with high fidelity due to visual resolution, compressed axes, or unlabelled marks. See detailed analysis section for contextual interpretation.
+            </p>
+          </div>
+
+          <!-- Chart Content Grid: Data Points Table & Trends -->
+          <div id="chart-content-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-4 text-xs">
+            <!-- DATA POINTS & SERIES (Col 7) -->
+            <div class="report-card p-4 space-y-3 lg:col-span-7">
+              <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-1.5">
+                <span class="font-mono text-xs font-bold text-[var(--text-primary)] uppercase flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-[var(--accent-purple)]">bar_chart</span>
+                  Extracted Data Points
+                </span>
+                <span id="chart-points-count-badge" class="font-mono text-[10px] text-[var(--text-muted)]">0 items</span>
+              </div>
+              <!-- Series Legend Chips -->
+              <div id="chart-series-chips" class="flex flex-wrap gap-1.5 pb-1"></div>
+              <!-- Data Points Container -->
+              <div id="chart-points-list" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- TRENDS & ANOMALIES (Col 5) -->
+            <div class="report-card p-4 space-y-3 lg:col-span-5">
+              <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-1.5">
+                <span class="font-mono text-xs font-bold text-[var(--text-primary)] uppercase flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-[var(--accent-emerald)]">trending_up</span>
+                  Analytical Trends &amp; Observations
+                </span>
+              </div>
+              <div id="chart-trends-list" class="space-y-2 max-h-72 overflow-y-auto pr-1 font-sans">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- PHASE 4: DIAGRAM STRUCTURAL GRAPH EXTRACTION (HIDDEN UNLESS VISUAL TYPE IS DIAGRAM) -->
         <div id="diagram-structure-container" class="hidden space-y-4">
           <div class="border-b border-[var(--border-color)] pb-2 flex items-center justify-between">
@@ -1452,8 +1542,19 @@
             </div>
           </div>
 
+          <!-- Inconclusive state box (shown when extraction is uncertain) -->
+          <div id="diagram-inconclusive-box" class="hidden report-card p-4 border border-amber-500/30 bg-amber-500/5 rounded-xl space-y-1 text-xs">
+            <div class="flex items-center gap-2 font-mono font-bold text-amber-300">
+              <span class="material-symbols-outlined text-base">info</span>
+              <span>Structured Diagram Extraction Inconclusive</span>
+            </div>
+            <p id="diagram-inconclusive-text" class="text-[var(--text-secondary)] leading-relaxed">
+              Structured nodes and connectors could not be conclusively resolved from visual topology. See detailed visual analysis for system architecture and entity descriptions.
+            </p>
+          </div>
+
           <!-- Two-column: Nodes list on left, Connections on right -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div id="diagram-content-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <!-- NODES LIST -->
             <div class="report-card p-4 space-y-2.5">
               <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-1.5">
@@ -1519,10 +1620,9 @@
               <span class="text-[11px] text-[var(--text-muted)] uppercase font-semibold mr-1">Status:</span>
               <select id="workbench-status-select" class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-md px-2 py-1 text-[11px] focus:outline-none cursor-pointer">
                 <option value="all">All Statuses</option>
-                <option value="supported">Supported</option>
-                <option value="partially_supported">Partially Supported</option>
-                <option value="uncertain">Uncertain</option>
-                <option value="unsupported">Unsupported</option>
+                <option value="OBSERVED">Observed</option>
+                <option value="INFERRED">Inferred</option>
+                <option value="UNDETERMINABLE">Undeterminable</option>
               </select>
             </div>
           </div>

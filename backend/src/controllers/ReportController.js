@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { normalizeReportId } from '../utils/idUtils.js';
 
 /**
  * Save / Persist Report to PostgreSQL.
@@ -33,7 +34,7 @@ export const saveReport = async (req, res, next) => {
       });
     }
 
-    const reportId = id || `RPT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const reportId = normalizeReportId(id);
     const nowTime = timestamp || Date.now();
     const formattedDate = date || new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 

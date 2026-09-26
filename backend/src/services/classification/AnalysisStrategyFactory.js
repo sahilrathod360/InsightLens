@@ -29,16 +29,33 @@ export class AnalysisStrategyFactory {
   }
 
   /**
+   * Retrieves instructions for a specific visual type.
+   */
+  static getStrategyInstructions(rawType) {
+    const strategy = AnalysisStrategyFactory.getStrategy(rawType);
+    return strategy ? strategy.getInstructions() : '';
+  }
+
+  /**
    * Generates high-signal prompt guidance embedding Visual Classification Taxonomy
    * and specialized analysis pipeline rules into the single-turn AI synthesis call.
    */
   static buildPromptInstructions() {
+    const diagramGuide = AnalysisStrategyFactory.strategies.diagram.getInstructions();
+    const chartGuide = AnalysisStrategyFactory.strategies.chart.getInstructions();
+    const photoGuide = AnalysisStrategyFactory.strategies.photograph.getInstructions();
+    const docGuide = AnalysisStrategyFactory.strategies.document.getInstructions();
+    const screenGuide = AnalysisStrategyFactory.strategies.screenshot.getInstructions();
+    const artGuide = AnalysisStrategyFactory.strategies.artwork.getInstructions();
+    const mapGuide = AnalysisStrategyFactory.strategies.map.getInstructions();
+    const genericGuide = AnalysisStrategyFactory.strategies.unknown.getInstructions();
+
     return `VISUAL CLASSIFICATION & SPECIALIZED PIPELINES:
 1. CLASSIFY VISUAL TYPE into exactly ONE category:
 - "photograph": Real-world photography of subjects, people, athletes, actors, landscapes, architecture, stadiums, products, or objects.
 - "document": Text-heavy pages, forms, invoices, letters, tables, or scanned sheets. (Extract OCR text, document layout, sections).
-- "diagram": Schematics, flowcharts, DFD, UML, architecture blocks, or circuits. (Extract diagramType, nodes with id/label/type, and edges with source/target/label/direction).
-- "chart": Quantitative data plots, bar graphs, line charts, pie charts, or dashboards. (Extract chart archetype, axes, visible categories, trends).
+- "diagram": Schematics, flowcharts, DFD, UML, architecture blocks, or circuits. (Extract diagramType, nodes with id/label/type/subtype, and edges with source/target/label/direction).
+- "chart": Quantitative data plots, bar graphs, line charts, pie charts, scatter plots, or dashboards. (Extract chart archetype, axes, visible series, data points, trends).
 - "screenshot": Software interfaces, browser apps, OS windows, mobile screens, or code editors. (Extract interface context, visible UI elements).
 - "artwork": Paintings, drawings, watercolors, digital illustrations, or sculptures. (Extract artistic medium, style, composition).
 - "map": Geographic maps, transit routes, or terrain surveys. (Extract cartographic type, landmarks, spatial features).
@@ -46,7 +63,41 @@ export class AnalysisStrategyFactory {
 
 2. SUBJECT IDENTIFICATION DISCIPLINE:
 - Automatically identify the primary research subject (prominent public figure, athlete, landmark, product, dataset, or diagram system) from all available visual evidence (features, logos, uniforms, team insignia, location cues, labels).
-- For unidentifiable or private persons, use an accurate descriptive domain subject (e.g., "Professional Cricket Player in Match Uniform") without inventing a name.`;
+- For unidentifiable or private persons, use an accurate descriptive domain subject (e.g., "Professional Cricket Player in Match Uniform") without inventing a name.
+
+==================================================
+SPECIALIZED VISUAL EXTRACTION PIPELINE DIRECTIVES:
+==================================================
+
+${diagramGuide}
+
+---
+
+${chartGuide}
+
+---
+
+${photoGuide}
+
+---
+
+${docGuide}
+
+---
+
+${screenGuide}
+
+---
+
+${artGuide}
+
+---
+
+${mapGuide}
+
+---
+
+${genericGuide}`;
   }
 }
 

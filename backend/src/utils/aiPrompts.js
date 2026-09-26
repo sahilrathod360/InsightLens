@@ -84,6 +84,14 @@ CRITICAL RESEARCH DIRECTIVES:
    - "reasoning": 1-2 sentences explaining why the evidence supports (or fails to support) the claim.
    - "relatedSection": Name of the report section where this claim is discussed.
 
+7. STRUCTURED CLAIMS & FINDINGS (EMPIRICAL GROUNDING):
+   - You MUST populate "claims" and "structuredFindings" arrays with empirical statements.
+   - For every claim and finding, set "status" strictly to one of:
+     * "OBSERVED": Directly visible optical features in the image (e.g. colors, labels, shapes, attire, chart bars).
+     * "INFERRED": Logical deductions connecting visual evidence to domain/external knowledge.
+     * "UNDETERMINABLE": Claims that cannot be definitively confirmed or refuted from available visual evidence.
+   - Include the specific "evidence" and "reasoning" for every claim and finding.
+
   Write in ${writingStyle} style. Use ${citationStyle} formatting where a source is available.
   Synthesize in ${lang} (${researchLength} depth). Do not invent a source, a confidence percentage, or facts not supported by the image or clearly identified external knowledge. Return ONLY valid JSON matching this schema:`;
 }
@@ -161,8 +169,82 @@ export function buildJsonSchemaPrompt() {
   ],
   "diagramStructure": {
     "diagramType": "flowchart | dfd | uml | er_diagram | architecture | generic diagram",
-    "nodes": [],
-    "edges": []
-  }
+    "classificationReason": "[1-2 sentence diagram classification rationale]",
+    "nodes": [
+      {
+        "id": "node_1",
+        "label": "[Exact legible text inside node]",
+        "type": "process | decision | data_store | external_entity | database | component | class | entity | system | person | unknown",
+        "subtype": "[Optional shape/role e.g. terminal, decision_diamond, entity_table, datastore_cylinder, api_gateway, microservice]",
+        "certainty": "observed | inferred | undetermined"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge_1",
+        "source": "node_1",
+        "target": "node_2",
+        "label": "[Connector label / condition / data flow payload or null]",
+        "type": "directed | undirected | association | dependency | data_flow | inheritance | aggregation | composition",
+        "direction": "forward | bidirectional | none",
+        "relationshipCertainty": "observed | inferred | undetermined"
+      }
+    ],
+    "groups": [
+      { "id": "group_1", "label": "[Subsystem or boundary name]", "nodeIds": ["node_1", "node_2"] }
+    ],
+    "visibleLabels": ["[Visible text labels extracted from diagram]"]
+  },
+  "chartStructure": {
+    "chartType": "bar | line | pie | donut | scatter | area | histogram | radar | generic chart",
+    "title": "[Exact legible chart title or null]",
+    "xAxis": {
+      "label": "[X-Axis label or category dimension]",
+      "unit": "[Unit if indicated e.g. Year, Month, USD, % or null]",
+      "scale": "categorical | linear | time | logarithmic"
+    },
+    "yAxis": {
+      "label": "[Y-Axis label or quantitative metric]",
+      "unit": "[Unit if indicated e.g. Millions, %, Count or null]",
+      "scale": "linear | percentage | logarithmic"
+    },
+    "series": [
+      { "name": "[Series name / Legend entry]", "color": "[Color if identifiable or null]" }
+    ],
+    "dataPoints": [
+      {
+        "label": "[Category name or X value]",
+        "value": 123.45,
+        "formattedValue": "[e.g. $123.45M or 45%]",
+        "series": "[Series name or null]",
+        "certainty": "observed | estimated"
+      }
+    ],
+    "trends": [
+      { "direction": "increasing | decreasing | stable | volatile | cyclical", "description": "[Specific observed trend]" }
+    ],
+    "anomalies": ["[Outliers, peaks, troughs, or unexpected data points]"],
+    "observations": ["[Key analytical conclusions directly visible in chart]"]
+  },
+  "claims": [
+    {
+      "id": "claim_1",
+      "statement": "[Specific empirical assertion made in the report]",
+      "status": "OBSERVED | INFERRED | UNDETERMINABLE",
+      "evidence": "[Direct optical observation or cited external data]",
+      "source": "[Governing body / database or 'Visual Optical Frame']",
+      "reasoning": "[1-2 sentences explaining why the evidence supports or qualifies the claim]"
+    }
+  ],
+  "structuredFindings": [
+    {
+      "id": "finding_1",
+      "statement": "[Discrete empirical finding or claim]",
+      "category": "Visual Observation | Quantitative Data | Architectural Flow | Subject Verification",
+      "status": "OBSERVED | INFERRED | UNDETERMINABLE",
+      "evidence": "[Direct observable element or data source]",
+      "reasoning": "[1-2 sentences explaining observation or deduction]"
+    }
+  ]
 }`;
 }

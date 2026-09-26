@@ -144,24 +144,34 @@ export class DiagramStructureValidator {
       }
 
       const nodeType = DiagramStructureValidator.normalizeNodeType(rawNode.type);
+      const subtype = typeof rawNode.subtype === 'string' && rawNode.subtype.trim() ? rawNode.subtype.trim() : null;
+      const position = rawNode.position && typeof rawNode.position === 'object' ? rawNode.position : (typeof rawNode.position === 'string' ? rawNode.position.trim() : null);
+      const certainty = (rawNode.certainty === 'inferred' || rawNode.certainty === 'undetermined') ? rawNode.certainty : 'observed';
 
-      validNodes.push({
+      const nodeObj = {
         id: newId,
         label,
         type: nodeType
-      });
+      };
+      if (subtype) nodeObj.subtype = subtype;
+      if (position) nodeObj.position = position;
+      nodeObj.certainty = certainty;
+
+      validNodes.push(nodeObj);
     }
 
-    // 2. Process & Re-index Edges Deterministically
-    const rawEdges = Array.isArray(rawStructure.edges) ? rawStructure.edges : [];
+    // 2. Process & Re-index Edges Deterministically (supports both 'edges' and 'connections')
+    const rawEdges = Array.isArray(rawStructure.edges)
+      ? rawStructure.edges
+      : (Array.isArray(rawStructure.connections) ? rawStructure.connections : (Array.isArray(rawStructure.links) ? rawStructure.links : []));
     const validEdges = [];
     let edgeCounter = 1;
 
     for (const rawEdge of rawEdges) {
       if (!rawEdge || typeof rawEdge !== 'object') continue;
 
-      const rawSource = rawEdge.source ? String(rawEdge.source).trim() : null;
-      const rawTarget = rawEdge.target ? String(rawEdge.target).trim() : null;
+      const rawSource = rawEdge.source ? String(rawEdge.source).trim() : (rawEdge.from ? String(rawEdge.from).trim() : null);
+      const rawTarget = rawEdge.target ? String(rawEdge.target).trim() : (rawEdge.to ? String(rawEdge.to).trim() : null);
 
       const sourceId = oldIdToNewId.get(rawSource);
       const targetId = oldIdToNewId.get(rawTarget);
@@ -203,13 +213,49 @@ export class DiagramStructureValidator {
       const groupNodeIds = (Array.isArray(rawGroup.nodeIds) ? rawGroup.nodeIds : [])
         .map(id => oldIdToNewId.get(String(id).trim()))
         .filter(Boolean);
-
       validGroups.push({
         id: `group_${groupCounter++}`,
         label: groupLabel,
         nodeIds: groupNodeIds
       });
-      visibleLabelsSet.add(groupLabel);
+    }
+
+    // 4. Identify Potential Structural Inconsistencies (Cautious Phrasing)
+    const structuralIssues = [];
+
+    if (validNodes.length > 1) {
+      const incomingCounts = new Map();
+      const outgoingCounts = new Map();
+      validNodes.forEach(n => {
+        incomingCounts.set(n.id, 0);
+        outgoingCounts.set(n.id, 0);
+      });
+
+      validEdges.forEach(e => {
+        outgoingCounts.set(e.source, (outgoingCounts.get(e.source) || 0) + 1);
+        incomingCounts.set(e.target, (incomingCounts.get(e.target) || 0) + 1);
+      });
+
+      for (const node of validNodes) {
+        const inCount = incomingCounts.get(node.id) || 0;
+        const outCount = outgoingCounts.get(node.id) || 0;
+        const isTerminal = (node.subtype && /\b(terminal|start|end|boundary|terminator)\b/i.test(node.subtype)) ||
+          (/\b(start|end|stop|terminal)\b/i.test(node.label || '') && !/\bdead\s*end\b/i.test(node.label || ''));
+
+        // Orphan node: 0 in and 0 out
+        if (inCount === 0 && outCount === 0) {
+          structuralIssues.push(`Possible issue: Node "${node.label || node.id}" (${node.id}) appears isolated with no visible connections to other entities.`);
+        } else if (diagramType === 'flowchart' || diagramType === 'dfd') {
+          // Dead end / sink in flowchart (excluding terminals)
+          if (outCount === 0 && inCount > 0 && !isTerminal) {
+            structuralIssues.push(`Potential structural inconsistency: Node "${node.label || node.id}" (${node.id}) has incoming flows but no visible outgoing connector.`);
+          }
+          // Unconnected entry in internal process
+          if (inCount === 0 && outCount > 0 && !isTerminal && node.type === 'process') {
+            structuralIssues.push(`Potential structural inconsistency: Process "${node.label || node.id}" (${node.id}) has outgoing flows but no visible incoming trigger.`);
+          }
+        }
+      }
     }
 
     return {
@@ -218,6 +264,7 @@ export class DiagramStructureValidator {
       nodes: validNodes,
       edges: validEdges,
       groups: validGroups,
+      structuralIssues,
       visibleLabels: Array.from(visibleLabelsSet)
     };
   }
