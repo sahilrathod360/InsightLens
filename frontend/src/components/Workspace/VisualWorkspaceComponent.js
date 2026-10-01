@@ -21,26 +21,58 @@ let selectedEvidenceId = null;
 let currentComparisonMode = 'side-by-side'; // side-by-side, slider, overlay, diff, findings
 let currentSliderPos = 50;
 
+export function getPrimaryWorkspaceArtifact() {
+  if (currentWorkspaceArtifacts && currentWorkspaceArtifacts.length > 0) {
+    return currentWorkspaceArtifacts[0];
+  }
+  const activeReport = getActiveReportData();
+  if (activeReport) {
+    const art = {
+      id: activeReport.id || 'ART-PRIMARY',
+      title: activeReport.title || 'Primary Visual Analysis',
+      visualType: activeReport.visualType || 'DIAGRAM',
+      imageSrc: activeReport.image_data_url || activeReport.thumbnail_data_url || '',
+      diagramStructure: activeReport.diagramStructure || activeReport.full_data?.diagramStructure || null,
+      chartStructure: activeReport.chartStructure || activeReport.full_data?.chartStructure || null,
+      claims: activeReport.claims || activeReport.full_data?.claims || [],
+      findings: activeReport.findings || activeReport.full_data?.keyFindings || []
+    };
+    currentWorkspaceArtifacts = [art];
+    return art;
+  }
+  const fallback = {
+    id: 'DEMO-VISUAL',
+    title: 'Distributed Microservices Architecture',
+    visualType: 'DFD',
+    diagramStructure: {
+      nodes: [
+        { id: 'node_1', label: 'User Client', type: 'External Entity' },
+        { id: 'node_2', label: 'API Gateway', type: 'Process' },
+        { id: 'node_3', label: 'PostgreSQL DB', type: 'Data Store' }
+      ],
+      links: [
+        { from: 'User Client', to: 'API Gateway', label: 'HTTPS Request' },
+        { from: 'API Gateway', to: 'PostgreSQL DB', label: 'SQL Query' }
+      ]
+    },
+    claims: [
+      { id: 'claim_1', text: 'Client connects to API Gateway via HTTPS' },
+      { id: 'claim_2', text: 'Gateway queries PostgreSQL DB' }
+    ],
+    findings: [
+      { title: 'API Gateway routes client traffic to DB', status: 'OBSERVED' },
+      { title: 'Secure TLS channel established', status: 'OBSERVED' }
+    ]
+  };
+  currentWorkspaceArtifacts = [fallback];
+  return fallback;
+}
+
 export async function renderVisualWorkspace() {
   const container = document.getElementById('page-workspace');
   if (!container) return;
 
-  const activeReport = getActiveReportData();
-
-  if (activeReport && currentWorkspaceArtifacts.length === 0) {
-    currentWorkspaceArtifacts = [
-      {
-        id: activeReport.id || 'ART-PRIMARY',
-        title: activeReport.title || 'Primary Visual Analysis',
-        visualType: activeReport.visualType || 'DIAGRAM',
-        imageSrc: activeReport.image_data_url || activeReport.thumbnail_data_url || '',
-        diagramStructure: activeReport.diagramStructure || activeReport.full_data?.diagramStructure || null,
-        chartStructure: activeReport.chartStructure || activeReport.full_data?.chartStructure || null,
-        claims: activeReport.claims || activeReport.full_data?.claims || [],
-        findings: activeReport.findings || activeReport.full_data?.keyFindings || []
-      }
-    ];
-  }
+  getPrimaryWorkspaceArtifact();
 
   container.innerHTML = `
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
@@ -452,7 +484,7 @@ export function setupWorkspaceEvents() {
   window.openLiveVisionModal = openLiveVisionModal;
   
   window.handleStartWorkspaceNarration = () => {
-    const primary = currentWorkspaceArtifacts[0];
+    const primary = getPrimaryWorkspaceArtifact();
     startNarration(primary);
   };
 

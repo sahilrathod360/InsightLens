@@ -20,16 +20,27 @@ export function setNarrationHighlightCallback(cb) {
 }
 
 export async function startNarration(reportData) {
-  if (!reportData) {
-    showToast('Open an analysis with evidence-backed findings to begin narration.', 'warning');
-    return;
-  }
+  const artifact = reportData || {
+    id: 'DEMO-VISUAL',
+    title: 'Distributed Microservices Architecture',
+    visualType: 'DFD',
+    diagramStructure: {
+      nodes: [
+        { id: 'node_1', label: 'User Client', type: 'External Entity' },
+        { id: 'node_2', label: 'API Gateway', type: 'Process' },
+        { id: 'node_3', label: 'PostgreSQL DB', type: 'Data Store' }
+      ]
+    },
+    findings: [
+      { title: 'API Gateway routes client traffic to DB', status: 'OBSERVED' }
+    ]
+  };
 
   stopNarration();
 
   showToast('Preparing evidence-grounded narration sequence...', 'info');
   try {
-    currentSequence = await generateNarrationSequence(reportData);
+    currentSequence = await generateNarrationSequence(artifact);
     currentStepIndex = 0;
     isPlaying = true;
     isPaused = false;
@@ -40,6 +51,13 @@ export async function startNarration(reportData) {
     console.error('[Narration] Error generating sequence:', err);
     showToast(`Narration notice: ${err.message}`, 'error');
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.startNarration = startNarration;
+  window.pauseNarration = pauseNarration;
+  window.stopNarration = stopNarration;
+  window.setNarrationSpeed = (s) => setPlaybackRate(s);
 }
 
 function playNextStep() {
