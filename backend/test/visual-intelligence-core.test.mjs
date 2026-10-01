@@ -318,4 +318,91 @@ describe('Visual Intelligence Platform Core Subsystems', () => {
     assert.ok(intel.consistency);
     assert.ok(intel.summary.totalEvidenceItems >= 2);
   });
+
+  // --------------------------------------------------------------------------
+  // TEST 9: LIVE VISION FRAME PROCESSING & OBSERVATION
+  // --------------------------------------------------------------------------
+  it('should process live camera frames and return real-time lightweight observations', async () => {
+    const { default: LiveVisionEngine } = await import('../src/services/livecamera/LiveVisionEngine.js');
+    const frameResult = LiveVisionEngine.processFrame({
+      imageDataUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBD...',
+      timestamp: Date.now(),
+      frameIndex: 1,
+      cameraFacing: 'environment'
+    });
+
+    assert.ok(frameResult.frameId);
+    assert.equal(frameResult.status, 'OBSERVED');
+    assert.ok(frameResult.evidenceRegions.length >= 1);
+    assert.ok(frameResult.latencyMs >= 0);
+  });
+
+  // --------------------------------------------------------------------------
+  // TEST 10: REGION-SPECIFIC ANALYSIS & BOUNDING INSPECTION
+  // --------------------------------------------------------------------------
+  it('should perform focused semantic analysis on a specific bounding box region', async () => {
+    const { default: RegionAnalysisEngine } = await import('../src/services/region/RegionAnalysisEngine.js');
+    const regionRes = RegionAnalysisEngine.analyzeRegion({
+      regionId: 'REG-TEST-1',
+      coordinates: { x: 0.2, y: 0.3, width: 0.4, height: 0.2 },
+      label: 'API Gateway Entity',
+      visualType: 'DIAGRAM'
+    });
+
+    assert.ok(regionRes.analysisId);
+    assert.equal(regionRes.label, 'API Gateway Entity');
+    assert.equal(regionRes.findings.observed.includes('Observed'), true);
+    assert.equal(regionRes.claims.length, 3);
+  });
+
+  // --------------------------------------------------------------------------
+  // TEST 11: GUESS BEFORE YOU SEE EVALUATION
+  // --------------------------------------------------------------------------
+  it('should evaluate user guesses categorically against visual evidence with NO fake numbers', async () => {
+    const { default: GuessEngine } = await import('../src/services/guess/GuessEngine.js');
+    
+    const mockArtifact = {
+      diagramStructure: {
+        nodes: [{ label: 'Customer' }, { label: 'Bank Server' }],
+        links: [{ from: 'Customer', to: 'Bank Server' }]
+      },
+      claims: [{ claimText: 'Customer initiates payment to Bank Server' }]
+    };
+
+    // 1. Matched Guess
+    const matchRes = GuessEngine.evaluateGuess({
+      guess: 'Customer connects directly to Bank Server for payment',
+      visualArtifact: mockArtifact
+    });
+    assert.equal(matchRes.verdict, 'MATCHED');
+
+    // 2. Unsubstantiated Guess
+    const unsupportedRes = GuessEngine.evaluateGuess({
+      guess: 'Autonomous drone fleet delivers pizza to warehouse',
+      visualArtifact: mockArtifact
+    });
+    assert.equal(unsupportedRes.verdict, 'NOT SUPPORTED');
+  });
+
+  // --------------------------------------------------------------------------
+  // TEST 12: SPOKEN NARRATION STEP SEQUENCING
+  // --------------------------------------------------------------------------
+  it('should generate ordered narration steps with synchronized evidence region coordinates', async () => {
+    const { default: NarrationEngine } = await import('../src/services/narration/NarrationEngine.js');
+    
+    const mockReport = {
+      title: 'Cloud Architecture Analysis',
+      visualType: 'DIAGRAM',
+      evidence: [
+        { id: 'EVI-1', label: 'Auth Gateway', status: 'OBSERVED', explanation: 'Direct visual gateway node.', coordinates: { x: 0.1, y: 0.2, width: 0.2, height: 0.1, normalized: true } }
+      ]
+    };
+
+    const narration = NarrationEngine.generateNarrationSequence(mockReport);
+    assert.ok(narration.narrationId);
+    assert.ok(narration.totalSteps >= 3); // intro + evidence + conclusion
+    assert.equal(narration.steps[0].order, 1);
+    assert.equal(narration.steps[1].evidenceId, 'EVI-1');
+    assert.ok(narration.steps[1].coordinates.x === 0.1);
+  });
 });

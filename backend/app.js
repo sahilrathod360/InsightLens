@@ -27,6 +27,10 @@ import comparisonRoutes from './src/routes/comparison.routes.js';
 import consistencyRoutes from './src/routes/consistency.routes.js';
 import visualQARoutes from './src/routes/visualqa.routes.js';
 import workspaceRoutes from './src/routes/workspace.routes.js';
+import liveVisionRoutes from './src/routes/livevision.routes.js';
+import regionRoutes from './src/routes/region.routes.js';
+import guessRoutes from './src/routes/guess.routes.js';
+import narrationRoutes from './src/routes/narration.routes.js';
 
 console.log('Creating Express app instance...');
 const app = express();
@@ -177,6 +181,10 @@ app.use('/api/comparison', optionalAuth, comparisonRoutes);
 app.use('/api/consistency', optionalAuth, consistencyRoutes);
 app.use('/api/visual-qa', optionalAuth, visualQARoutes);
 app.use('/api/workspace', optionalAuth, workspaceRoutes);
+app.use('/api/live-vision', optionalAuth, liveVisionRoutes);
+app.use('/api/regions', optionalAuth, regionRoutes);
+app.use('/api/guess', optionalAuth, guessRoutes);
+app.use('/api/narration', optionalAuth, narrationRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

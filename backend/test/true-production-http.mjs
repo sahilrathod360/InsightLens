@@ -372,6 +372,74 @@ async function runTrueProductionHttpSuite() {
     assert.ok(wsRes.json.data.evidenceReport, 'Must contain evidenceReport');
     record('Visual Intelligence Workspace Service', true, `Created Workspace ${wsRes.json.data.workspaceId} with full intelligence report`);
 
+    // 6. Live Vision Frame Processing API
+    console.log('Testing Live Vision API...');
+    const liveRes = await httpReq('/api/live-vision/frame', {
+      method: 'POST',
+      body: JSON.stringify({
+        imageDataUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBD...',
+        timestamp: Date.now(),
+        frameIndex: 1,
+        cameraFacing: 'environment'
+      })
+    }, authToken);
+    assert.equal(liveRes.status, 200);
+    assert.equal(liveRes.json.data.status, 'OBSERVED');
+    assert.ok(liveRes.json.data.evidenceRegions.length >= 1);
+    record('Live Vision Real-Time Frame API', true, `Processed frame #${liveRes.json.data.frameIndex} (${liveRes.json.data.latencyMs}ms latency)`);
+
+    // 7. Region-Specific Analysis API
+    console.log('Testing Region-Specific Analysis API...');
+    const regRes = await httpReq('/api/regions/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        regionId: 'REG-PROD-1',
+        coordinates: { x: 0.15, y: 0.2, width: 0.35, height: 0.25 },
+        label: 'Auth Gateway Entity',
+        visualType: 'DIAGRAM'
+      })
+    }, authToken);
+    assert.equal(regRes.status, 200);
+    assert.ok(regRes.json.data.findings.observed.includes('Observed'));
+    record('Region-Specific Contextual Analysis API', true, `Analyzed region "${regRes.json.data.label}" with grounded observations`);
+
+    // 8. Guess Before You See Evaluation API
+    console.log('Testing Guess Evaluation API...');
+    const guessRes = await httpReq('/api/guess/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({
+        guess: 'Client connects to Server directly',
+        visualArtifact: {
+          diagramStructure: {
+            nodes: [{ label: 'Client' }, { label: 'Server' }],
+            links: [{ from: 'Client', to: 'Server' }]
+          },
+          claims: [{ claimText: 'Client sends data to Server' }]
+        }
+      })
+    }, authToken);
+    assert.equal(guessRes.status, 200);
+    assert.equal(guessRes.json.data.verdict, 'MATCHED');
+    record('Guess Mode Evaluation API', true, `Evaluated prediction: verdict=${guessRes.json.data.verdict} (NO fake percentage)`);
+
+    // 9. Spoken Narration Sequence API
+    console.log('Testing Spoken Narration Sequence API...');
+    const narrRes = await httpReq('/api/narration/sequence', {
+      method: 'POST',
+      body: JSON.stringify({
+        reportData: {
+          title: 'System Architecture',
+          visualType: 'DIAGRAM',
+          evidence: [
+            { id: 'EVI-1', label: 'API Gateway', status: 'OBSERVED', explanation: 'Gateway ingress controller.', coordinates: { x: 0.1, y: 0.1, width: 0.3, height: 0.2, normalized: true } }
+          ]
+        }
+      })
+    }, authToken);
+    assert.equal(narrRes.status, 200);
+    assert.ok(narrRes.json.data.steps.length >= 3);
+    record('Spoken Narration Sequence API', true, `Generated ${narrRes.json.data.steps.length} ordered narration steps`);
+
     // ------------------------------------------------------------------------
     // SUMMARY
     // ------------------------------------------------------------------------

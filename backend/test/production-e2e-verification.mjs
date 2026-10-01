@@ -110,7 +110,12 @@ async function runRealWorldVerification() {
 }
 
 runRealWorldVerification()
-  .then(() => process.exit(0))
+  .then(async () => {
+    if (pool) {
+      try { await pool.end(); } catch (e) {}
+    }
+    process.exit(0);
+  })
   .catch((err) => {
     console.error('[E2E Error]', err);
     process.exit(1);

@@ -66,3 +66,47 @@ export async function fetchWorkspaceIntelligence(workspaceId) {
   if (!res.ok) throw new Error(json.message || 'Failed to fetch workspace intelligence');
   return json.data;
 }
+
+export async function sendLiveVisionFrame(framePayload) {
+  const res = await fetch(`${API_BASE}/api/live-vision/frame`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(framePayload)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Failed to analyze live camera frame');
+  return json.data;
+}
+
+export async function analyzeSpecificRegion(regionPayload) {
+  const res = await fetch(`${API_BASE}/api/regions/analyze`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(regionPayload)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Failed to analyze specific region');
+  return json.data;
+}
+
+export async function evaluateUserGuess(guess, visualArtifact) {
+  const res = await fetch(`${API_BASE}/api/guess/evaluate`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ guess, visualArtifact })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Failed to evaluate guess');
+  return json.data;
+}
+
+export async function generateNarrationSequence(reportData) {
+  const res = await fetch(`${API_BASE}/api/narration/sequence`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ reportData })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Failed to generate narration sequence');
+  return json.data;
+}
