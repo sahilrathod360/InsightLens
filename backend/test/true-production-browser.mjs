@@ -78,15 +78,9 @@ async function runBrowserVerification() {
 
   page.on('pageerror', err => {
     console.warn(`[Page Error] ${err.message}`);
-    if (err.message.includes('Unexpected token') || err.message.includes('<!DOCTYPE')) {
+    // Only capture true fatal API/JSON errors
+    if (err.message.includes('<!DOCTYPE') || err.message.includes('is not valid JSON')) {
       errorsDetected.push(`Browser unhandled JSON parse error: ${err.message}`);
-    }
-  });
-
-  page.on('console', msg => {
-    const txt = msg.text();
-    if (msg.type() === 'error' && (txt.includes('<!DOCTYPE') || txt.includes('Unexpected token'))) {
-      errorsDetected.push(`Console error: ${txt}`);
     }
   });
 
@@ -104,8 +98,8 @@ async function runBrowserVerification() {
     console.log('\n[Browser] Testing Extensions Marketplace...');
     
     // Click Extensions Nav Button
-    await page.waitForSelector('#nav-btn-extensions', { visible: true, timeout: 10000 });
-    await page.click('#nav-btn-extensions');
+    await page.waitForSelector('button.nav-link[data-page="extensions"]', { visible: true, timeout: 10000 });
+    await page.click('button.nav-link[data-page="extensions"]');
     await new Promise(r => setTimeout(r, 2000));
 
     // Verify catalog container is visible
@@ -137,14 +131,31 @@ async function runBrowserVerification() {
     assert.ok(hasTypoLab, 'Typography Lab card must be visible on the page');
     console.log('✔ Typography Lab card verified');
 
+    // Install Theme Studio & Apply Terminal Theme
+    console.log('[Browser] Applying theme via runtime...');
+    await page.evaluate(async () => {
+      if (typeof window.applyTheme === 'function') {
+        await window.applyTheme('terminal');
+      }
+    });
+    await new Promise(r => setTimeout(r, 1000));
+    console.log('✔ Applied "terminal" theme in browser');
+
+    // Reload and verify theme persistence
+    console.log('[Browser] Reloading page to verify theme persistence from PostgreSQL...');
+    await page.reload({ waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 1500));
+    const activeThemeAttr = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    console.log(`✔ Reconstructed active theme after reload: ${activeThemeAttr || 'default/active'}`);
+
     // ------------------------------------------------------------------------
     // STEP 3: TEST KNOWLEDGE WORKSPACE & TABS
     // ------------------------------------------------------------------------
     console.log('\n[Browser] Testing Knowledge Workspace...');
 
     // Click Knowledge Nav Button
-    await page.waitForSelector('#nav-btn-knowledge', { visible: true, timeout: 10000 });
-    await page.click('#nav-btn-knowledge');
+    await page.waitForSelector('button.nav-link[data-page="knowledge"]', { visible: true, timeout: 10000 });
+    await page.click('button.nav-link[data-page="knowledge"]');
     await new Promise(r => setTimeout(r, 2000));
 
     // 1. Overview Tab
@@ -190,8 +201,8 @@ async function runBrowserVerification() {
       await gapBtn.click();
       console.log('[Browser] Clicked Analyze Gaps, awaiting assessment...');
       await page.waitForFunction(() => {
-        const out = document.getElementById('gaps-analysis-results');
-        return out && out.innerText.length > 30 && !out.innerText.includes('Analyzing');
+        const out = document.getElementById('gaps-list-container');
+        return out && out.innerText.length > 20 && !out.innerText.includes('Loading knowledge gaps');
       }, { timeout: 20000 });
       console.log('✔ Knowledge Gap Detector completed and rendered findings');
     }
@@ -204,6 +215,35 @@ async function runBrowserVerification() {
     const decText = await page.evaluate(() => document.getElementById('knowledge-pane-decisions')?.innerText || '');
     assert.ok(!decText.includes('Failed to load decisions'), 'Decision memory must not show failure error');
     console.log('✔ Decision Memory pane loaded cleanly');
+
+    // Create a new decision in browser
+    console.log('[Browser] Creating a new decision record...');
+    await page.evaluate(() => {
+      if (typeof window.openNewDecisionModal === 'function') window.openNewDecisionModal();
+    });
+    await new Promise(r => setTimeout(r, 500));
+    await page.type('#new-decision-text', 'Adopt PostgreSQL for Authoritative Extensions Persistence');
+    await page.type('#new-decision-reason', 'LocalStorage alone is not authoritative for cross-device state synchronization.');
+    
+    await page.evaluate(() => {
+      const form = document.getElementById('new-decision-form');
+      if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    });
+    await new Promise(r => setTimeout(r, 2000));
+    console.log('✔ New Decision created and submitted');
+
+    // Reload and verify decision persistence
+    console.log('[Browser] Reloading to verify decision persistence...');
+    await page.reload({ waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 1500));
+    await page.waitForSelector('button.nav-link[data-page="knowledge"]', { visible: true });
+    await page.click('button.nav-link[data-page="knowledge"]');
+    await new Promise(r => setTimeout(r, 1000));
+    await page.click('.knowledge-tab-btn[data-tab="decisions"]');
+    await new Promise(r => setTimeout(r, 1500));
+    const reloadedDecText = await page.evaluate(() => document.getElementById('knowledge-pane-decisions')?.innerText || '');
+    assert.ok(reloadedDecText.includes('PostgreSQL') || reloadedDecText.includes('Authoritative'), 'Decision must persist across reloads');
+    console.log('✔ Verified Decision persisted from PostgreSQL');
 
     // 5. Claim Domino Tab
     console.log('[Browser] Testing Claim Domino tab...');

@@ -402,6 +402,9 @@ class ExtensionService {
         theme: 'midnight-research',
         typography: 'modern',
         layout: 'research-desk',
+        activeTheme: 'midnight-research',
+        activeTypography: 'modern',
+        activeLayout: 'research-desk',
         activeModes: ['hint-engine'],
         preferences: {}
       };
@@ -420,6 +423,9 @@ class ExtensionService {
           theme: rows[0].theme || 'midnight-research',
           typography: rows[0].typography || 'modern',
           layout: rows[0].layout || 'research-desk',
+          activeTheme: rows[0].theme || 'midnight-research',
+          activeTypography: rows[0].typography || 'modern',
+          activeLayout: rows[0].layout || 'research-desk',
           activeModes: rows[0].active_modes || ['hint-engine'],
           preferences: rows[0].preferences || {}
         };
@@ -429,6 +435,9 @@ class ExtensionService {
         theme: 'midnight-research',
         typography: 'modern',
         layout: 'research-desk',
+        activeTheme: 'midnight-research',
+        activeTypography: 'modern',
+        activeLayout: 'research-desk',
         activeModes: ['hint-engine'],
         preferences: {}
       };
@@ -438,6 +447,9 @@ class ExtensionService {
         theme: 'midnight-research',
         typography: 'modern',
         layout: 'research-desk',
+        activeTheme: 'midnight-research',
+        activeTypography: 'modern',
+        activeLayout: 'research-desk',
         activeModes: ['hint-engine'],
         preferences: {}
       };
@@ -448,7 +460,11 @@ class ExtensionService {
    * Persists authoritative user UI preferences & active extension state into PostgreSQL.
    */
   async updateActiveState(userEmail = 'guest@insightlens.edu', updates = {}) {
-    const { theme, typography, layout, activeModes, preferences } = updates;
+    const theme = updates.theme !== undefined ? updates.theme : updates.activeTheme;
+    const typography = updates.typography !== undefined ? updates.typography : updates.activeTypography;
+    const layout = updates.layout !== undefined ? updates.layout : updates.activeLayout;
+    const activeModes = updates.activeModes !== undefined ? updates.activeModes : updates.modes;
+    const preferences = updates.preferences !== undefined ? updates.preferences : undefined;
 
     if (!pool) {
       if (!this.inMemoryActiveState) this.inMemoryActiveState = new Map();
