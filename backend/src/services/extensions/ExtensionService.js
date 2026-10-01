@@ -384,12 +384,115 @@ class ExtensionService {
   }
 
   /**
-   * Gets available layout packs list.
+   * Retrieves available layout packs list.
    */
   async getLayoutPacks() {
     if (!pool) return BUILTIN_LAYOUTS;
     const { rows } = await pool.query('SELECT * FROM layout_packs ORDER BY id ASC');
     return rows.length > 0 ? rows : BUILTIN_LAYOUTS;
+  }
+
+  /**
+   * Retrieves the authoritative user UI preferences & active extension state from PostgreSQL.
+   */
+  async getActiveState(userEmail = 'guest@insightlens.edu') {
+    if (!pool) {
+      if (!this.inMemoryActiveState) this.inMemoryActiveState = new Map();
+      const prefs = this.inMemoryActiveState.get(userEmail) || {
+        theme: 'midnight-research',
+        typography: 'modern',
+        layout: 'research-desk',
+        activeModes: ['hint-engine'],
+        preferences: {}
+      };
+      return prefs;
+    }
+
+    try {
+      const { rows } = await pool.query(`
+        SELECT theme_slug as theme, typography_slug as typography, layout_slug as layout, active_modes, preferences_json as preferences
+        FROM user_ui_preferences
+        WHERE user_email = $1
+      `, [userEmail]);
+
+      if (rows.length > 0) {
+        return {
+          theme: rows[0].theme || 'midnight-research',
+          typography: rows[0].typography || 'modern',
+          layout: rows[0].layout || 'research-desk',
+          activeModes: rows[0].active_modes || ['hint-engine'],
+          preferences: rows[0].preferences || {}
+        };
+      }
+
+      return {
+        theme: 'midnight-research',
+        typography: 'modern',
+        layout: 'research-desk',
+        activeModes: ['hint-engine'],
+        preferences: {}
+      };
+    } catch (err) {
+      console.warn('[ExtensionService.getActiveState] Notice:', err.message);
+      return {
+        theme: 'midnight-research',
+        typography: 'modern',
+        layout: 'research-desk',
+        activeModes: ['hint-engine'],
+        preferences: {}
+      };
+    }
+  }
+
+  /**
+   * Persists authoritative user UI preferences & active extension state into PostgreSQL.
+   */
+  async updateActiveState(userEmail = 'guest@insightlens.edu', updates = {}) {
+    const { theme, typography, layout, activeModes, preferences } = updates;
+
+    if (!pool) {
+      if (!this.inMemoryActiveState) this.inMemoryActiveState = new Map();
+      const prev = this.inMemoryActiveState.get(userEmail) || {
+        theme: 'midnight-research',
+        typography: 'modern',
+        layout: 'research-desk',
+        activeModes: ['hint-engine'],
+        preferences: {}
+      };
+      const nextState = {
+        theme: theme !== undefined ? theme : prev.theme,
+        typography: typography !== undefined ? typography : prev.typography,
+        layout: layout !== undefined ? layout : prev.layout,
+        activeModes: activeModes !== undefined ? activeModes : prev.activeModes,
+        preferences: preferences !== undefined ? preferences : prev.preferences
+      };
+      this.inMemoryActiveState.set(userEmail, nextState);
+      return nextState;
+    }
+
+    const query = `
+      INSERT INTO user_ui_preferences (user_email, theme_slug, typography_slug, layout_slug, active_modes, preferences_json, updated_at)
+      VALUES ($1, COALESCE($2, 'midnight-research'), COALESCE($3, 'modern'), COALESCE($4, 'research-desk'), COALESCE($5::jsonb, '["hint-engine"]'::jsonb), COALESCE($6::jsonb, '{}'::jsonb), NOW())
+      ON CONFLICT (user_email) DO UPDATE SET
+        theme_slug = COALESCE($2, user_ui_preferences.theme_slug),
+        typography_slug = COALESCE($3, user_ui_preferences.typography_slug),
+        layout_slug = COALESCE($4, user_ui_preferences.layout_slug),
+        active_modes = CASE WHEN $5::jsonb IS NOT NULL THEN $5::jsonb ELSE user_ui_preferences.active_modes END,
+        preferences_json = CASE WHEN $6::jsonb IS NOT NULL THEN $6::jsonb ELSE user_ui_preferences.preferences_json END,
+        updated_at = NOW()
+      RETURNING theme_slug as theme, typography_slug as typography, layout_slug as layout, active_modes, preferences_json as preferences;
+    `;
+
+    const { rows } = await pool.query(query, [
+      userEmail,
+      theme || null,
+      typography || null,
+      layout || null,
+      activeModes ? JSON.stringify(activeModes) : null,
+      preferences ? JSON.stringify(preferences) : null
+    ]);
+
+    return rows[0];
   }
 }
 

@@ -93,13 +93,33 @@ export async function toggleExtension(id, enabled) {
   return json.data;
 }
 
-export async function updateExtensionSettings(id, settings) {
-  const res = await fetch(`${API_BASE}/api/extensions/${id}/settings`, {
-    method: 'PUT',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ settings })
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.message || 'Settings update failed');
-  return json.data;
+export async function fetchActiveState() {
+  try {
+    const res = await fetch(`${API_BASE}/api/extensions/active-state`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || 'Failed to fetch active state');
+    return json.data || null;
+  } catch (err) {
+    console.warn('[ExtensionsAPI] Fetch active state notice:', err.message);
+    return null;
+  }
+}
+
+export async function updateActiveState(updates = {}) {
+  try {
+    const res = await fetch(`${API_BASE}/api/extensions/active-state`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || 'Failed to update active state');
+    return json.data;
+  } catch (err) {
+    console.warn('[ExtensionsAPI] Update active state notice:', err.message);
+    return null;
+  }
 }

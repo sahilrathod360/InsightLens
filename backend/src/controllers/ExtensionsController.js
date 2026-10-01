@@ -12,6 +12,27 @@ class ExtensionsController {
     }
   }
 
+  async getActiveState(req, res, next) {
+    try {
+      const userEmail = req.user?.email || 'guest@insightlens.edu';
+      const activeState = await ExtensionService.getActiveState(userEmail);
+      return sendSuccess(res, activeState, 'Authoritative UI & extension state retrieved');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateActiveState(req, res, next) {
+    try {
+      const userEmail = req.user?.email || 'guest@insightlens.edu';
+      const updates = req.body || {};
+      const updated = await ExtensionService.updateActiveState(userEmail, updates);
+      return sendSuccess(res, updated, 'Authoritative UI & extension state persisted to PostgreSQL');
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async installExtension(req, res, next) {
     try {
       const userEmail = req.user?.email || 'guest@insightlens.edu';

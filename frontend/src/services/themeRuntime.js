@@ -1,6 +1,8 @@
 // Theme & Extensibility Runtime Manager
+// PostgreSQL is the Authoritative Source of Truth (LocalStorage is only a temporary UI cache)
 
 import { showToast } from '../utils/toast.js';
+import { fetchActiveState, updateActiveState } from './extensionsApi.js';
 
 const THEME_DEFINITIONS = {
   'midnight-research': {
@@ -89,7 +91,7 @@ let currentActiveTheme = 'default';
 let currentActiveTypography = 'academic';
 let currentActiveLayout = 'research-desk';
 
-export function applyTheme(themeSlug) {
+export function applyTheme(themeSlug, persist = true) {
   const root = document.documentElement;
   const theme = THEME_DEFINITIONS[themeSlug];
 
@@ -97,6 +99,9 @@ export function applyTheme(themeSlug) {
     // Reset to default theme
     root.removeAttribute('data-theme');
     currentActiveTheme = 'default';
+    if (persist) {
+      updateActiveState({ theme: 'midnight-research' }).catch(() => {});
+    }
     return;
   }
 
@@ -120,10 +125,15 @@ export function applyTheme(themeSlug) {
     localStorage.setItem('insightlens_active_theme', themeSlug);
   } catch (e) {}
 
-  showToast(`Applied Theme: ${themeSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+  if (persist) {
+    updateActiveState({ theme: themeSlug }).catch(err => {
+      console.warn('[ThemeRuntime] Failed to persist theme to PostgreSQL:', err.message);
+    });
+    showToast(`Applied Theme: ${themeSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+  }
 }
 
-export function applyTypography(typoSlug) {
+export function applyTypography(typoSlug, persist = true) {
   const root = document.documentElement;
   root.setAttribute('data-typography', typoSlug);
   currentActiveTypography = typoSlug;
@@ -132,10 +142,15 @@ export function applyTypography(typoSlug) {
     localStorage.setItem('insightlens_active_typography', typoSlug);
   } catch (e) {}
 
-  showToast(`Typography Pack updated: ${typoSlug.toUpperCase()}`, 'info');
+  if (persist) {
+    updateActiveState({ typography: typoSlug }).catch(err => {
+      console.warn('[ThemeRuntime] Failed to persist typography to PostgreSQL:', err.message);
+    });
+    showToast(`Typography Pack updated: ${typoSlug.toUpperCase()}`, 'info');
+  }
 }
 
-export function applyLayoutMode(layoutSlug) {
+export function applyLayoutMode(layoutSlug, persist = true) {
   const root = document.documentElement;
   root.setAttribute('data-layout', layoutSlug);
   currentActiveLayout = layoutSlug;
@@ -144,10 +159,15 @@ export function applyLayoutMode(layoutSlug) {
     localStorage.setItem('insightlens_active_layout', layoutSlug);
   } catch (e) {}
 
-  showToast(`UI Layout updated: ${layoutSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+  if (persist) {
+    updateActiveState({ layout: layoutSlug }).catch(err => {
+      console.warn('[ThemeRuntime] Failed to persist layout to PostgreSQL:', err.message);
+    });
+    showToast(`UI Layout updated: ${layoutSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+  }
 }
 
-export function togglePresentationMode(enable) {
+export function togglePresentationMode(enable, persist = true) {
   const root = document.documentElement;
   if (enable) {
     root.setAttribute('data-presentation-mode', 'true');
@@ -156,9 +176,12 @@ export function togglePresentationMode(enable) {
     root.removeAttribute('data-presentation-mode');
     showToast('Exited Presentation Mode', 'info');
   }
+  if (persist) {
+    syncActiveModes();
+  }
 }
 
-export function toggleFocusMode(enable) {
+export function toggleFocusMode(enable, persist = true) {
   const root = document.documentElement;
   if (enable) {
     root.setAttribute('data-focus-mode', 'true');
@@ -167,9 +190,12 @@ export function toggleFocusMode(enable) {
     root.removeAttribute('data-focus-mode');
     showToast('Exited Focus Mode', 'info');
   }
+  if (persist) {
+    syncActiveModes();
+  }
 }
 
-export function toggleDeveloperMode(enable) {
+export function toggleDeveloperMode(enable, persist = true) {
   const root = document.documentElement;
   if (enable) {
     root.setAttribute('data-developer-mode', 'true');
@@ -178,9 +204,12 @@ export function toggleDeveloperMode(enable) {
     root.removeAttribute('data-developer-mode');
     showToast('Developer Mode Disabled', 'info');
   }
+  if (persist) {
+    syncActiveModes();
+  }
 }
 
-export function toggleAcademicMode(enable) {
+export function toggleAcademicMode(enable, persist = true) {
   const root = document.documentElement;
   if (enable) {
     root.setAttribute('data-academic-mode', 'true');
@@ -189,21 +218,64 @@ export function toggleAcademicMode(enable) {
     root.removeAttribute('data-academic-mode');
     showToast('Academic Mode Deactivated', 'info');
   }
+  if (persist) {
+    syncActiveModes();
+  }
 }
 
-export function initThemeRuntime() {
+function syncActiveModes() {
+  const root = document.documentElement;
+  const activeModes = [];
+  if (root.getAttribute('data-academic-mode') === 'true') activeModes.push('academic-mode');
+  if (root.getAttribute('data-focus-mode') === 'true') activeModes.push('focus-mode');
+  if (root.getAttribute('data-presentation-mode') === 'true') activeModes.push('presentation-mode');
+  if (root.getAttribute('data-developer-mode') === 'true') activeModes.push('developer-mode');
+  updateActiveState({ activeModes }).catch(() => {});
+}
+
+/**
+ * Initializes runtime by checking localStorage for instantaneous render,
+ * then immediately querying PostgreSQL as the authoritative source of truth.
+ * If PostgreSQL state differs from localStorage, PostgreSQL wins.
+ */
+export async function initThemeRuntime() {
+  // 1. Instantaneous temporary cache hydration
   try {
-    const savedTheme = localStorage.getItem('insightlens_active_theme');
-    if (savedTheme && THEME_DEFINITIONS[savedTheme]) {
-      applyTheme(savedTheme);
+    const cachedTheme = localStorage.getItem('insightlens_active_theme');
+    if (cachedTheme && THEME_DEFINITIONS[cachedTheme]) {
+      applyTheme(cachedTheme, false);
     }
-    const savedTypo = localStorage.getItem('insightlens_active_typography');
-    if (savedTypo) {
-      applyTypography(savedTypo);
+    const cachedTypo = localStorage.getItem('insightlens_active_typography');
+    if (cachedTypo) {
+      applyTypography(cachedTypo, false);
     }
-    const savedLayout = localStorage.getItem('insightlens_active_layout');
-    if (savedLayout) {
-      applyLayoutMode(savedLayout);
+    const cachedLayout = localStorage.getItem('insightlens_active_layout');
+    if (cachedLayout) {
+      applyLayoutMode(cachedLayout, false);
     }
   } catch (e) {}
+
+  // 2. Authoritative PostgreSQL synchronization
+  try {
+    const serverState = await fetchActiveState();
+    if (serverState) {
+      if (serverState.theme && THEME_DEFINITIONS[serverState.theme]) {
+        applyTheme(serverState.theme, false);
+      }
+      if (serverState.typography) {
+        applyTypography(serverState.typography, false);
+      }
+      if (serverState.layout) {
+        applyLayoutMode(serverState.layout, false);
+      }
+      if (Array.isArray(serverState.activeModes)) {
+        toggleAcademicMode(serverState.activeModes.includes('academic-mode'), false);
+        toggleFocusMode(serverState.activeModes.includes('focus-mode'), false);
+        togglePresentationMode(serverState.activeModes.includes('presentation-mode'), false);
+        toggleDeveloperMode(serverState.activeModes.includes('developer-mode'), false);
+      }
+    }
+  } catch (err) {
+    console.warn('[ThemeRuntime] Authoritative PostgreSQL sync notice:', err.message);
+  }
 }

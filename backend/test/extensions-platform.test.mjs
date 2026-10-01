@@ -160,4 +160,34 @@ describe('Extensions Platform & Security Suite', () => {
       assert.ok(fs.existsSync(rootBuiltin), 'Built-in source manifest must NEVER be deleted upon uninstall');
     }
   });
+
+  // 6. Authoritative PostgreSQL UI & Extension State Persistence
+  it('should persist and retrieve authoritative active UI state from PostgreSQL', async () => {
+    const userEmail = `pref-user-${Date.now()}@insightlens.edu`;
+
+    // 1. Initial default state
+    const initial = await ExtensionService.getActiveState(userEmail);
+    assert.ok(initial.theme);
+    assert.ok(initial.typography);
+    assert.ok(initial.layout);
+
+    // 2. Update to custom theme and typography
+    const updated = await ExtensionService.updateActiveState(userEmail, {
+      theme: 'paper',
+      typography: 'academic',
+      layout: 'command-center',
+      activeModes: ['academic-mode', 'hint-engine']
+    });
+    assert.equal(updated.theme, 'paper');
+    assert.equal(updated.typography, 'academic');
+    assert.equal(updated.layout, 'command-center');
+
+    // 3. Retrieve authoritative state to verify persistence
+    const reloaded = await ExtensionService.getActiveState(userEmail);
+    assert.equal(reloaded.theme, 'paper');
+    assert.equal(reloaded.typography, 'academic');
+    assert.equal(reloaded.layout, 'command-center');
+    assert.ok(Array.isArray(reloaded.activeModes));
+    assert.ok(reloaded.activeModes.includes('academic-mode'));
+  });
 });

@@ -4,6 +4,8 @@ import ExtensionsController from '../controllers/ExtensionsController.js';
 const router = express.Router();
 
 router.get('/', ExtensionsController.listExtensions);
+router.get('/active-state', ExtensionsController.getActiveState);
+router.put('/active-state', ExtensionsController.updateActiveState);
 router.get('/themes', ExtensionsController.getThemes);
 router.get('/typography', ExtensionsController.getTypographyPacks);
 router.get('/layouts', ExtensionsController.getLayoutPacks);

@@ -136,6 +136,17 @@ CREATE TABLE IF NOT EXISTS extension_settings (
     CONSTRAINT uq_user_extension_settings UNIQUE(user_email, extension_id)
 );
 
+-- 8b. Authoritative User UI & Extension Preferences
+CREATE TABLE IF NOT EXISTS user_ui_preferences (
+    user_email VARCHAR(255) PRIMARY KEY,
+    theme_slug VARCHAR(100) DEFAULT 'midnight-research',
+    typography_slug VARCHAR(100) DEFAULT 'modern',
+    layout_slug VARCHAR(100) DEFAULT 'research-desk',
+    active_modes JSONB DEFAULT '["hint-engine"]'::jsonb,
+    preferences_json JSONB DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 9. Theme Packs
 CREATE TABLE IF NOT EXISTS themes (
     id VARCHAR(100) PRIMARY KEY,
