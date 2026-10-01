@@ -181,6 +181,7 @@ export class CrossVisualConsistencyEngine {
       artifactCount: artifacts.length,
       artifacts: artifacts.map(a => ({ id: a.id, title: a.title, type: a.visualType })),
       conflictCount: findings.filter(f => f.status === 'POTENTIAL CONFLICT').length,
+      mismatchCount: findings.filter(f => f.status === 'POTENTIAL CONFLICT').length,
       overallStatus: findings.some(f => f.status === 'POTENTIAL CONFLICT') ? 'POTENTIAL_INCONSISTENCIES_FOUND' : 'CONSISTENT',
       findings
     };

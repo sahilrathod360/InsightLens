@@ -22,10 +22,12 @@ export class VisualWorkspaceService {
 
     const workspaceObj = {
       id: workspaceId,
+      workspaceId,
       userEmail,
       name,
       intent,
       artifacts,
+      evidenceReport: { status: 'INITIALIZED', totalArtifacts: artifacts.length },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
