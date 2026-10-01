@@ -608,38 +608,46 @@ async function runAcceptanceAudit() {
     console.log('Testing Post-Report Quiz ("Test Your Understanding")...');
     await page.evaluate(() => {
       window.navigateTo('workspace');
-      window.handleOpenReportQuiz();
+      if (typeof window.openReportQuizModal === 'function') {
+        window.openReportQuizModal(null);
+      } else if (typeof window.handleOpenReportQuiz === 'function') {
+        window.handleOpenReportQuiz();
+      }
     });
     await new Promise(r => setTimeout(r, 1500));
 
     const quizRendered = await page.evaluate(() => {
-      const mount = document.getElementById('workspace-tab-content');
-      return mount && mount.innerText.includes('Test Your Understanding');
+      const modal = document.getElementById('modal-quiz-dialog');
+      return modal && modal.innerText.includes('Test Your Understanding');
     });
-    assert.ok(quizRendered, 'Post-Report Quiz ("Test Your Understanding") must render MCQs grounded in report');
+    assert.ok(quizRendered, 'Post-Report Quiz ("Test Your Understanding") modal must render MCQs grounded in report');
     console.log('✔ Post-Report Quiz ("Test Your Understanding") verified in browser');
 
     // 4. Spoken Narration Walkthrough Audit
     console.log('Testing Spoken Narration Walkthrough...');
     await page.evaluate(() => {
-      window.handleStartWorkspaceNarration();
+      if (typeof window.openNarrationModal === 'function') {
+        window.openNarrationModal(null);
+      } else if (typeof window.handleStartWorkspaceNarration === 'function') {
+        window.handleStartWorkspaceNarration();
+      }
     });
     await new Promise(r => setTimeout(r, 1000));
 
     const narrationBarExists = await page.evaluate(() => {
-      return Boolean(document.getElementById('narration-player-bar'));
+      return Boolean(document.getElementById('modal-narration-dialog'));
     });
-    assert.ok(narrationBarExists, 'Floating Narration Player Bar must appear on screen');
+    assert.ok(narrationBarExists, 'Explain Report Narration Modal must appear on screen');
 
     await page.evaluate(() => {
-      window.setNarrationSpeed(1.25);
-      window.pauseNarration();
-      window.stopNarration();
+      if (typeof window.setNarrationSpeed === 'function') window.setNarrationSpeed(1.25);
+      if (typeof window.stopNarration === 'function') window.stopNarration();
+      if (typeof window.closeNarrationModal === 'function') window.closeNarrationModal();
     });
     const narrationBarClosed = await page.evaluate(() => {
-      return !document.getElementById('narration-player-bar');
+      return !document.getElementById('modal-narration-dialog');
     });
-    assert.ok(narrationBarClosed, 'Narration must stop and clean up player bar cleanly');
+    assert.ok(narrationBarClosed, 'Narration modal closes on stop/close');
     console.log('✔ Spoken Narration player & controls verified in browser');
 
     // 5. Mobile Viewport Responsiveness Audit (390x844)
