@@ -1,0 +1,46 @@
+{
+  "id": "typography-lab",
+  "name": "Typography Lab",
+  "version": "1.1.0",
+  "description": "Selectable font pairings and line-height presets tailored for research papers and technical reading.",
+  "author": "InsightLens Core Team",
+  "category": "Typography",
+  "capabilities": [
+    "typography",
+    "font_pairing",
+    "text_hierarchy"
+  ],
+  "packsCount": 5,
+  "packs": [
+    {
+      "id": "typo-academic",
+      "name": "Academic",
+      "slug": "academic",
+      "description": "Source Serif 4 for headings, Inter for body, and JetBrains Mono for telemetry."
+    },
+    {
+      "id": "typo-editorial",
+      "name": "Editorial",
+      "slug": "editorial",
+      "description": "Merriweather heading styling with clean proportional body fonts."
+    },
+    {
+      "id": "typo-technical",
+      "name": "Technical",
+      "slug": "technical",
+      "description": "Dense technical font hierarchy with Fira Code accents and high glyph legibility."
+    },
+    {
+      "id": "typo-modern",
+      "name": "Modern Sans",
+      "slug": "modern",
+      "description": "Clean geometry with contemporary sans-serif precision across all viewports."
+    },
+    {
+      "id": "typo-minimal",
+      "name": "Minimal Clean",
+      "slug": "minimal",
+      "description": "Pure system-native typography for zero network overhead and maximum rendering speed."
+    }
+  ]
+}

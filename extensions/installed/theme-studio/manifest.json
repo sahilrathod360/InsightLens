@@ -1,0 +1,46 @@
+{
+  "id": "theme-studio",
+  "name": "Theme Studio",
+  "version": "1.2.0",
+  "description": "Curated collection of 5 academic, glassmorphic, and high-contrast color palettes for InsightLens.",
+  "author": "InsightLens Design Lab",
+  "category": "Themes",
+  "capabilities": [
+    "themes",
+    "ui_styling",
+    "color_palette"
+  ],
+  "themesCount": 5,
+  "themes": [
+    {
+      "id": "theme-midnight-research",
+      "name": "Midnight Research",
+      "slug": "midnight-research",
+      "description": "Dark academic aesthetic with deep navy slate backgrounds and refined violet-indigo accents."
+    },
+    {
+      "id": "theme-neo-glass",
+      "name": "Neo Glass",
+      "slug": "neo-glass",
+      "description": "Futuristic frosted translucent interface with subtle neon violet and cyan borders."
+    },
+    {
+      "id": "theme-terminal",
+      "name": "Terminal",
+      "slug": "terminal",
+      "description": "Developer and systems terminal aesthetic with jet black surface and phosphor emerald and amber highlights."
+    },
+    {
+      "id": "theme-paper",
+      "name": "Paper Editorial",
+      "slug": "paper",
+      "description": "Clean academic paper document aesthetic with high-contrast serif typography and soft cream canvas."
+    },
+    {
+      "id": "theme-solarized-lab",
+      "name": "Solarized Lab",
+      "slug": "solarized-lab",
+      "description": "Precision laboratory aesthetic inspired by classic solarized palettes for prolonged reading comfort."
+    }
+  ]
+}
