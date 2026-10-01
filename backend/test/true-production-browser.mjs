@@ -494,7 +494,9 @@ async function runAcceptanceAudit() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: userA_email, password: 'Password123!', name: 'User A', role: 'Researcher' })
     });
-    const tokenA = (await regA.json()).data?.token;
+    const regARes = await regA.json();
+    const tokenA = regARes.data?.token;
+    assert.ok(tokenA, `User A registration failed: ${JSON.stringify(regARes)}`);
 
     await fetch(`${BACKEND_URL}/api/extensions/theme-studio/install`, {
       method: 'POST',
@@ -517,13 +519,16 @@ async function runAcceptanceAudit() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: userB_email, password: 'Password123!', name: 'User B', role: 'Researcher' })
     });
-    const tokenB = (await regB.json()).data?.token;
+    const regBRes = await regB.json();
+    const tokenB = regBRes.data?.token;
+    assert.ok(tokenB, `User B registration failed: ${JSON.stringify(regBRes)}`);
 
     // Verify User B's state via API and in Browser
     const listB = await fetch(`${BACKEND_URL}/api/extensions`, {
       headers: { 'Authorization': `Bearer ${tokenB}` }
     });
     const listBJson = await listB.json();
+    assert.ok(listBJson.data && listBJson.data.extensions, `Failed to retrieve User B extension list: ${JSON.stringify(listBJson)}`);
     const themeExtB = listBJson.data.extensions.find(e => e.id === 'theme-studio');
 
     assert.strictEqual(themeExtB.is_installed, false, 'User B must see theme-studio as NOT INSTALLED');

@@ -113,7 +113,7 @@ app.get('/api/health', async (req, res) => {
 // Dedicated Rate Limiters (Abuse protection with reasonable limits for college project)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10) || 20,
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10) || 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
