@@ -1,11 +1,30 @@
 export class APIError extends Error {
-  constructor(message, statusCode, provider, type) {
+  constructor(message, statusCode = 500, provider = 'API', type = 'INTERNAL_ERROR') {
     super(message);
     this.statusCode = statusCode;
     this.status = statusCode;
     this.provider = provider;
     this.type = type;
   }
+}
+
+export function sendSuccess(res, data = null, message = 'Success', statusCode = 200) {
+  return res.status(statusCode).json({
+    success: true,
+    message,
+    data,
+    timestamp: new Date().toISOString()
+  });
+}
+
+export function sendError(res, message = 'Error occurred', statusCode = 500, errors = []) {
+  return res.status(statusCode).json({
+    success: false,
+    message,
+    data: null,
+    errors: Array.isArray(errors) ? errors : [errors],
+    timestamp: new Date().toISOString()
+  });
 }
 
 export async function fetchWithRetry(url, options, maxRetries = 2, timeoutMs = 10000) {

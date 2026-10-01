@@ -60,4 +60,38 @@ export const requireAuth = (req, res, next) => {
   }
 };
 
+/**
+ * Optional Authentication Middleware.
+ * Decodes Bearer JWT if present; otherwise seamlessly falls back to guest researcher identity.
+ */
+export const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    if (token && config.isJwtConfigured && config.jwtSecret) {
+      try {
+        const decoded = jwt.verify(token, config.jwtSecret);
+        if (decoded && decoded.email) {
+          req.user = {
+            ...decoded,
+            email: decoded.email.toLowerCase().trim()
+          };
+          return next();
+        }
+      } catch (err) {
+        // Token invalid/expired: fall through to guest
+      }
+    }
+  }
+
+  req.user = {
+    id: 'guest',
+    email: 'guest@insightlens.edu',
+    name: 'Guest Researcher',
+    role: 'Researcher'
+  };
+  next();
+};
+
 export default requireAuth;

@@ -10,7 +10,7 @@ import hpp from 'hpp';
 import { config } from './src/config/env.js';
 import { corsOptions } from './src/config/cors.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
-import { requireAuth } from './src/middleware/auth.js';
+import { requireAuth, optionalAuth } from './src/middleware/auth.js';
 import pool from './src/config/db.js';
 
 // Import routes
@@ -164,8 +164,8 @@ app.use('/api/archive', requireAuth, archiveRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/history', requireAuth, historyRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
-app.use('/api/extensions', requireAuth, extensionsRoutes);
-app.use('/api/knowledge', requireAuth, knowledgeRoutes);
+app.use('/api/extensions', optionalAuth, extensionsRoutes);
+app.use('/api/knowledge', optionalAuth, knowledgeRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
