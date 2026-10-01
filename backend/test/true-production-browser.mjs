@@ -600,7 +600,10 @@ async function runAcceptanceAudit() {
       window.loadComparePreset('dfd');
       window.executeMultiImageCompare();
     });
-    await new Promise(r => setTimeout(r, 1500));
+    await page.waitForFunction(() => {
+      const mount = document.getElementById('compare-results-mount');
+      return mount && mount.innerText.includes('Side-by-Side Visual Artifacts');
+    }, { timeout: 15000 }).catch(() => {});
 
     const compareResultsRendered = await page.evaluate(() => {
       const mount = document.getElementById('compare-results-mount');
