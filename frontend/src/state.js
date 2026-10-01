@@ -22,7 +22,7 @@ let renderCallbacks = {
   renderProfilePage: () => {},
   renderSettingsPage: () => {},
   renderExtensionManager: () => {},
-  renderKnowledgePage: () => {},
+  renderVisualWorkspace: () => {},
   updateAuthUI: () => {},
   setAuthModeUI: () => {}
 };
@@ -125,8 +125,8 @@ export function navigateTo(pageId) {
     renderCallbacks.renderSettingsPage();
   } else if (pageId === 'extensions') {
     renderCallbacks.renderExtensionManager();
-  } else if (pageId === 'knowledge') {
-    renderCallbacks.renderKnowledgePage();
+  } else if (pageId === 'workspace') {
+    renderCallbacks.renderVisualWorkspace();
   }
 
   document.getElementById('user-dropdown-menu')?.classList.remove('show');

@@ -559,6 +559,75 @@ async function runAcceptanceAudit() {
     console.log('✔ STRICT USER ISOLATION PROVEN: User A state does not leak to User B\n');
 
     // --------------------------------------------------------------------------
+    // AUDIT 7: VISUAL INTELLIGENCE WORKSPACE LIVE UI AUDIT
+    // --------------------------------------------------------------------------
+    console.log('--- AUDIT 7: VISUAL INTELLIGENCE WORKSPACE LIVE UI ---');
+    await page.evaluate(() => {
+      window.navigateTo('workspace');
+    });
+    await new Promise(r => setTimeout(r, 1500));
+
+    // Verify workspace container is visible and rendered
+    const wsVisible = await page.evaluate(() => {
+      const pageWs = document.getElementById('page-workspace');
+      return pageWs && !pageWs.classList.contains('hidden');
+    });
+    assert.ok(wsVisible, 'Visual Intelligence Workspace must be visible when navigated to');
+
+    // Verify 8 Workspace Tabs
+    const wsTabs = await page.evaluate(() => {
+      const tabBtns = Array.from(document.querySelectorAll('.ws-tab-btn'));
+      return tabBtns.map(b => b.getAttribute('data-tab'));
+    });
+    console.log(`Detected Workspace Tabs: ${wsTabs.join(', ')}`);
+    assert.ok(wsTabs.includes('visual'), 'Must have Visual tab');
+    assert.ok(wsTabs.includes('evidence'), 'Must have Evidence tab');
+    assert.ok(wsTabs.includes('compare'), 'Must have Compare tab');
+    assert.ok(wsTabs.includes('verify'), 'Must have Verify tab');
+    assert.ok(wsTabs.includes('ask'), 'Must have Ask tab');
+
+    // Test switching to Compare Tab and running Topology Diff
+    await page.evaluate(() => {
+      if (typeof window.switchWorkspaceTab === 'function') {
+        window.switchWorkspaceTab('compare');
+      }
+    });
+    await new Promise(r => setTimeout(r, 1000));
+
+    // Click Run Visual Comparison
+    const runDiffBtn = await page.$('button[onclick*="handleRunVisualComparison"]');
+    if (runDiffBtn) {
+      await page.click('button[onclick*="handleRunVisualComparison"]');
+      await new Promise(r => setTimeout(r, 2000));
+      const diffRendered = await page.evaluate(() => {
+        const out = document.getElementById('workspace-tab-content');
+        return out && out.innerText.includes('Visual Topology Diff Result');
+      });
+      assert.ok(diffRendered, 'Visual Comparison Diff must render live in workspace');
+      console.log('✔ Live Visual Comparison Diff successfully rendered in browser');
+    }
+
+    // Test switching to Ask Tab and asking a question
+    await page.evaluate(() => {
+      if (typeof window.switchWorkspaceTab === 'function') {
+        window.switchWorkspaceTab('ask');
+      }
+    });
+    await new Promise(r => setTimeout(r, 1000));
+
+    await page.type('#vqa-query-input', 'Does the client connect to the database directly?');
+    await page.click('button[onclick*="handleAskVQA"]');
+    await new Promise(r => setTimeout(r, 2000));
+
+    const vqaResultText = await page.evaluate(() => {
+      const resCard = document.getElementById('vqa-result-card');
+      return resCard ? resCard.innerText : '';
+    });
+    assert.ok(vqaResultText.length > 0, 'VQA Grounded Answer must be rendered in UI');
+    console.log(`✔ Evidence-Grounded VQA returned: ${vqaResultText.slice(0, 80)}...\n`);
+    console.log('✔ VISUAL INTELLIGENCE WORKSPACE ACCEPTANCE VERIFIED\n');
+
+    // --------------------------------------------------------------------------
     // SUMMARY TABLE PRINTING
     // --------------------------------------------------------------------------
     console.log('========================================================================================');

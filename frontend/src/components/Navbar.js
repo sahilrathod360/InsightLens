@@ -494,8 +494,9 @@ export function setupUserDropdownMenu() {
     navigateTo('archive');
   });
 
-  document.getElementById('menu-knowledge-btn')?.addEventListener('click', () => {
-    navigateTo('knowledge');
+  const workspaceBtn = document.getElementById('menu-workspace-btn') || document.getElementById('menu-knowledge-btn');
+  workspaceBtn?.addEventListener('click', () => {
+    navigateTo('workspace');
   });
 
   document.getElementById('menu-extensions-btn')?.addEventListener('click', () => {

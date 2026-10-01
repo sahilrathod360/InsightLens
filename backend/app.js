@@ -22,7 +22,11 @@ import dashboardRoutes from './src/routes/dashboard.routes.js';
 import historyRoutes from './src/routes/history.routes.js';
 import settingsRoutes from './src/routes/settings.routes.js';
 import extensionsRoutes from './src/routes/extensions.routes.js';
-import knowledgeRoutes from './src/routes/knowledge.routes.js';
+import evidenceRoutes from './src/routes/evidence.routes.js';
+import comparisonRoutes from './src/routes/comparison.routes.js';
+import consistencyRoutes from './src/routes/consistency.routes.js';
+import visualQARoutes from './src/routes/visualqa.routes.js';
+import workspaceRoutes from './src/routes/workspace.routes.js';
 
 console.log('Creating Express app instance...');
 const app = express();
@@ -168,7 +172,11 @@ app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/history', requireAuth, historyRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/extensions', optionalAuth, extensionsRoutes);
-app.use('/api/knowledge', optionalAuth, knowledgeRoutes);
+app.use('/api/evidence', optionalAuth, evidenceRoutes);
+app.use('/api/comparison', optionalAuth, comparisonRoutes);
+app.use('/api/consistency', optionalAuth, consistencyRoutes);
+app.use('/api/visual-qa', optionalAuth, visualQARoutes);
+app.use('/api/workspace', optionalAuth, workspaceRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

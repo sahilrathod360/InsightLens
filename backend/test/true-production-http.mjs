@@ -240,140 +240,135 @@ async function runTrueProductionHttpSuite() {
     record('Uninstall Extension Lifecycle', true, 'theme-studio uninstalled (is_installed: false)');
 
     // ------------------------------------------------------------------------
-    // PART 4: KNOWLEDGE REAL API TEST
+    // PART 4: VISUAL INTELLIGENCE REAL API LIFECYCLE
     // ------------------------------------------------------------------------
-    console.log('\n--- PART 4: KNOWLEDGE INTELLIGENCE REAL API LIFECYCLE ---');
+    console.log('\n--- PART 4: VISUAL INTELLIGENCE REAL API LIFECYCLE ---');
 
-    // 1. Knowledge Overview
-    const overviewRes = await httpReq('/api/knowledge/overview', {}, authToken);
-    assert.equal(overviewRes.status, 200);
-    assert.ok(typeof overviewRes.json.data.totalClaims === 'number', 'Overview must return totalClaims count');
-    record('Knowledge Overview API', true, `Returned totalClaims: ${overviewRes.json.data.totalClaims}`);
-
-    // 2. Time Machine (Evolution Analysis)
-    console.log('Running Time Machine version comparison...');
-    const evoRes = await httpReq('/api/knowledge/evolution', {
+    // 1. Evidence Extraction & Coordinate Bounding
+    console.log('Testing Evidence Extraction API...');
+    const evidenceRes = await httpReq('/api/evidence/extract', {
       method: 'POST',
       body: JSON.stringify({
-        title: 'API Spec Evolution Test',
-        sourceALabel: 'v1.0',
-        sourceBLabel: 'v2.0',
-        sourceA: 'Endpoint supports 100 concurrent connections.\nUses legacy XML protocol.',
-        sourceB: 'Endpoint supports 1000 concurrent connections.\nUses modern JSON REST protocol.'
-      })
-    }, authToken);
-    assert.equal(evoRes.status, 200);
-    const claimChanges = evoRes.json.data.changes || evoRes.json.data.claimsDiff || [];
-    assert.ok(claimChanges.length > 0, 'Must produce claims diff');
-    record('Time Machine Evolution Analysis', true, `Generated ${claimChanges.length} claim diffs`);
-
-    // List Evolution
-    const listEvoRes = await httpReq('/api/knowledge/evolution', {}, authToken);
-    assert.equal(listEvoRes.status, 200);
-    const evoList = Array.isArray(listEvoRes.json.data) ? listEvoRes.json.data : (listEvoRes.json.data.evolutions || []);
-    assert.ok(evoList.length >= 1, 'Evolution must be saved and listed');
-    record('Time Machine History Retrieval', true, `Found ${evoList.length} saved evolution records`);
-
-    // 3. Knowledge Gap Detector
-    console.log('Analyzing knowledge gaps from text...');
-    const gapAnalysisRes = await httpReq('/api/knowledge/gaps/analyze', {
-      method: 'POST',
-      body: JSON.stringify({
-        text: 'The distributed database achieves 99.999% uptime with zero latency under partition.'
-      })
-    }, authToken);
-    assert.equal(gapAnalysisRes.status, 200);
-    record('Knowledge Gap Detection Analysis', true, `Analyzed text and returned gap assessment`);
-
-    // Create & List Gaps
-    console.log('Creating explicit Knowledge Gap...');
-    const createGapRes = await httpReq('/api/knowledge/gaps', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: 'Unverified partition tolerance benchmark',
-        description: 'Need empirical network partition stress test with Jepsen.',
-        gap_type: 'Missing Evidence',
-        severity: 'high'
-      })
-    }, authToken);
-    assert.equal(createGapRes.status, 200);
-    const gapId = createGapRes.json.data.id;
-
-    const listGapsRes = await httpReq('/api/knowledge/gaps', {}, authToken);
-    assert.equal(listGapsRes.status, 200);
-    const gapList = Array.isArray(listGapsRes.json.data) ? listGapsRes.json.data : (listGapsRes.json.data.gaps || []);
-    assert.ok(gapList.length >= 1, 'Gaps must be listed');
-    record('Knowledge Gap Creation & Listing', true, `Created and retrieved gap ID: ${gapId}`);
-
-    // 4. Decision Memory
-    console.log('Creating Architectural Decision Record...');
-    const createDecRes = await httpReq('/api/knowledge/decisions', {
-      method: 'POST',
-      body: JSON.stringify({
-        decision: 'Adopt PostgreSQL for Authoritative Extensions Persistence',
-        reason: 'Local storage alone is insufficient for multi-client synchrony.',
-        alternatives: ['Local storage only', 'Redis cache only'],
-        reversibility: 'moderate'
-      })
-    }, authToken);
-    assert.equal(createDecRes.status, 200);
-    const decId = createDecRes.json.data.id;
-
-    const listDecRes = await httpReq('/api/knowledge/decisions', {}, authToken);
-    assert.equal(listDecRes.status, 200);
-    const decList = Array.isArray(listDecRes.json.data) ? listDecRes.json.data : (listDecRes.json.data.decisions || []);
-    assert.ok(decList.find(d => d.id === decId), 'Created decision must appear in list');
-
-    console.log(`Validating decision ${decId}...`);
-    const valDecRes = await httpReq(`/api/knowledge/decisions/${decId}/validate`, { method: 'POST' }, authToken);
-    assert.equal(valDecRes.status, 200);
-    record('Decision Memory Lifecycle & Empirical Validation', true, `Created decision ${decId}, status: ${valDecRes.json.data.status}`);
-
-    // 5. Claim Domino Graph & What-If Simulation
-    console.log('Fetching Claim Domino graph...');
-    const graphRes = await httpReq('/api/knowledge/graph', {}, authToken);
-    assert.equal(graphRes.status, 200);
-    assert.ok(Array.isArray(graphRes.json.data.nodes));
-    assert.ok(Array.isArray(graphRes.json.data.edges));
-
-    console.log('Running What-If simulation...');
-    const whatIfRes = await httpReq('/api/knowledge/graph/what-if', {
-      method: 'POST',
-      body: JSON.stringify({
-        scenario: 'Database latency increases by 500ms',
-        modifiedAssumptions: [{ id: 'assump-1', modifiedState: 'FALSIFIED', description: 'Zero database latency assumption' }]
-      })
-    }, authToken);
-    assert.equal(whatIfRes.status, 200);
-    assert.ok(whatIfRes.json.data.originalStatePreserved || whatIfRes.json.data.isHypothetical, 'Simulation must be non-destructive');
-    record('Claim Domino Graph & What-If Simulation', true, 'Simulated sandbox shift without mutating base graph');
-
-    // 6. Project Autopsy
-    console.log('Generating Project Autopsy...');
-    const autopsyRes = await httpReq('/api/knowledge/autopsy', {
-      method: 'POST',
-      body: JSON.stringify({
-        projectTitle: 'InsightLens Production Modernization',
-        planClaims: [
-          { claimText: 'Extensions marketplace with 10 modules' },
-          { claimText: 'Knowledge intelligence with PostgreSQL storage' },
-          { claimText: 'Offline local storage as primary database' }
+        visualType: 'DIAGRAM',
+        diagramStructure: {
+          nodes: [{ label: 'Frontend Client' }, { label: 'Auth Gateway' }],
+          links: [{ from: 'Frontend Client', to: 'Auth Gateway' }]
+        },
+        claims: [
+          { claimText: 'Frontend communicates directly with Auth Gateway' },
+          { claimText: 'Database runs in isolated private subnet' }
         ],
-        actualClaims: [
-          { claimText: 'Extensions marketplace with 10 modules' },
-          { claimText: 'Knowledge intelligence with PostgreSQL storage' },
-          { claimText: 'PostgreSQL as authoritative database' }
+        pixelDimensions: { width: 1000, height: 600 }
+      })
+    }, authToken);
+    assert.equal(evidenceRes.status, 200);
+    assert.ok(Array.isArray(evidenceRes.json.data.claimsWithEvidence), 'Must return claims with evidence');
+    assert.equal(evidenceRes.json.data.claimsWithEvidence[0].evidenceStatus, 'OBSERVED', 'Direct connection claim must be OBSERVED');
+    assert.equal(evidenceRes.json.data.claimsWithEvidence[1].evidenceStatus, 'UNDETERMINABLE', 'Unevidenced claim must be UNDETERMINABLE');
+    record('Evidence Grounding & Extraction API', true, `Grounded ${evidenceRes.json.data.claimsWithEvidence.length} claims with bounded coordinates`);
+
+    // 2. Visual Comparison Engine (Topology Diff)
+    console.log('Testing Visual Comparison API...');
+    const compRes = await httpReq('/api/comparison/compare', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'DIAGRAM',
+        before: {
+          title: 'Architecture v1',
+          diagramStructure: {
+            nodes: [{ label: 'Web Server' }, { label: 'Legacy Monolith' }],
+            links: [{ from: 'Web Server', to: 'Legacy Monolith' }]
+          }
+        },
+        after: {
+          title: 'Architecture v2',
+          diagramStructure: {
+            nodes: [{ label: 'Web Server' }, { label: 'Auth Service' }, { label: 'Payment Microservice' }],
+            links: [{ from: 'Web Server', to: 'Auth Service' }, { from: 'Auth Service', to: 'Payment Microservice' }]
+          }
+        }
+      })
+    }, authToken);
+    assert.equal(compRes.status, 200);
+    assert.ok(compRes.json.data.nodeDiff.added.length >= 2, 'Must detect added microservices');
+    assert.ok(compRes.json.data.nodeDiff.removed.length >= 1, 'Must detect removed legacy monolith');
+    record('Visual Comparison Topology Diff API', true, `Detected +${compRes.json.data.nodeDiff.added.length} added, -${compRes.json.data.nodeDiff.removed.length} removed nodes`);
+
+    // 3. Cross-Visual Consistency Engine
+    console.log('Testing Cross-Visual Consistency API...');
+    const constRes = await httpReq('/api/consistency/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({
+        artifacts: [
+          {
+            id: 'ART-DFD',
+            title: 'Data Flow Diagram',
+            visualType: 'DFD',
+            diagramStructure: {
+              nodes: [{ label: 'Client' }, { label: 'Backend API' }],
+              links: [{ from: 'Client', to: 'Backend API' }]
+            }
+          },
+          {
+            id: 'ART-SEQ',
+            title: 'Sequence Diagram',
+            visualType: 'UML',
+            diagramStructure: {
+              nodes: [{ label: 'Client' }, { label: 'Backend API' }],
+              links: [{ from: 'Backend API', to: 'Client' }] // Inverted flow
+            }
+          }
         ]
       })
     }, authToken);
-    assert.equal(autopsyRes.status, 200);
-    const autopsyId = autopsyRes.json.data.id;
+    assert.equal(constRes.status, 200);
+    assert.ok(constRes.json.data.mismatchCount >= 1, 'Must detect directional flow mismatch');
+    record('Cross-Visual Consistency Engine API', true, `Evaluated multi-diagrams: found ${constRes.json.data.mismatchCount} mismatches (${constRes.json.data.overallStatus})`);
 
-    const listAutopsyRes = await httpReq('/api/knowledge/autopsy', {}, authToken);
-    assert.equal(listAutopsyRes.status, 200);
-    const autList = Array.isArray(listAutopsyRes.json.data) ? listAutopsyRes.json.data : (listAutopsyRes.json.data.autopsies || []);
-    assert.ok(autList.length >= 1);
-    record('Project Autopsy Generation & History', true, `Autopsy ID ${autopsyId} generated and verified in list`);
+    // 4. Evidence-Grounded Visual Q&A
+    console.log('Testing Evidence-Grounded Visual QA API...');
+    const vqaRes = await httpReq('/api/visual-qa/ask', {
+      method: 'POST',
+      body: JSON.stringify({
+        visualData: {
+          title: 'System Architecture',
+          diagramStructure: {
+            nodes: [{ label: 'API Gateway' }, { label: 'User Service' }],
+            links: [{ from: 'API Gateway', to: 'User Service' }]
+          }
+        },
+        question: 'Does the API Gateway connect to the Payment Processor?'
+      })
+    }, authToken);
+    assert.equal(vqaRes.status, 200);
+    assert.equal(vqaRes.json.data.verdict, 'UNDETERMINABLE', 'Must refuse to hallucinate unevidenced connections');
+    record('Evidence-Grounded Visual Q&A API', true, `Refused unevidenced claim with UNDETERMINABLE: "${vqaRes.json.data.answer}"`);
+
+    // 5. Visual Intelligence Workspace Orchestration
+    console.log('Testing Visual Workspace API...');
+    const wsRes = await httpReq('/api/workspace', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: 'Enterprise Architecture Intelligence Review',
+        analysisIntent: 'Structural Analysis',
+        artifacts: [
+          {
+            id: 'ART-1',
+            title: 'Core Architecture',
+            visualType: 'DIAGRAM',
+            diagramStructure: {
+              nodes: [{ label: 'Client' }, { label: 'Server' }],
+              links: [{ from: 'Client', to: 'Server' }]
+            },
+            claims: [{ claimText: 'Client sends requests to Server' }]
+          }
+        ]
+      })
+    }, authToken);
+    assert.equal(wsRes.status, 200);
+    assert.ok(wsRes.json.data.workspaceId, 'Must create and return workspaceId');
+    assert.ok(wsRes.json.data.evidenceReport, 'Must contain evidenceReport');
+    record('Visual Intelligence Workspace Service', true, `Created Workspace ${wsRes.json.data.workspaceId} with full intelligence report`);
 
     // ------------------------------------------------------------------------
     // SUMMARY

@@ -349,7 +349,7 @@ export function setupExtensionEvents() {
     } else if (ext.id === 'prompt-playground' || ext.id === 'playground') {
       openPlaygroundModal();
     } else if (ext.id === 'academic-mode') {
-      navigateTo('knowledge');
+      navigateTo('workspace');
     } else if (ext.id === 'research-mode') {
       navigateTo('desk');
     } else if (ext.id === 'hint-engine') {

@@ -1237,33 +1237,15 @@ export function setupReportActions(startAnalysisPipeline) {
   setupExplainReportPanel();
 
   document.getElementById('report-run-evolution-btn')?.addEventListener('click', () => {
-    if (typeof window.loadCurrentReportIntoKnowledge === 'function') {
-      window.loadCurrentReportIntoKnowledge();
-    }
-    navigateTo('knowledge');
-    if (typeof window.switchKnowledgeTab === 'function') {
-      window.switchKnowledgeTab('evolution');
-    }
+    navigateTo('workspace');
   });
 
   document.getElementById('report-stress-test-btn')?.addEventListener('click', () => {
-    if (typeof window.loadCurrentReportIntoKnowledge === 'function') {
-      window.loadCurrentReportIntoKnowledge();
-    }
-    navigateTo('knowledge');
-    if (typeof window.switchKnowledgeTab === 'function') {
-      window.switchKnowledgeTab('assumptions');
-    }
+    navigateTo('workspace');
   });
 
   document.getElementById('report-devils-advocate-btn')?.addEventListener('click', () => {
-    if (typeof window.loadCurrentReportIntoKnowledge === 'function') {
-      window.loadCurrentReportIntoKnowledge();
-    }
-    navigateTo('knowledge');
-    if (typeof window.switchKnowledgeTab === 'function') {
-      window.switchKnowledgeTab('adversarial');
-    }
+    navigateTo('workspace');
   });
 
   const retryHandler = () => {

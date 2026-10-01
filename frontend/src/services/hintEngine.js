@@ -33,31 +33,31 @@ export function triggerContextualHint(triggerType, contextData = {}) {
 
   switch (triggerType) {
     case 'upload_completed':
-      message = 'Tip: You can now stress-test implicit assumptions and run adversarial analysis on this document.';
-      actionLabel = 'Stress Test';
+      message = 'Tip: Inspect extracted visual evidence regions and verify grounded claims in the Visual Workspace.';
+      actionLabel = 'Inspect Evidence';
       actionCallback = () => {
-        if (typeof window.openKnowledgeAssumptions === 'function') {
-          window.openKnowledgeAssumptions(contextData);
+        if (typeof window.navigateTo === 'function') {
+          window.navigateTo('workspace');
         }
       };
       break;
 
     case 'unsubstantiated_claims':
-      message = 'InsightLens detected claims requiring evidence. Would you like to run AI Devil\'s Advocate?';
-      actionLabel = 'Run Devil\'s Advocate';
+      message = 'InsightLens detected claims requiring evidence. Ground claims to visual coordinates in the Evidence Viewer.';
+      actionLabel = 'Ground Claims';
       actionCallback = () => {
-        if (typeof window.openDevilsAdvocate === 'function') {
-          window.openDevilsAdvocate(contextData);
+        if (typeof window.navigateTo === 'function') {
+          window.navigateTo('workspace');
         }
       };
       break;
 
     case 'version_comparison':
-      message = 'Tracking revisions? Run Knowledge Evolution to inspect semantic deltas and downstream impacts.';
-      actionLabel = 'Compare Versions';
+      message = 'Tracking revisions? Run Visual Comparison to inspect topological deltas and visual differences.';
+      actionLabel = 'Compare Visuals';
       actionCallback = () => {
-        if (typeof window.openKnowledgeEvolution === 'function') {
-          window.openKnowledgeEvolution();
+        if (typeof window.navigateTo === 'function') {
+          window.navigateTo('workspace');
         }
       };
       break;
