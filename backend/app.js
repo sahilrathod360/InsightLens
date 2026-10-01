@@ -87,11 +87,14 @@ app.get('/api/health', async (req, res) => {
 
   const issues = [];
   if (!isHealthy) issues.push('database is unavailable or not configured');
-  if (!isAuthHealthy) issues.push('JWT_SECRET is missing or invalid in production');
+  const commitHash = (process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || process.env.VERCEL_GIT_COMMIT_SHA || '7156ac3').slice(0, 7);
+  const environment = process.env.NODE_ENV || 'production';
 
   res.status(httpStatus).json({
     success: isHealthy,
     status: isHealthy ? 'healthy' : 'degraded',
+    environment,
+    commit: commitHash,
     database: dbStatus,
     auth: isAuthHealthy ? 'configured' : 'unconfigured',
     message: isHealthy ? 'InsightLens Backend is healthy.' : `InsightLens Backend degraded: ${issues.join('; ')}.`,
