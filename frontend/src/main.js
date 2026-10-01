@@ -21,15 +21,24 @@ import { setupWorkspaceEvents, renderVisualWorkspace } from './components/Worksp
 import { initThemeRuntime, applyTheme, applyTypography, applyLayoutMode } from './services/themeRuntime.js';
 import { initHintEngine } from './services/hintEngine.js';
 
+import { renderComparePage } from './pages/Compare.js';
+import { renderLiveVisionPage } from './pages/LiveVision.js';
+
 window.navigateTo = navigateTo;
 window.exportCleanPDF = exportCleanPDF;
 window.getActiveReportData = getActiveReportData;
 window.setActiveReportData = setActiveReportData;
 window.renderResultScreen = renderResultScreen;
 window.renderVisualWorkspace = renderVisualWorkspace;
+window.renderComparePage = renderComparePage;
+window.renderLiveVisionPage = renderLiveVisionPage;
 window.applyTheme = applyTheme;
 window.applyTypography = applyTypography;
 window.applyLayoutMode = applyLayoutMode;
+window.startAnalysisWithDataUrl = (dataUrl) => {
+  navigateTo('desk');
+  startAnalysisPipeline(dataUrl);
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Register render callbacks to resolve cross-module calls without circular dependencies
@@ -40,6 +49,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderSettingsPage,
     renderExtensionManager,
     renderVisualWorkspace,
+    renderComparePage,
+    renderLiveVisionPage,
     updateAuthUI,
     setAuthModeUI: setAuthMode
   });
@@ -68,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Authoritatively restore session from PostgreSQL via backend /api/auth/me in background
   initPersistentSession(updateAuthUI);
 
-  // If user directly opened or bookmarked a specific protected hash/view, render on demand
+  // If user directly opened or bookmarked a specific hash/view, render on demand
   if (window.location.hash === '#archive' || document.getElementById('page-archive')?.classList.contains('active')) {
     renderArchivePage();
   } else if (window.location.hash === '#dashboard' || document.getElementById('page-dashboard')?.classList.contains('active')) {
@@ -77,6 +88,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderExtensionManager();
   } else if (window.location.hash === '#workspace' || document.getElementById('page-workspace')?.classList.contains('active')) {
     renderVisualWorkspace();
+  } else if (window.location.hash === '#compare' || document.getElementById('page-compare')?.classList.contains('active')) {
+    renderComparePage();
+  } else if (window.location.hash === '#livevision' || document.getElementById('page-livevision')?.classList.contains('active')) {
+    renderLiveVisionPage();
   }
 });
 

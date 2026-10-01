@@ -8,7 +8,7 @@ import {
 } from '../../services/visualIntelligenceApi.js';
 import { renderEvidenceViewer } from '../EvidenceViewer/EvidenceViewerComponent.js';
 import { openLiveVisionModal } from '../LiveVision/LiveVisionComponent.js';
-import { renderGuessMode } from '../Guess/GuessComponent.js';
+import { renderGuessMode, renderReportQuiz } from '../Guess/GuessComponent.js';
 import { startNarration, setNarrationHighlightCallback } from '../Narration/NarrationPlayerComponent.js';
 import { showToast } from '../../utils/toast.js';
 import { escapeHtml } from '../../utils/sanitize.js';
@@ -92,20 +92,20 @@ export async function renderVisualWorkspace() {
 
         <!-- Tool Actions & Intent Selector -->
         <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Optional Tool Buttons -->
-          <button onclick="window.openLiveVisionModal()" class="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            Live Vision
+          <!-- Contextual Report Action Buttons -->
+          <button onclick="window.switchWorkspaceTab('evidence')" class="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">crop_free</span>
+            Explore Evidence
           </button>
 
           <button onclick="window.handleStartWorkspaceNarration()" class="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-            Narrate
+            <span class="material-symbols-outlined text-[16px]">volume_up</span>
+            Explain Report
           </button>
 
-          <button onclick="window.switchWorkspaceTab('guess')" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-            Guess Mode
+          <button onclick="window.handleOpenReportQuiz()" class="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">quiz</span>
+            Test Understanding
           </button>
 
           <div class="h-5 w-[1px] bg-white/10 mx-1 hidden sm:block"></div>
@@ -118,26 +118,29 @@ export async function renderVisualWorkspace() {
               <option value="Inconsistency Detection">Intent: Inconsistencies</option>
               <option value="Data Extraction">Intent: Extraction</option>
               <option value="Research / Evidence Analysis">Intent: Evidence Research</option>
-              <option value="Comparison">Intent: Comparison</option>
             </select>
           </div>
         </div>
       </div>
 
-      <!-- Navigation Tabs (Dedicated Panels) -->
+      <!-- Navigation Tabs (Cleaned Product Tabs) -->
       <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-white/5 no-scrollbar">
         <button class="ws-tab-btn px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all ${currentActiveTab === 'visual' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'}" data-tab="visual">
-          1. Region Explorer
+          Overview
         </button>
         <button class="ws-tab-btn px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all ${currentActiveTab === 'structure' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'}" data-tab="structure">
-          2. Structure
+          Structure Graph
         </button>
         <button class="ws-tab-btn px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all ${currentActiveTab === 'evidence' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'}" data-tab="evidence">
-          3. Evidence Registry
+          Evidence Registry
         </button>
         <button class="ws-tab-btn px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all ${currentActiveTab === 'findings' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'}" data-tab="findings">
-          4. Intent Findings
+          Findings &amp; Claims
         </button>
+        <button class="ws-tab-btn px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all ${currentActiveTab === 'ask' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'}" data-tab="ask">
+          Ask About Visual
+        </button>
+      </div>
         <button class="ws-tab-btn px-4 py-2 rounded-xl text-xs font-mono font-medium transition-all ${currentActiveTab === 'compare' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'}" data-tab="compare">
           5. Visual Comparison
         </button>
@@ -486,6 +489,11 @@ export function setupWorkspaceEvents() {
   window.handleStartWorkspaceNarration = () => {
     const primary = getPrimaryWorkspaceArtifact();
     startNarration(primary);
+  };
+
+  window.handleOpenReportQuiz = () => {
+    const primary = getPrimaryWorkspaceArtifact();
+    renderReportQuiz('workspace-tab-content', primary);
   };
 
   window.setComparisonMode = (mode) => {

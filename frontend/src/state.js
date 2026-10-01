@@ -127,6 +127,10 @@ export function navigateTo(pageId) {
     renderCallbacks.renderExtensionManager();
   } else if (pageId === 'workspace') {
     renderCallbacks.renderVisualWorkspace();
+  } else if (pageId === 'compare') {
+    renderCallbacks.renderComparePage?.();
+  } else if (pageId === 'livevision') {
+    renderCallbacks.renderLiveVisionPage?.();
   }
 
   document.getElementById('user-dropdown-menu')?.classList.remove('show');

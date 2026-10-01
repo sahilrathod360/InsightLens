@@ -36,49 +36,49 @@ export function renderEvidenceViewer(containerId, { imageSrc, evidenceList = [],
           <div id="evidence-transform-container" class="relative w-full h-full flex items-center justify-center transition-transform duration-200" style="transform: scale(${currentZoom});">
             ${imageSrc ? `
               <img src="${escapeHtml(imageSrc)}" id="evidence-base-image" alt="Source Visual" class="w-full h-full object-contain pointer-events-none select-none" />
+              <!-- Bounding Region Overlays -->
+              <div id="evidence-overlays-layer" class="absolute inset-0 pointer-events-auto">
+                ${evidenceList.map(ev => {
+                  const coords = ev.coordinates || { x: 0.1, y: 0.1, width: 0.3, height: 0.2, normalized: true };
+                  const isSelected = activeItem && activeItem.id === ev.id;
+                  
+                  let styleStr = '';
+                  if (coords.normalized) {
+                    styleStr = `left: ${coords.x * 100}%; top: ${coords.y * 100}%; width: ${coords.width * 100}%; height: ${coords.height * 100}%;`;
+                  } else if (coords.pixelBounds) {
+                    const pxLeft = (coords.x / coords.pixelBounds.imageWidth) * 100;
+                    const pxTop = (coords.y / coords.pixelBounds.imageHeight) * 100;
+                    const pxW = (coords.width / coords.pixelBounds.imageWidth) * 100;
+                    const pxH = (coords.height / coords.pixelBounds.imageHeight) * 100;
+                    styleStr = `left: ${pxLeft}%; top: ${pxTop}%; width: ${pxW}%; height: ${pxH}%;`;
+                  } else {
+                    styleStr = `left: ${(coords.x || 10)}%; top: ${(coords.y || 10)}%; width: ${(coords.width || 20)}%; height: ${(coords.height || 15)}%;`;
+                  }
+
+                  const statusColor = ev.status === 'OBSERVED' ? 'border-emerald-500 bg-emerald-500/15' :
+                    (ev.status === 'CONTRADICTED' ? 'border-rose-500 bg-rose-500/15' :
+                    (ev.status === 'UNDETERMINABLE' ? 'border-amber-500 bg-amber-500/15' : 'border-indigo-500 bg-indigo-500/15'));
+
+                  return `
+                    <div 
+                      onclick="window.handleSelectEvidenceRegion('${escapeHtml(ev.id)}')"
+                      title="${escapeHtml(ev.region || ev.label || '')}"
+                      style="${styleStr}" 
+                      class="absolute border-2 rounded-lg cursor-pointer transition-all duration-200 ${statusColor} ${isSelected ? 'ring-2 ring-white scale-[1.02] shadow-2xl z-30' : 'opacity-80 hover:opacity-100 z-10 hover:scale-[1.01]'}">
+                      <span class="absolute -top-3 left-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-900/90 border border-white/20 text-white shadow-sm pointer-events-none truncate max-w-[120px]">
+                        ${escapeHtml(ev.region || ev.label || ev.id)}
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
             ` : `
-              <div class="flex flex-col items-center justify-center text-slate-500 space-y-2">
-                <span class="material-symbols-outlined text-4xl">image_not_supported</span>
-                <span class="text-xs font-mono">No visual source loaded</span>
+              <div class="flex flex-col items-center justify-center text-slate-500 space-y-2 p-6 text-center">
+                <span class="material-symbols-outlined text-4xl text-amber-400">image_not_supported</span>
+                <span class="text-xs font-mono text-slate-300">Source visual image is unavailable for region overlay.</span>
+                <p class="text-[11px] text-slate-500 font-sans max-w-xs">Source-linked bounding region overlays and region coordinates are strictly suppressed when the original image is unavailable.</p>
               </div>
             `}
-
-            <!-- Bounding Region Overlays -->
-            <div id="evidence-overlays-layer" class="absolute inset-0 pointer-events-auto">
-              ${evidenceList.map(ev => {
-                const coords = ev.coordinates || { x: 0.1, y: 0.1, width: 0.3, height: 0.2, normalized: true };
-                const isSelected = activeItem && activeItem.id === ev.id;
-                
-                let styleStr = '';
-                if (coords.normalized) {
-                  styleStr = `left: ${coords.x * 100}%; top: ${coords.y * 100}%; width: ${coords.width * 100}%; height: ${coords.height * 100}%;`;
-                } else if (coords.pixelBounds) {
-                  const pxLeft = (coords.x / coords.pixelBounds.imageWidth) * 100;
-                  const pxTop = (coords.y / coords.pixelBounds.imageHeight) * 100;
-                  const pxW = (coords.width / coords.pixelBounds.imageWidth) * 100;
-                  const pxH = (coords.height / coords.pixelBounds.imageHeight) * 100;
-                  styleStr = `left: ${pxLeft}%; top: ${pxTop}%; width: ${pxW}%; height: ${pxH}%;`;
-                } else {
-                  styleStr = `left: ${(coords.x || 10)}%; top: ${(coords.y || 10)}%; width: ${(coords.width || 20)}%; height: ${(coords.height || 15)}%;`;
-                }
-
-                const statusColor = ev.status === 'OBSERVED' ? 'border-emerald-500 bg-emerald-500/15' :
-                  (ev.status === 'CONTRADICTED' ? 'border-rose-500 bg-rose-500/15' :
-                  (ev.status === 'UNDETERMINABLE' ? 'border-amber-500 bg-amber-500/15' : 'border-indigo-500 bg-indigo-500/15'));
-
-                return `
-                  <div 
-                    onclick="window.handleSelectEvidenceRegion('${escapeHtml(ev.id)}')"
-                    title="${escapeHtml(ev.region || ev.label || '')}"
-                    style="${styleStr}" 
-                    class="absolute border-2 rounded-lg cursor-pointer transition-all duration-200 ${statusColor} ${isSelected ? 'ring-2 ring-white scale-[1.02] shadow-2xl z-30' : 'opacity-80 hover:opacity-100 z-10 hover:scale-[1.01]'}">
-                    <span class="absolute -top-3 left-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-900/90 border border-white/20 text-white shadow-sm pointer-events-none truncate max-w-[120px]">
-                      ${escapeHtml(ev.region || ev.label || ev.id)}
-                    </span>
-                  </div>
-                `;
-              }).join('')}
-            </div>
           </div>
         </div>
       </div>

@@ -559,102 +559,67 @@ async function runAcceptanceAudit() {
     console.log('✔ STRICT USER ISOLATION PROVEN: User A state does not leak to User B\n');
 
     // --------------------------------------------------------------------------
-    // AUDIT 7: VISUAL INTELLIGENCE WORKSPACE LIVE UI AUDIT
+    // AUDIT 7: RESTRUCTURED PRODUCT EXPERIENCES AUDIT
     // --------------------------------------------------------------------------
-    console.log('--- AUDIT 7: VISUAL INTELLIGENCE WORKSPACE LIVE UI ---');
+    console.log('--- AUDIT 7: RESTRUCTURED PRODUCT EXPERIENCES & DEDICATED PAGES ---');
+    
+    // 1. Dedicated Live Vision Page Audit
+    console.log('Testing Dedicated Live Vision Page...');
     await page.evaluate(() => {
-      const navBtn = document.querySelector('[data-page="workspace"]');
-      if (navBtn) {
-        navBtn.click();
-      } else if (typeof window.navigateTo === 'function') {
-        window.navigateTo('workspace');
-      } else {
-        window.location.hash = '#workspace';
-        window.renderVisualWorkspace?.();
-      }
+      window.navigateTo('livevision');
     });
     await new Promise(r => setTimeout(r, 1500));
 
-    // 1. Verify workspace container is visible and rendered
-    const wsVisible = await page.evaluate(() => {
-      const pageWs = document.getElementById('page-workspace');
-      return pageWs && !pageWs.classList.contains('hidden');
+    const liveVisionVisible = await page.evaluate(() => {
+      const pageEl = document.getElementById('page-livevision');
+      return pageEl && !pageEl.classList.contains('hidden');
     });
-    assert.ok(wsVisible, 'Visual Intelligence Workspace must be visible when navigated to');
+    assert.ok(liveVisionVisible, 'Dedicated Live Vision page must be visible');
+    console.log('✔ Dedicated Live Vision Page verified in browser');
 
-    // 2. Interactive Region Explorer Audit
-    console.log('Testing Interactive Region Explorer...');
+    // 2. Dedicated Compare Images Page Audit
+    console.log('Testing Dedicated Compare Images Page...');
     await page.evaluate(() => {
-      window.switchWorkspaceTab('visual');
+      window.navigateTo('compare');
     });
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1500));
 
-    // Test Zoom controls
+    const comparePageVisible = await page.evaluate(() => {
+      const pageEl = document.getElementById('page-compare');
+      return pageEl && !pageEl.classList.contains('hidden');
+    });
+    assert.ok(comparePageVisible, 'Dedicated Compare Images page must be visible');
+
+    // Load compare preset and execute comparison
     await page.evaluate(() => {
-      window.zoomEvidenceViewer(0.2);
+      window.loadComparePreset('dfd');
+      window.executeMultiImageCompare();
     });
-    const zoomText = await page.$eval('#evidence-zoom-level', el => el.innerText);
-    assert.equal(zoomText, '120%', 'Zoom in must update scale to 120%');
+    await new Promise(r => setTimeout(r, 1500));
 
+    const compareResultsRendered = await page.evaluate(() => {
+      const mount = document.getElementById('compare-results-mount');
+      return mount && mount.innerText.includes('Side-by-Side Visual Artifacts');
+    });
+    assert.ok(compareResultsRendered, 'Multi-Image Compare results must render side-by-side with similarities and differences');
+    console.log('✔ Dedicated Compare Images Page & Multi-Image Comparison verified in browser');
+
+    // 3. Post-Report Quiz ("Test Your Understanding") Audit
+    console.log('Testing Post-Report Quiz ("Test Your Understanding")...');
     await page.evaluate(() => {
-      window.resetEvidenceViewerZoom();
+      window.navigateTo('workspace');
+      window.handleOpenReportQuiz();
     });
-    const resetZoomText = await page.$eval('#evidence-zoom-level', el => el.innerText);
-    assert.equal(resetZoomText, '100%', 'Reset zoom must restore 100%');
+    await new Promise(r => setTimeout(r, 1500));
 
-    // Test Region-specific analysis click
-    const analyzeRegBtn = await page.$('button[onclick*="handleAnalyzeSpecificRegion"]');
-    if (analyzeRegBtn) {
-      await page.click('button[onclick*="handleAnalyzeSpecificRegion"]');
-      await new Promise(r => setTimeout(r, 1500));
-      const deepOutputText = await page.$eval('#region-deep-analysis-output', el => el.innerText);
-      assert.ok(deepOutputText.includes('OBSERVED'), 'Focused region analysis must render OBSERVED findings');
-      console.log('✔ Interactive Region Explorer & Focused Analysis verified in browser');
-    }
-
-    // 3. Visual Comparison Engine Audit (Modes & Topology Diff)
-    console.log('Testing Visual Comparison Engine...');
-    await page.evaluate(() => {
-      window.switchWorkspaceTab('compare');
-      window.setComparisonMode('slider');
+    const quizRendered = await page.evaluate(() => {
+      const mount = document.getElementById('workspace-tab-content');
+      return mount && mount.innerText.includes('Test Your Understanding');
     });
-    await new Promise(r => setTimeout(r, 1000));
+    assert.ok(quizRendered, 'Post-Report Quiz ("Test Your Understanding") must render MCQs grounded in report');
+    console.log('✔ Post-Report Quiz ("Test Your Understanding") verified in browser');
 
-    const hasSlider = await page.evaluate(() => {
-      return Boolean(document.querySelector('input[type="range"]'));
-    });
-    assert.ok(hasSlider, 'Slider comparison mode must render interactive range input');
-
-    // Run Semantic Topology Diff
-    const runDiffBtn = await page.$('button[onclick*="handleRunVisualComparison"]');
-    if (runDiffBtn) {
-      await page.click('button[onclick*="handleRunVisualComparison"]');
-      await new Promise(r => setTimeout(r, 2000));
-      const diffRendered = await page.evaluate(() => {
-        const out = document.getElementById('comparison-display-mount');
-        return out && out.innerText.includes('Visual Topology Diff Result');
-      });
-      assert.ok(diffRendered, 'Visual Comparison Diff must render live in workspace');
-      console.log('✔ Live Visual Comparison Diff (Side-by-Side & Slider) verified in browser');
-    }
-
-    // 4. Guess Before You See Audit
-    console.log('Testing Guess Before You See Mode...');
-    await page.evaluate(() => {
-      window.switchWorkspaceTab('guess');
-    });
-    await new Promise(r => setTimeout(r, 1000));
-
-    await page.type('#guess-input-target', 'Microservices backend with API Gateway and Database');
-    await page.type('#guess-input-interaction', 'Client communicates with Gateway securely');
-    await page.click('button[onclick*="handleLockGuess"]');
-    await new Promise(r => setTimeout(r, 2000));
-
-    const guessVerdictText = await page.$eval('#guess-comparison-mount', el => el.innerText);
-    assert.ok(guessVerdictText.includes('InsightLens Analysis Verdict'), 'Guess evaluation card must render');
-    console.log('✔ Guess Before You See interactive evaluation verified in browser');
-
-    // 5. Spoken Narration Walkthrough Audit
+    // 4. Spoken Narration Walkthrough Audit
     console.log('Testing Spoken Narration Walkthrough...');
     await page.evaluate(() => {
       window.handleStartWorkspaceNarration();
@@ -677,47 +642,7 @@ async function runAcceptanceAudit() {
     assert.ok(narrationBarClosed, 'Narration must stop and clean up player bar cleanly');
     console.log('✔ Spoken Narration player & controls verified in browser');
 
-    // 6. Live Vision Modal Lifecycle Audit
-    console.log('Testing Live Vision Modal Lifecycle...');
-    await page.evaluate(() => {
-      window.openLiveVisionModal();
-    });
-    await new Promise(r => setTimeout(r, 1000));
-
-    const liveModalVisible = await page.evaluate(() => {
-      const modal = document.getElementById('modal-live-vision');
-      return modal && !modal.classList.contains('hidden');
-    });
-    assert.ok(liveModalVisible, 'Live Vision Modal must be displayed on screen');
-
-    await page.evaluate(() => {
-      window.pauseLiveVision();
-      window.closeLiveVisionModal();
-    });
-
-    const liveModalClosed = await page.evaluate(() => {
-      const modal = document.getElementById('modal-live-vision');
-      return modal && modal.classList.contains('hidden');
-    });
-    assert.ok(liveModalClosed, 'Live Vision Modal must close cleanly and stop tracks');
-    console.log('✔ Live Vision Modal lifecycle and cleanup verified in browser');
-
-    // 7. Evidence-Grounded Visual Q&A Audit
-    console.log('Testing Evidence-Grounded Visual Q&A...');
-    await page.evaluate(() => {
-      window.switchWorkspaceTab('ask');
-    });
-    await new Promise(r => setTimeout(r, 1000));
-
-    await page.type('#vqa-query-input', 'Does the client connect to the database directly?');
-    await page.click('button[onclick*="handleAskVQA"]');
-    await new Promise(r => setTimeout(r, 2000));
-
-    const vqaResultText = await page.$eval('#vqa-result-card', el => el.innerText);
-    assert.ok(vqaResultText.length > 0, 'VQA Grounded Answer must be rendered in UI');
-    console.log(`✔ Evidence-Grounded VQA returned: ${vqaResultText.slice(0, 80)}...\n`);
-
-    // 8. Mobile Viewport Responsiveness Audit (390x844)
+    // 5. Mobile Viewport Responsiveness Audit (390x844)
     console.log('Testing Mobile Viewport Responsiveness (390x844)...');
     await page.setViewport({ width: 390, height: 844 });
     await new Promise(r => setTimeout(r, 1000));
@@ -730,7 +655,7 @@ async function runAcceptanceAudit() {
 
     // Restore desktop viewport
     await page.setViewport({ width: 1440, height: 900 });
-    console.log('✔ ALL 5 OPTIONAL INTERACTIVE FEATURES VERIFIED IN BROWSER\n');
+    console.log('✔ ALL RESTRUCTURED PRODUCT EXPERIENCES VERIFIED IN BROWSER\n');
 
     // --------------------------------------------------------------------------
     // SUMMARY TABLE PRINTING
