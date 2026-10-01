@@ -1,0 +1,16 @@
+{
+  "name": "insightlens-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "InsightLens Full-Stack Visual & Knowledge Intelligence Platform",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "build": "npm --prefix backend install",
+    "start": "npm --prefix backend start",
+    "backend:start": "npm --prefix backend start",
+    "test": "npm --prefix backend test"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "InsightLens Backend API Server",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -11,11 +11,14 @@
     "test": "node test/audit-fixes.test.mjs && node test/ai-pipeline-phase1.test.mjs && node test/phase2-non-generic.test.mjs && node test/pdf-section-parity.test.mjs && node test/dfd-structural-integrity.test.mjs && node test/knowledge-intelligence.test.mjs && node test/extensions-platform.test.mjs && node test/knowledge-governance.test.mjs",
     "test:live": "node test/ai-reliability.test.mjs"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -31,8 +34,5 @@
     "pg": "^8.23.0",
     "sharp": "^0.35.3",
     "uuid": "^14.0.1"
-  },
-  "devDependencies": {
-    "puppeteer": "^25.9.0"
   }
 }
