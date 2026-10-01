@@ -46,6 +46,135 @@ html.dark {
   --shadow-lg: 0 16px 32px -4px rgba(0, 0, 0, 0.5);
 }
 
+/* Theme Studio Themes */
+html[data-theme="midnight-research"] {
+  --bg-main: #0B0F19;
+  --bg-canvas: #0E1322;
+  --bg-card: #151C30;
+  --bg-card-subtle: #1C253E;
+  --border-color: #263354;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent-color: #6366F1;
+  --accent-emerald: #10B981;
+  --accent-amber: #F59E0B;
+  --accent-purple: #8B5CF6;
+  --accent-link: #38BDF8;
+}
+
+html[data-theme="neo-glass"] {
+  --bg-main: #070913;
+  --bg-canvas: #0A0E1F;
+  --bg-card: rgba(20, 27, 50, 0.85);
+  --bg-card-subtle: rgba(30, 41, 75, 0.75);
+  --border-color: rgba(139, 92, 246, 0.35);
+  --text-primary: #FFFFFF;
+  --text-secondary: #A5B4FC;
+  --text-muted: #818CF8;
+  --accent-color: #8B5CF6;
+  --accent-emerald: #34D399;
+  --accent-amber: #FBBF24;
+  --accent-purple: #A855F7;
+  --accent-link: #22D3EE;
+}
+
+html[data-theme="terminal"] {
+  --bg-main: #050709;
+  --bg-canvas: #080C10;
+  --bg-card: #0E141C;
+  --bg-card-subtle: #151D28;
+  --border-color: #1E293B;
+  --text-primary: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent-color: #10B981;
+  --accent-emerald: #10B981;
+  --accent-amber: #F59E0B;
+  --accent-purple: #06B6D4;
+  --accent-link: #10B981;
+}
+
+html[data-theme="paper"] {
+  --bg-main: #FBFBF9;
+  --bg-canvas: #FFFFFF;
+  --bg-card: #F4F4F0;
+  --bg-card-subtle: #ECECE6;
+  --border-color: #D8D8CF;
+  --text-primary: #18181B;
+  --text-secondary: #52525B;
+  --text-muted: #71717A;
+  --accent-color: #18181B;
+  --accent-emerald: #15803D;
+  --accent-amber: #B45309;
+  --accent-purple: #6D28D9;
+  --accent-link: #0284C7;
+}
+
+html[data-theme="solarized-lab"] {
+  --bg-main: #002B36;
+  --bg-canvas: #073642;
+  --bg-card: #094352;
+  --bg-card-subtle: #0B5061;
+  --border-color: #586E75;
+  --text-primary: #FDF6E3;
+  --text-secondary: #93A1A1;
+  --text-muted: #657B83;
+  --accent-color: #2AA198;
+  --accent-emerald: #859900;
+  --accent-amber: #B58900;
+  --accent-purple: #6C71C4;
+  --accent-link: #268BD2;
+}
+
+/* Typography Lab Classes */
+html[data-typography="academic"] {
+  font-family: "Source Serif 4", Georgia, serif;
+}
+html[data-typography="editorial"] {
+  font-family: Georgia, "Times New Roman", serif;
+}
+html[data-typography="technical"] {
+  font-family: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+html[data-typography="modern"] {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+html[data-typography="minimal"] {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Layout Pack Enhancements */
+html[data-layout-mode="compact"] .page-view {
+  max-width: 980px !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+html[data-layout-mode="expanded"] .page-view {
+  max-width: 1500px !important;
+}
+html[data-layout-mode="split-screen"] #paper-canvas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+/* Presentation & Focus Modes */
+html[data-presentation-mode="true"] nav,
+html[data-presentation-mode="true"] footer,
+html[data-presentation-mode="true"] #result-action-bar,
+html[data-focus-mode="true"] nav,
+html[data-focus-mode="true"] footer {
+  display: none !important;
+}
+
+html[data-presentation-mode="true"] .report-paper-wrapper,
+html[data-focus-mode="true"] .report-paper-wrapper {
+  max-width: 100% !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
 @page {
   margin: 10mm;
 }
@@ -110,9 +239,26 @@ html.dark {
     visibility: hidden;
   }
 
-  #paper-canvas,
-  #paper-canvas * {
+  #paper-canvas {
     visibility: visible;
+  }
+
+  #paper-canvas :not(.hidden):not([hidden]) {
+    visibility: visible;
+  }
+
+  .hidden,
+  [hidden],
+  .hidden *,
+  [hidden] * {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
   }
 
   #paper-canvas {
@@ -1225,10 +1371,75 @@ input, select, textarea, .input-transition {
     font-weight: 700 !important;
   }
 
-  #report-dynamic-sections-container > div {
+  .hidden,
+  [hidden],
+  .hidden *,
+  [hidden] *,
+  #chart-structure-container.hidden,
+  #diagram-structure-container.hidden,
+  #chart-inconclusive-box.hidden,
+  #diagram-inconclusive-box.hidden,
+  #section-timeline-wrapper.hidden,
+  #section-applications-wrapper.hidden,
+  #section-facts-wrapper.hidden,
+  #section-limitations-wrapper.hidden,
+  #section-references-wrapper.hidden,
+  #section-conclusion-wrapper.hidden,
+  #report-default-sections-wrapper.hidden,
+  #report-dynamic-sections-container.hidden,
+  #report-demo-banner.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+  }
+
+  #report-dynamic-sections-container:not(.hidden) > div,
+  #section-timeline-wrapper:not(.hidden),
+  #section-applications-wrapper:not(.hidden),
+  #section-facts-wrapper:not(.hidden),
+  #section-limitations-wrapper:not(.hidden),
+  #section-references-wrapper:not(.hidden),
+  #section-conclusion-wrapper:not(.hidden),
+  #specs-comparison-grid:not(.hidden),
+  #chart-structure-container:not(.hidden),
+  #diagram-structure-container:not(.hidden),
+  #report-evidence-workbench-container:not(.hidden) {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  #appendix-telemetry-box {
+    display: block !important;
+    visibility: visible !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.5rem !important;
+  }
+
+  #appendix-telemetry-box * {
+    color: #334155 !important;
+  }
+
+  #diagram-nodes-list,
+  #diagram-edges-list,
+  #chart-points-list,
+  #chart-trends-list,
+  #workbench-claims-list {
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 }
 

@@ -203,8 +203,25 @@ export function renderResultScreen(data) {
 
   // Phase 3: Visual Type & Specialized Analysis Pipeline Badges
   const rawType = (data.visualType || 'photograph').toLowerCase();
-  const displayType = rawType.charAt(0).toUpperCase() + rawType.slice(1);
-  const pipelineLabel = data.specializedPipeline || `${displayType} Analysis Pipeline`;
+  let displayType = rawType.charAt(0).toUpperCase() + rawType.slice(1);
+  if (rawType === 'diagram') {
+    displayType = 'Diagram';
+  } else if (rawType === 'chart') {
+    displayType = 'Chart';
+  }
+
+  let pipelineLabel = data.specializedPipeline;
+  if (!pipelineLabel) {
+    if (rawType === 'diagram') {
+      const dType = data.diagramStructure?.displayType || 'Diagram';
+      pipelineLabel = `${dType} Analysis Pipeline`;
+    } else if (rawType === 'chart') {
+      const cType = (data.chartStructure?.chartType || 'Chart').replace(/_/g, ' ').toUpperCase();
+      pipelineLabel = `${cType} Analysis Pipeline`;
+    } else {
+      pipelineLabel = `${displayType} Analysis Pipeline`;
+    }
+  }
 
   const visualTypeValEl = document.getElementById('report-visual-type-val');
   if (visualTypeValEl) {
@@ -234,11 +251,11 @@ export function renderResultScreen(data) {
 
   const labelEl = document.getElementById('grid-scientific-label');
   if (labelEl) {
-    labelEl.textContent = isBio && data.scientificName ? 'Taxonomic Species' : 'Classification';
+    labelEl.textContent = isBio && data.scientificName ? 'Taxonomic Species' : (rawType === 'diagram' ? 'Diagram Type' : 'Classification');
   }
 
   setVal('grid-subject', subjectName);
-  setVal('grid-scientific', isBio && data.scientificName ? data.scientificName : classificationStr);
+  setVal('grid-scientific', isBio && data.scientificName ? data.scientificName : (rawType === 'diagram' && data.diagramStructure?.displayType ? data.diagramStructure.displayType : classificationStr));
   setVal('grid-confidence', evidenceStatus);
   setVal('grid-time', data.processingTimeMs ? `${(data.processingTimeMs / 1000).toFixed(1)}s Latency` : 'Not recorded');
   setVal('grid-category', categoryName);
@@ -250,7 +267,10 @@ export function renderResultScreen(data) {
 
   // 5. Evidence & Grounding Telemetry
   setVal('telemetry-evidence-status', evidenceStatus);
-  setVal('telemetry-grounding-mode', data.visualType ? `${data.visualType.toUpperCase()} Grounded` : 'Empirical Visual Ingest');
+  const groundingModeStr = rawType === 'diagram'
+    ? (data.diagramStructure?.extractionCompleteness === 'partial' ? 'Partial Diagram Topology Ingest' : 'Structural Diagram Grounded')
+    : (data.visualType ? `${data.visualType.toUpperCase()} Grounded` : 'Empirical Visual Ingest');
+  setVal('telemetry-grounding-mode', groundingModeStr);
   setVal('telemetry-verification-scope', data.references?.length ? `${data.references.length} Citations Grounded` : 'Visual Anchor');
   setVal('specs-evidence-grounding', 'Direct Visual Anchor');
 
@@ -281,9 +301,13 @@ export function renderResultScreen(data) {
   const defaultSecsWrapper = document.getElementById('report-default-sections-wrapper');
 
   if (Array.isArray(data.structuredSections) && data.structuredSections.length > 0) {
-    if (defaultSecsWrapper) defaultSecsWrapper.classList.add('hidden');
+    if (defaultSecsWrapper) {
+      defaultSecsWrapper.classList.add('hidden');
+      defaultSecsWrapper.style.display = 'none';
+    }
     if (dynamicSectionsEl) {
       dynamicSectionsEl.classList.remove('hidden');
+      dynamicSectionsEl.style.display = 'block';
       dynamicSectionsEl.innerHTML = data.structuredSections.map((sec, idx) => `
         <div class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2 flex items-center justify-between">
@@ -299,8 +323,14 @@ export function renderResultScreen(data) {
       `).join('');
     }
   } else {
-    if (defaultSecsWrapper) defaultSecsWrapper.classList.remove('hidden');
-    if (dynamicSectionsEl) dynamicSectionsEl.classList.add('hidden');
+    if (defaultSecsWrapper) {
+      defaultSecsWrapper.classList.remove('hidden');
+      defaultSecsWrapper.style.display = 'block';
+    }
+    if (dynamicSectionsEl) {
+      dynamicSectionsEl.classList.add('hidden');
+      dynamicSectionsEl.style.display = 'none';
+    }
     
     const setSectionText = (id, text) => {
       const el = document.getElementById(id);
@@ -333,110 +363,162 @@ export function renderResultScreen(data) {
     `).join('');
   }
 
-  // 10. Vertical Timeline for Historical Context
-  const timelineContainer = document.getElementById('report-historical-timeline');
-  const timelineSection = timelineContainer?.closest('.space-y-3');
-  if (timelineContainer) {
-    const milestones = Array.isArray(data.timeline) && data.timeline.length > 0 ? data.timeline : null;
-    if (milestones) {
-      if (timelineSection) timelineSection.classList.remove('hidden');
-      timelineContainer.innerHTML = milestones.map(m => `
-        <div class="timeline-item">
-          <div class="timeline-node"></div>
-          <div class="timeline-card">
-            <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">${escapeHtml(m.year)}</span>
-            <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">${escapeHtml(m.title)}</strong>
-            <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">${escapeHtml(m.desc)}</p>
-          </div>
-        </div>
-      `).join('');
+  // 10. Dynamic Sequential Numbering for Subsequent Sections
+  let sectionCounter = (Array.isArray(data.structuredSections) && data.structuredSections.length > 0)
+    ? data.structuredSections.length + 1
+    : 4;
+
+  const setSectionHeading = (headingId, title) => {
+    const headingEl = document.getElementById(headingId);
+    if (!headingEl) return;
+    const titleSpan = headingEl.querySelector('.section-title-text');
+    if (titleSpan) {
+      titleSpan.textContent = title;
     } else {
-      if (timelineSection) timelineSection.classList.add('hidden');
+      const icon = headingEl.querySelector('.material-symbols-outlined');
+      if (icon) {
+        headingEl.innerHTML = `${icon.outerHTML} <span class="section-title-text">${escapeHtml(title)}</span>`;
+      } else {
+        headingEl.textContent = title;
+      }
+    }
+  };
+
+  // 10. Vertical Timeline for Historical Context
+  const timelineSection = document.getElementById('section-timeline-wrapper') || document.getElementById('report-historical-timeline')?.closest('.space-y-3');
+  const timelineContainer = document.getElementById('report-historical-timeline');
+  const milestones = Array.isArray(data.timeline) && data.timeline.length > 0 ? data.timeline : null;
+  if (milestones && timelineContainer) {
+    if (timelineSection) {
+      timelineSection.classList.remove('hidden');
+      timelineSection.style.display = 'block';
+    }
+    setSectionHeading('section-timeline-heading', `${sectionCounter++}. Historical Context & Evolutionary Timeline`);
+    timelineContainer.innerHTML = milestones.map(m => `
+      <div class="timeline-item">
+        <div class="timeline-node"></div>
+        <div class="timeline-card">
+          <span class="text-[10px] font-mono text-[var(--accent-purple)] font-bold block uppercase">${escapeHtml(m.year)}</span>
+          <strong class="text-xs text-[var(--text-primary)] block font-semibold mt-0.5">${escapeHtml(m.title)}</strong>
+          <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">${escapeHtml(m.desc)}</p>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    if (timelineSection) {
+      timelineSection.classList.add('hidden');
+      timelineSection.style.display = 'none';
     }
   }
 
   // 11. Practical Applications Grid
+  const appsSection = document.getElementById('section-applications-wrapper') || document.getElementById('applications-importance-list')?.closest('.space-y-3');
   const appsContainer = document.getElementById('applications-importance-list');
-  const appsSection = appsContainer?.closest('.space-y-3');
-  if (appsContainer) {
-    const apps = Array.isArray(data.applications) && data.applications.length > 0 ? data.applications : null;
-    if (apps) {
-      if (appsSection) appsSection.classList.remove('hidden');
-      appsContainer.innerHTML = apps.map((app, i) => `
-        <div class="report-card space-y-2">
-          <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-[var(--accent-emerald)] font-mono text-xs font-bold flex items-center justify-center">${i + 1}</span>
-          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${escapeHtml(app)}</p>
-        </div>
-      `).join('');
-    } else {
-      if (appsSection) appsSection.classList.add('hidden');
+  const apps = Array.isArray(data.applications) && data.applications.length > 0 ? data.applications : null;
+  if (apps && appsContainer) {
+    if (appsSection) {
+      appsSection.classList.remove('hidden');
+      appsSection.style.display = 'block';
+    }
+    setSectionHeading('section-applications-heading', `${sectionCounter++}. Applications & Domain Importance`);
+    appsContainer.innerHTML = apps.map((app, i) => `
+      <div class="report-card space-y-2">
+        <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-[var(--accent-emerald)] font-mono text-xs font-bold flex items-center justify-center">${i + 1}</span>
+        <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${escapeHtml(app)}</p>
+      </div>
+    `).join('');
+  } else {
+    if (appsSection) {
+      appsSection.classList.add('hidden');
+      appsSection.style.display = 'none';
     }
   }
 
   // 12. Key Fact Feature Cards Grid
+  const factsSection = document.getElementById('section-facts-wrapper') || document.getElementById('interesting-facts-grid')?.closest('.space-y-3');
   const factsGrid = document.getElementById('interesting-facts-grid');
-  const factsSection = factsGrid?.closest('.space-y-3');
-  if (factsGrid) {
-    const facts = Array.isArray(data.interestingFacts) && data.interestingFacts.length > 0 ? data.interestingFacts : null;
-    if (facts) {
-      if (factsSection) factsSection.classList.remove('hidden');
-      factsGrid.innerHTML = facts.map((f) => `
-        <div class="report-card space-y-2 hover:border-[var(--accent-amber)] transition-all">
-          <span class="material-symbols-outlined text-[var(--accent-amber)] text-[20px]">lightbulb</span>
-          <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${escapeHtml(f)}</p>
-        </div>
-      `).join('');
-    } else {
-      if (factsSection) factsSection.classList.add('hidden');
+  const facts = Array.isArray(data.interestingFacts) && data.interestingFacts.length > 0 ? data.interestingFacts : null;
+  if (facts && factsGrid) {
+    if (factsSection) {
+      factsSection.classList.remove('hidden');
+      factsSection.style.display = 'block';
+    }
+    setSectionHeading('section-facts-heading', `${sectionCounter++}. Key Fact Highlights`);
+    factsGrid.innerHTML = facts.map((f) => `
+      <div class="report-card space-y-2 hover:border-[var(--accent-amber)] transition-all">
+        <span class="material-symbols-outlined text-[var(--accent-amber)] text-[20px]">lightbulb</span>
+        <p class="text-[var(--text-secondary)] text-xs leading-relaxed font-sans">${escapeHtml(f)}</p>
+      </div>
+    `).join('');
+  } else {
+    if (factsSection) {
+      factsSection.classList.add('hidden');
+      factsSection.style.display = 'none';
     }
   }
 
   // 13. Limitations Callout
+  const limSection = document.getElementById('section-limitations-wrapper') || document.getElementById('limitations-text')?.closest('.space-y-3');
   const limEl = document.getElementById('limitations-text');
-  if (limEl) {
-    const limText = Array.isArray(data.limitations) ? data.limitations.join('\n\n') : data.limitations;
-    limEl.innerHTML = renderMarkdownToHtml(limText || 'No limitations were supplied by the model. Treat image-derived claims as uncertain unless marked observed.');
+  const limText = Array.isArray(data.limitations) ? data.limitations.filter(Boolean).join('\n\n') : (typeof data.limitations === 'string' ? data.limitations.trim() : '');
+  if (limText || data.limitations) {
+    if (limSection) {
+      limSection.classList.remove('hidden');
+      limSection.style.display = 'block';
+    }
+    setSectionHeading('section-limitations-heading', `${sectionCounter++}. Analytical Limitations & Scope`);
+    if (limEl) {
+      limEl.innerHTML = renderMarkdownToHtml(limText || 'No limitations were supplied by the model. Treat image-derived claims as uncertain unless marked observed.');
+    }
+  } else {
+    if (limSection) {
+      limSection.classList.add('hidden');
+      limSection.style.display = 'none';
+    }
   }
 
   // 14. References & Verified Sources
+  const refSection = document.getElementById('section-references-wrapper') || document.getElementById('references-list')?.closest('.space-y-3');
   const refListEl = document.getElementById('references-list');
-  const refTitleEl = document.getElementById('section-references-title');
-  if (refListEl) {
-    const rawRefs = Array.isArray(data.references) ? data.references : (Array.isArray(data.sources) ? data.sources : []);
-    
-    const validRefs = rawRefs.map(item => {
-      if (typeof item === 'string') {
-        const urlMatch = item.match(/(https?:\/\/[^\s]+)/i);
-        const url = urlMatch ? urlMatch[1].replace(/[.,;)]+$/, '') : null;
-        const textWithoutUrl = item.replace(/(https?:\/\/[^\s]+)/i, '').trim();
-        return {
-          title: textWithoutUrl,
-          source: data.category || 'Reference Archive',
-          year: '',
-          url: url,
-          verified: !!url
-        };
-      } else if (typeof item === 'object' && item !== null) {
-        return {
-          title: item.title || item.name || '',
-          source: item.source || item.publisher || item.organization || '',
-          year: item.year || '',
-          url: item.url || item.doi || null,
-          verified: !!item.verified || !!(item.url || item.doi)
-        };
-      }
-      return null;
-    }).filter(r => r && r.title && !r.title.includes('10.1038/s41586-024-000'));
+  const rawRefs = Array.isArray(data.references) ? data.references : (Array.isArray(data.sources) ? data.sources : []);
+  const validRefs = rawRefs.map(item => {
+    if (typeof item === 'string') {
+      const urlMatch = item.match(/(https?:\/\/[^\s]+)/i);
+      const url = urlMatch ? urlMatch[1].replace(/[.,;)]+$/, '') : null;
+      const textWithoutUrl = item.replace(/(https?:\/\/[^\s]+)/i, '').trim();
+      return {
+        title: textWithoutUrl,
+        source: data.category || 'Reference Archive',
+        year: '',
+        url: url,
+        verified: !!url
+      };
+    } else if (typeof item === 'object' && item !== null) {
+      return {
+        title: item.title || item.name || '',
+        source: item.source || item.publisher || item.organization || '',
+        year: item.year || '',
+        url: item.url || item.doi || null,
+        verified: !!item.verified || !!(item.url || item.doi)
+      };
+    }
+    return null;
+  }).filter(r => r && r.title && !r.title.includes('10.1038/s41586-024-000'));
 
+  if (refListEl) {
+    if (refSection) {
+      refSection.classList.remove('hidden');
+      refSection.style.display = 'block';
+    }
+    const refTitle = validRefs.length === 0 ? `${sectionCounter++}. Sources` : `${sectionCounter++}. Source Availability`;
+    setSectionHeading('section-references-title', refTitle);
     if (validRefs.length === 0) {
-      if (refTitleEl) refTitleEl.textContent = '8. Sources';
       refListEl.innerHTML = `
         <div class="report-card p-4 rounded-xl text-xs text-[var(--text-secondary)] font-mono">
           No external citation sources were provided for this analysis.
         </div>
       `;
     } else {
-      if (refTitleEl) refTitleEl.textContent = '8. Source Availability';
       refListEl.innerHTML = validRefs.map((ref, i) => {
         const cleanUrl = sanitizeUrl(ref.url);
         return `
@@ -454,9 +536,23 @@ export function renderResultScreen(data) {
   }
 
   // 15. Concluding Synthesis
+  const conclusionSection = document.getElementById('section-conclusion-wrapper') || document.getElementById('conclusion-text')?.closest('.space-y-3');
   const conclusionEl = document.getElementById('conclusion-text');
-  if (conclusionEl) {
-    conclusionEl.innerHTML = renderMarkdownToHtml(data.conclusion || 'No conclusion was returned.');
+  const conclusionContent = (typeof data.conclusion === 'string' ? data.conclusion.trim() : '') || (Array.isArray(data.conclusion) ? data.conclusion.join('\n\n') : '');
+  if (conclusionContent || data.conclusion) {
+    if (conclusionSection) {
+      conclusionSection.classList.remove('hidden');
+      conclusionSection.style.display = 'block';
+    }
+    setSectionHeading('section-conclusion-heading', `${sectionCounter++}. Concluding Synthesis`);
+    if (conclusionEl) {
+      conclusionEl.innerHTML = renderMarkdownToHtml(conclusionContent || 'No conclusion was returned.');
+    }
+  } else {
+    if (conclusionSection) {
+      conclusionSection.classList.add('hidden');
+      conclusionSection.style.display = 'none';
+    }
   }
 
   // 16. Appendix Telemetry Box
@@ -485,15 +581,17 @@ export function renderChartStructure(data) {
   const container = document.getElementById('chart-structure-container');
   if (!container) return;
 
-  const isChart = data && (data.visualType === 'chart' || (data.chartStructure && ((Array.isArray(data.chartStructure.dataPoints) && data.chartStructure.dataPoints.length > 0) || data.chartStructure.chartType)));
+  const isChart = data && data.visualType === 'chart' && Boolean(data.chartStructure);
   const structure = data?.chartStructure;
 
   if (!isChart || !structure) {
     container.classList.add('hidden');
+    container.style.display = 'none';
     return;
   }
 
   container.classList.remove('hidden');
+  container.style.display = 'block';
 
   const rawType = structure.chartType || 'generic chart';
   const chartType = rawType.replace(/_/g, ' ').toUpperCase();
@@ -676,26 +774,28 @@ export function renderDiagramStructure(data) {
   const container = document.getElementById('diagram-structure-container');
   if (!container) return;
 
-  const isDiagram = data && (data.visualType === 'diagram' || (data.diagramStructure && Array.isArray(data.diagramStructure.nodes) && data.diagramStructure.nodes.length > 0));
+  const isDiagram = data && data.visualType === 'diagram' && Boolean(data.diagramStructure);
   const structure = data?.diagramStructure;
 
   if (!isDiagram || !structure) {
     container.classList.add('hidden');
+    container.style.display = 'none';
     return;
   }
 
   container.classList.remove('hidden');
+  container.style.display = 'block';
 
-  const rawType = structure.diagramType || 'generic diagram';
-  const diagramType = rawType.replace(/_/g, ' ').toUpperCase();
+  const displayType = structure.displayType || (structure.diagramType ? structure.diagramType.replace(/_/g, ' ').toUpperCase() : 'DIAGRAM');
   const nodes = Array.isArray(structure.nodes) ? structure.nodes : [];
   const edges = Array.isArray(structure.edges) ? structure.edges : [];
+  const unresolved = Array.isArray(structure.unresolvedConnections) ? structure.unresolvedConnections : [];
 
   const typePill = document.getElementById('diagram-type-pill');
-  if (typePill) typePill.textContent = diagramType;
+  if (typePill) typePill.textContent = displayType.toUpperCase();
 
   const statType = document.getElementById('diagram-stat-type');
-  if (statType) statType.textContent = rawType.replace(/_/g, ' ');
+  if (statType) statType.textContent = displayType;
 
   const statNodes = document.getElementById('diagram-stat-nodes');
   if (statNodes) statNodes.textContent = `${nodes.length} Nodes`;
@@ -806,7 +906,7 @@ export function renderEvidenceWorkbench(data) {
   if (Array.isArray(data?.claims) && data.claims.length > 0) {
     ledger = data.claims.map(c => {
       const st = String(c.status || 'UNDETERMINABLE').toUpperCase();
-      const normStatus = (st === 'OBSERVED' || st === 'INFERRED') ? st : 'UNDETERMINABLE';
+      const normStatus = (st === 'OBSERVED' || st === 'INFERRED' || st === 'EXTRACTION-UNCERTAIN') ? st : 'UNDETERMINABLE';
       const evidenceType = normStatus === 'OBSERVED' ? 'visual_observation' : (c.source && !c.source.includes('Optical') ? 'external_source' : 'inference');
       return {
         claim: c.statement,
@@ -824,6 +924,7 @@ export function renderEvidenceWorkbench(data) {
       let st = 'UNDETERMINABLE';
       if (item.supportStatus === 'supported' || item.evidenceType === 'visual_observation') st = 'OBSERVED';
       else if (item.supportStatus === 'partially_supported' || item.evidenceType === 'inference') st = 'INFERRED';
+      else if (item.supportStatus === 'uncertain' && item.evidenceType === 'visual_observation') st = 'EXTRACTION-UNCERTAIN';
       return {
         ...item,
         status: st
@@ -899,6 +1000,16 @@ export function renderEvidenceWorkbench(data) {
       label: 'UNDETERMINABLE',
       badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
       icon: 'help_outline'
+    },
+    'EXTRACTION-UNCERTAIN': {
+      label: 'EXTRACTION-UNCERTAIN',
+      badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+      icon: 'help_center'
+    },
+    'extraction-uncertain': {
+      label: 'EXTRACTION-UNCERTAIN',
+      badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+      icon: 'help_center'
     },
     supported: {
       label: 'OBSERVED',
@@ -1124,6 +1235,36 @@ export function setupReportActions(startAnalysisPipeline) {
   document.getElementById('export-pdf-btn')?.addEventListener('click', exportCleanPDF);
 
   setupExplainReportPanel();
+
+  document.getElementById('report-run-evolution-btn')?.addEventListener('click', () => {
+    if (typeof window.loadCurrentReportIntoKnowledge === 'function') {
+      window.loadCurrentReportIntoKnowledge();
+    }
+    navigateTo('knowledge');
+    if (typeof window.switchKnowledgeTab === 'function') {
+      window.switchKnowledgeTab('evolution');
+    }
+  });
+
+  document.getElementById('report-stress-test-btn')?.addEventListener('click', () => {
+    if (typeof window.loadCurrentReportIntoKnowledge === 'function') {
+      window.loadCurrentReportIntoKnowledge();
+    }
+    navigateTo('knowledge');
+    if (typeof window.switchKnowledgeTab === 'function') {
+      window.switchKnowledgeTab('assumptions');
+    }
+  });
+
+  document.getElementById('report-devils-advocate-btn')?.addEventListener('click', () => {
+    if (typeof window.loadCurrentReportIntoKnowledge === 'function') {
+      window.loadCurrentReportIntoKnowledge();
+    }
+    navigateTo('knowledge');
+    if (typeof window.switchKnowledgeTab === 'function') {
+      window.switchKnowledgeTab('adversarial');
+    }
+  });
 
   const retryHandler = () => {
     const lastPayload = getLastAnalysisPayload();

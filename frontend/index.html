@@ -109,6 +109,8 @@
         <div class="hidden md:flex items-center gap-1.5 text-xs text-slate-400" id="nav-links">
           <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="landing">Home</button>
           <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="desk">Research Desk</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="knowledge">Knowledge</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="extensions">Extensions</button>
           <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="dashboard">Dashboard</button>
           <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="archive">Archive</button>
           <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="settings">Settings</button>
@@ -125,6 +127,8 @@
       <div id="mobile-nav-drawer" class="dropdown-transition md:hidden absolute top-full left-0 right-0 bg-[#0e111a]/95 backdrop-blur-2xl border-b border-white/10 p-4 flex flex-col gap-1.5 shadow-2xl z-50">
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="landing">Home</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="desk">Research Desk</button>
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="knowledge">Knowledge Intelligence</button>
+        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="extensions">Extensions Platform</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="dashboard">Dashboard</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="archive">Archive</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="settings">Settings</button>
@@ -173,7 +177,7 @@
             <span class="material-symbols-outlined text-[18px]">more_vert</span>
           </button>
           
-          <div id="user-dropdown-menu" class="dropdown-transition absolute right-0 mt-2 w-52 bg-[#0e111a] border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 text-xs backdrop-blur-2xl">
+          <div id="user-dropdown-menu" class="dropdown-transition absolute right-0 mt-2 w-56 bg-[#0e111a] border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 text-xs backdrop-blur-2xl">
             <button id="menu-profile-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
               <span class="material-symbols-outlined text-[16px] text-orange-400">person</span>
               Researcher Profile
@@ -181,6 +185,14 @@
             <button id="menu-dashboard-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
               <span class="material-symbols-outlined text-[16px] text-amber-400">dashboard</span>
               Researcher Dashboard
+            </button>
+            <button id="menu-knowledge-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-indigo-400">psychology</span>
+              Knowledge Intelligence
+            </button>
+            <button id="menu-extensions-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-purple-400">extension</span>
+              Extensions Platform
             </button>
             <button id="menu-settings-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer border-b border-white/[0.06]">
               <span class="material-symbols-outlined text-[16px] text-slate-400">settings</span>
@@ -1161,6 +1173,21 @@
       </div>
 
       <div class="flex items-center gap-2.5 w-full sm:w-auto overflow-x-auto text-xs pb-1 sm:pb-0">
+        <button id="report-run-evolution-btn" type="button" title="Analyze semantic differences and downstream impacts" class="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer font-medium shrink-0 shadow-sm">
+          <span class="material-symbols-outlined text-[17px] text-indigo-400">compare_arrows</span>
+          Evolution
+        </button>
+
+        <button id="report-stress-test-btn" type="button" title="Extract and stress-test implicit assumptions" class="bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer font-medium shrink-0 shadow-sm">
+          <span class="material-symbols-outlined text-[17px] text-sky-400">psychology</span>
+          Stress Test
+        </button>
+
+        <button id="report-devils-advocate-btn" type="button" title="Run adversarial claim challenges and survival analysis" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer font-medium shrink-0 shadow-sm">
+          <span class="material-symbols-outlined text-[17px] text-rose-400">shield</span>
+          Devil's Advocate
+        </button>
+
         <button id="explain-report-btn" type="button" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer font-medium shrink-0 shadow-sm">
           <span class="material-symbols-outlined text-[18px] text-blue-400">auto_awesome</span>
           Explain Report
@@ -1680,29 +1707,28 @@
           </div>
         </div>
 
-          <!-- COMPARISON CARDS / ATTRIBUTE BLOCKS -->
-          <div id="specs-comparison-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="report-card space-y-1">
-              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Classification</span>
-              <strong class="text-xs text-[var(--text-primary)] block font-semibold">Domestic Canine</strong>
-            </div>
-            <div class="report-card space-y-1">
-              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Domain</span>
-              <strong class="text-xs text-[var(--accent-purple)] block font-semibold">Veterinary Zoology</strong>
-            </div>
-            <div class="report-card space-y-1">
-              <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Evidence Grounding</span>
-              <strong id="specs-evidence-grounding" class="text-xs text-[var(--accent-emerald)] block font-semibold">Direct Visual Anchor</strong>
-            </div>
+        <!-- COMPARISON CARDS / ATTRIBUTE BLOCKS -->
+        <div id="specs-comparison-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div class="report-card space-y-1">
+            <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Classification</span>
+            <strong class="text-xs text-[var(--text-primary)] block font-semibold">Domestic Canine</strong>
+          </div>
+          <div class="report-card space-y-1">
+            <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Domain</span>
+            <strong class="text-xs text-[var(--accent-purple)] block font-semibold">Veterinary Zoology</strong>
+          </div>
+          <div class="report-card space-y-1">
+            <span class="text-[10px] font-mono text-[var(--text-muted)] uppercase font-semibold">Evidence Grounding</span>
+            <strong id="specs-evidence-grounding" class="text-xs text-[var(--accent-emerald)] block font-semibold">Direct Visual Anchor</strong>
           </div>
         </div>
 
-        <!-- SECTION 4: HISTORICAL CONTEXT & VERTICAL TIMELINE -->
-        <div class="space-y-3">
+        <!-- SECTION: HISTORICAL CONTEXT & VERTICAL TIMELINE -->
+        <div id="section-timeline-wrapper" class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+            <h2 id="section-timeline-heading" class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
               <span class="material-symbols-outlined text-[var(--accent-amber)] text-[24px]">history_edu</span>
-              4. Historical Context &amp; Evolutionary Timeline
+              <span class="section-title-text">4. Historical Context &amp; Evolutionary Timeline</span>
             </h2>
             <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Chronological milestones and evolutionary development</p>
           </div>
@@ -1728,12 +1754,12 @@
           </div>
         </div>
 
-        <!-- SECTION 5: PRACTICAL APPLICATIONS -->
-        <div class="space-y-3">
+        <!-- SECTION: PRACTICAL APPLICATIONS -->
+        <div id="section-applications-wrapper" class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+            <h2 id="section-applications-heading" class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
               <span class="material-symbols-outlined text-[var(--accent-purple)] text-[24px]">apps</span>
-              5. Applications &amp; Domain Importance
+              <span class="section-title-text">5. Applications &amp; Domain Importance</span>
             </h2>
             <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Practical utility, institutional research, and clinical relevance</p>
           </div>
@@ -1745,12 +1771,12 @@
           </div>
         </div>
 
-        <!-- SECTION 6: KEY FACT FEATURE CARDS -->
-        <div class="space-y-3">
+        <!-- SECTION: KEY FACT FEATURE CARDS -->
+        <div id="section-facts-wrapper" class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+            <h2 id="section-facts-heading" class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
               <span class="material-symbols-outlined text-[var(--accent-amber)] text-[24px]">lightbulb</span>
-              6. Key Fact Highlights
+              <span class="section-title-text">6. Key Fact Highlights</span>
             </h2>
             <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Essential domain insights and notable attributes</p>
           </div>
@@ -1762,12 +1788,12 @@
           </div>
         </div>
 
-        <!-- SECTION 7: ANALYTICAL LIMITATIONS -->
-        <div class="space-y-3">
+        <!-- SECTION: ANALYTICAL LIMITATIONS -->
+        <div id="section-limitations-wrapper" class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--accent-amber)] font-bold flex items-center gap-2.5">
+            <h2 id="section-limitations-heading" class="font-serif text-2xl text-[var(--accent-amber)] font-bold flex items-center gap-2.5">
               <span class="material-symbols-outlined text-[24px]">warning</span>
-              7. Analytical Limitations &amp; Scope
+              <span class="section-title-text">7. Analytical Limitations &amp; Scope</span>
             </h2>
             <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Physical constraints of 2D visual extraction</p>
           </div>
@@ -1776,12 +1802,12 @@
           </div>
         </div>
 
-        <!-- SECTION 8: REFERENCES & VERIFIED SOURCES -->
-        <div class="space-y-3">
+        <!-- SECTION: REFERENCES & VERIFIED SOURCES -->
+        <div id="section-references-wrapper" class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2">
             <h2 id="section-references-title" class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
               <span class="material-symbols-outlined text-[var(--accent-link)] text-[24px]">menu_book</span>
-              8. References &amp; Verified Sources
+              <span class="section-title-text">8. References &amp; Verified Sources</span>
             </h2>
             <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Independently verified institutional references and source citations</p>
           </div>
@@ -1792,12 +1818,12 @@
           </div>
         </div>
 
-        <!-- SECTION 9: CONCLUDING SYNTHESIS -->
-        <div class="space-y-3">
+        <!-- SECTION: CONCLUDING SYNTHESIS -->
+        <div id="section-conclusion-wrapper" class="space-y-3">
           <div class="border-b border-[var(--border-color)] pb-2">
-            <h2 class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
+            <h2 id="section-conclusion-heading" class="font-serif text-2xl text-[var(--text-primary)] font-bold flex items-center gap-2.5">
               <span class="material-symbols-outlined text-[var(--accent-emerald)] text-[24px]">task_alt</span>
-              9. Concluding Synthesis
+              <span class="section-title-text">9. Concluding Synthesis</span>
             </h2>
             <p class="text-xs text-[var(--text-secondary)] font-sans mt-0.5">Final analytical evaluation</p>
           </div>
@@ -1819,6 +1845,439 @@
   </div>
 
   
+  <!-- SCREEN: KNOWLEDGE INTELLIGENCE SUITE -->
+  <div id="page-knowledge" class="page-view hidden flex-grow w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 py-8 space-y-8">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
+      <div class="space-y-1.5">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[11px] font-mono font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+          Knowledge Intelligence Suite • Layer 2
+        </div>
+        <h1 class="font-serif text-2xl sm:text-3xl text-slate-100 font-bold">Knowledge Reasoning &amp; Governance Suite</h1>
+        <p class="text-xs sm:text-sm text-slate-400 font-sans max-w-2xl">
+          Real PostgreSQL-backed Time Machine, Gap Detector, Decision Memory, Claim Domino What-If graph, and Project Autopsy.
+        </p>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="flex flex-wrap items-center gap-2 self-start md:self-center text-xs font-mono">
+        <button onclick="window.loadPresetKnowledge('api-spec')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/5 transition-all cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[15px] text-sky-400">dataset</span>
+          Sample API Spec
+        </button>
+        <button onclick="window.loadPresetKnowledge('ai-paper')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/5 transition-all cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[15px] text-purple-400">menu_book</span>
+          Sample Paper
+        </button>
+        <button onclick="window.loadCurrentReportIntoKnowledge()" class="px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 transition-all cursor-pointer flex items-center gap-1.5 font-semibold">
+          <span class="material-symbols-outlined text-[15px]">sync</span>
+          Load Active Report
+        </button>
+      </div>
+    </header>
+
+    <!-- Sub-Navigation Tabs (6 Real Interactive Sections) -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-white/5">
+      <button onclick="window.switchKnowledgeTab('overview')" data-tab="overview" class="knowledge-tab-btn px-4 py-2 rounded-xl bg-indigo-600 text-white font-mono text-xs font-semibold shadow-md transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-[16px]">dashboard</span>
+        1. Overview
+      </button>
+      <button onclick="window.switchKnowledgeTab('timemachine')" data-tab="timemachine" class="knowledge-tab-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 font-mono text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-[16px]">history_toggle_off</span>
+        2. Time Machine
+      </button>
+      <button onclick="window.switchKnowledgeTab('gaps')" data-tab="gaps" class="knowledge-tab-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 font-mono text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-[16px]">report_problem</span>
+        3. Knowledge Gaps
+      </button>
+      <button onclick="window.switchKnowledgeTab('decisions')" data-tab="decisions" class="knowledge-tab-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 font-mono text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-[16px]">history_edu</span>
+        4. Decision Memory
+      </button>
+      <button onclick="window.switchKnowledgeTab('domino')" data-tab="domino" class="knowledge-tab-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 font-mono text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-[16px]">account_tree</span>
+        5. Claim Domino
+      </button>
+      <button onclick="window.switchKnowledgeTab('autopsy')" data-tab="autopsy" class="knowledge-tab-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 font-mono text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-[16px]">timeline</span>
+        6. Project Autopsy
+      </button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW PANE -->
+    <div id="knowledge-pane-overview" class="knowledge-tab-pane space-y-6">
+      <div id="knowledge-overview-container"></div>
+    </div>
+
+    <!-- TAB 2: TIME MACHINE PANE -->
+    <div id="knowledge-pane-timemachine" class="knowledge-tab-pane hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Version A -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-rose-400 text-[16px]">history</span>
+              Version A (Baseline / Prior Version)
+            </span>
+            <input id="timemachine-label-a" type="text" value="Version 1.0" class="bg-[#05060a] border border-white/10 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-300 w-32 focus:outline-none" />
+          </div>
+          <textarea id="timemachine-source-a" rows="8" placeholder="Paste baseline document or specification..." class="w-full bg-[#05060a] border border-white/10 rounded-2xl p-4 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500 leading-relaxed"></textarea>
+        </div>
+
+        <!-- Version B -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-emerald-400 text-[16px]">update</span>
+              Version B (Current / Proposed Revision)
+            </span>
+            <input id="timemachine-label-b" type="text" value="Version 2.0" class="bg-[#05060a] border border-white/10 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-300 w-32 focus:outline-none" />
+          </div>
+          <textarea id="timemachine-source-b" rows="8" placeholder="Paste updated version or revised research findings..." class="w-full bg-[#05060a] border border-white/10 rounded-2xl p-4 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500 leading-relaxed"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-surface-container border ghost-border">
+        <div class="w-full sm:w-1/2">
+          <input id="timemachine-title-input" type="text" placeholder="Comparison Title" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3.5 py-2 text-xs font-sans text-slate-200 focus:outline-none focus:border-indigo-500" value="Vision API v1.0 vs v2.0 Evolution" />
+        </div>
+        <button id="run-timemachine-btn" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-semibold shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+          Compare &amp; Save Evolution
+        </button>
+      </div>
+
+      <!-- Live Results Output -->
+      <div id="timemachine-results-container" class="hidden space-y-6 pt-4 border-t border-white/5"></div>
+
+      <!-- Saved Revision Comparisons History -->
+      <div class="space-y-3 pt-4 border-t border-white/5">
+        <h4 class="font-serif font-bold text-slate-100 text-sm flex items-center gap-2">
+          <span class="material-symbols-outlined text-indigo-400 text-[18px]">history</span>
+          Saved Revision Comparisons (PostgreSQL History)
+        </h4>
+        <div id="timemachine-history-list" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: KNOWLEDGE GAPS PANE -->
+    <div id="knowledge-pane-gaps" class="knowledge-tab-pane hidden space-y-6">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between text-xs font-mono">
+          <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-amber-400 text-[16px]">radar</span>
+            Analyze Document or Report For Knowledge Gaps
+          </span>
+          <button onclick="window.openNewGapModal()" class="px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-mono font-bold flex items-center gap-1 cursor-pointer">
+            <span class="material-symbols-outlined text-[15px]">add</span>
+            + New Gap
+          </button>
+        </div>
+        <textarea id="gaps-input-text" rows="5" placeholder="Paste document content, research brief, or proposal to detect missing information, unverified claims, or ambiguous requirements..." class="w-full bg-[#05060a] border border-white/10 rounded-2xl p-4 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+        <div class="flex justify-end">
+          <button id="run-gaps-analyze-btn" class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-mono text-xs font-semibold shadow-md flex items-center gap-2 cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">radar</span>
+            Analyze Knowledge Gaps
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Controls & Cards Grid -->
+      <div class="space-y-4 pt-4 border-t border-white/5">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface-container p-3 rounded-2xl border ghost-border">
+          <span class="font-serif font-bold text-slate-100 text-xs flex items-center gap-2 px-2">
+            <span class="material-symbols-outlined text-amber-400 text-[18px]">list_alt</span>
+            Cataloged Gaps (PostgreSQL Backed)
+          </span>
+
+          <div class="flex items-center gap-2">
+            <select id="gaps-filter-status" onchange="window.switchKnowledgeTab('gaps')" class="bg-[#05060a] text-slate-200 text-xs font-mono rounded-xl px-3 py-1.5 border border-white/10 focus:outline-none">
+              <option value="ALL">All Statuses</option>
+              <option value="OPEN">OPEN</option>
+              <option value="INVESTIGATING">INVESTIGATING</option>
+              <option value="RESOLVED">RESOLVED</option>
+              <option value="ACCEPTED">ACCEPTED</option>
+            </select>
+
+            <select id="gaps-filter-type" onchange="window.switchKnowledgeTab('gaps')" class="bg-[#05060a] text-slate-200 text-xs font-mono rounded-xl px-3 py-1.5 border border-white/10 focus:outline-none">
+              <option value="ALL">All Types</option>
+              <option value="Missing Evidence">Missing Evidence</option>
+              <option value="Ambiguous Requirement">Ambiguous Requirement</option>
+              <option value="Unvalidated Assumption">Unvalidated Assumption</option>
+              <option value="Undefined Outcome">Undefined Outcome</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="gaps-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: DECISION MEMORY PANE -->
+    <div id="knowledge-pane-decisions" class="knowledge-tab-pane hidden space-y-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface-container p-4 rounded-2xl border ghost-border">
+        <div>
+          <h3 class="font-serif font-bold text-slate-100 text-sm">Architectural &amp; Research Decision Memory</h3>
+          <p class="text-xs text-slate-400 font-sans">Track reversible technical decisions, alternatives evaluated, and underlying assumptions in PostgreSQL.</p>
+        </div>
+        <button onclick="window.openNewDecisionModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-semibold flex items-center gap-1.5 shadow-md cursor-pointer shrink-0">
+          <span class="material-symbols-outlined text-[16px]">add_circle</span>
+          + New Decision
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-slate-400">Stored Decision Records</span>
+        <select id="decisions-filter-status" onchange="window.switchKnowledgeTab('decisions')" class="bg-[#05060a] text-slate-200 text-xs font-mono rounded-xl px-3 py-1.5 border border-white/10 focus:outline-none">
+          <option value="ALL">All Decisions</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="REVISITING">REVISITING</option>
+          <option value="REVERSED">REVERSED</option>
+          <option value="SUPERSEDED">SUPERSEDED</option>
+        </select>
+      </div>
+
+      <div id="decisions-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- TAB 5: CLAIM DOMINO PANE -->
+    <div id="knowledge-pane-domino" class="knowledge-tab-pane hidden space-y-6">
+      <div id="whatif-output-banner" class="hidden"></div>
+      <div id="domino-graph-workspace"></div>
+    </div>
+
+    <!-- TAB 6: PROJECT AUTOPSY PANE -->
+    <div id="knowledge-pane-autopsy" class="knowledge-tab-pane hidden space-y-6">
+      <form id="autopsy-form" class="p-6 rounded-2xl bg-surface-container border ghost-border space-y-4">
+        <div class="flex items-center justify-between border-b border-white/5 pb-3">
+          <h3 class="font-serif font-bold text-slate-100 text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-400 text-[18px]">timeline</span>
+            Start Project Autopsy &amp; Post-Mortem Reconstruction
+          </h3>
+          <span class="text-[11px] font-mono text-slate-400">Plan vs Final State Audit</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div>
+            <label class="text-slate-300 block mb-1">Analysis Title:</label>
+            <input id="autopsy-title-input" type="text" value="System Redesign Post-Mortem Autopsy" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none" />
+          </div>
+          <div>
+            <label class="text-slate-300 block mb-1">Original Plan / Proposal Summary:</label>
+            <textarea id="autopsy-proposal-text" rows="2" placeholder="Initial proposal and architecture milestones..." class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+          </div>
+          <div>
+            <label class="text-slate-300 block mb-1">Initial Requirements (1 per line):</label>
+            <textarea id="autopsy-requirements-text" rows="3" placeholder="Requirement 1&#10;Requirement 2&#10;Requirement 3 (deprecated)" class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+          </div>
+          <div>
+            <label class="text-slate-300 block mb-1">Key Revisions &amp; Scope Shifts (1 per line):</label>
+            <textarea id="autopsy-revisions-text" rows="3" placeholder="Revision 1&#10;Removed legacy XML export format&#10;Added webhook dispatcher" class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+          </div>
+          <div>
+            <label class="text-slate-300 block mb-1">Decision Records (1 per line):</label>
+            <textarea id="autopsy-decisions-text" rows="3" placeholder="Use JWT Bearer tokens&#10;Migrated to async worker queue (reversed synchronous execution)" class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+          </div>
+          <div>
+            <label class="text-slate-300 block mb-1">Final Synthesized State:</label>
+            <textarea id="autopsy-final-text" rows="3" placeholder="Production deployment completed with verified multi-model pipeline and PostgreSQL persistence." class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button id="run-autopsy-btn" type="submit" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono text-xs font-semibold shadow-md flex items-center gap-2 cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">timeline</span>
+            Generate Project Autopsy
+          </button>
+        </div>
+      </form>
+
+      <!-- Autopsy Results Container -->
+      <div id="autopsy-results-container" class="hidden space-y-6 pt-4 border-t border-white/5"></div>
+
+      <!-- Saved Autopsies History -->
+      <div class="space-y-3 pt-4 border-t border-white/5">
+        <h4 class="font-serif font-bold text-slate-100 text-sm flex items-center gap-2">
+          <span class="material-symbols-outlined text-purple-400 text-[18px]">history</span>
+          Saved Project Autopsies (PostgreSQL Archive)
+        </h4>
+        <div id="autopsy-history-list" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Gap Modal -->
+  <div id="new-gap-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[500px] w-full p-6 rounded-2xl border ghost-border shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-serif text-base text-slate-100 font-bold">Catalog New Knowledge Gap</h3>
+        <button onclick="window.closeNewGapModal()" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined text-[20px]">close</span></button>
+      </div>
+
+      <form id="new-gap-form" class="space-y-3 text-xs">
+        <div>
+          <label class="text-slate-300 block mb-1">Gap Title / Statement:</label>
+          <input id="new-gap-title" type="text" required placeholder="e.g. Missing scale reference on diagram" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-slate-300 block mb-1">Gap Type:</label>
+            <select id="new-gap-type" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none">
+              <option value="Missing Evidence">Missing Evidence</option>
+              <option value="Missing Information">Missing Information</option>
+              <option value="Ambiguous Requirement">Ambiguous Requirement</option>
+              <option value="Unvalidated Assumption">Unvalidated Assumption</option>
+              <option value="Unresolved Contradiction">Unresolved Contradiction</option>
+              <option value="Undefined Outcome">Undefined Outcome</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-300 block mb-1">Impact Level:</label>
+            <select id="new-gap-impact" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-slate-300 block mb-1">Description / Observations:</label>
+          <textarea id="new-gap-description" rows="3" placeholder="Context regarding why this is missing..." class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="window.closeNewGapModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-mono cursor-pointer">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-mono font-semibold cursor-pointer">Save Gap</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- New Decision Modal -->
+  <div id="new-decision-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[560px] w-full p-6 rounded-2xl border ghost-border shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-serif text-base text-slate-100 font-bold">Record Architectural / Research Decision</h3>
+        <button onclick="window.closeNewDecisionModal()" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined text-[20px]">close</span></button>
+      </div>
+
+      <form id="new-decision-form" class="space-y-3 text-xs">
+        <div>
+          <label class="text-slate-300 block mb-1">Decision Statement:</label>
+          <input id="new-decision-text" type="text" required placeholder="e.g. Use PostgreSQL as single authoritative source of truth" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-slate-300 block mb-1">Reason &amp; Rationale:</label>
+          <textarea id="new-decision-reason" required rows="2" placeholder="Why this option was selected..." class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+        </div>
+        <div>
+          <label class="text-slate-300 block mb-1">Alternatives Considered (1 per line):</label>
+          <textarea id="new-decision-alternatives" rows="2" placeholder="LocalStorage&#10;MongoDB / NoSQL" class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+        </div>
+        <div>
+          <label class="text-slate-300 block mb-1">Related Assumptions (1 per line):</label>
+          <textarea id="new-decision-assumptions" rows="2" placeholder="Database latency < 10ms&#10;Managed cloud instances maintain backup snapshots" class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="window.closeNewDecisionModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-mono cursor-pointer">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-semibold cursor-pointer">Save Decision</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- What-If Sandbox Modal -->
+  <div id="whatif-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[500px] w-full p-6 rounded-2xl border ghost-border shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-serif text-base text-slate-100 font-bold flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-amber-400 text-[18px]">casino</span>
+          Simulate What-If Hypothetical Scenario
+        </h3>
+        <button onclick="window.closeWhatIfModal()" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined text-[20px]">close</span></button>
+      </div>
+
+      <form id="whatif-form" class="space-y-3 text-xs">
+        <div>
+          <label class="text-slate-300 block mb-1">Select Target Node to Alter:</label>
+          <select id="whatif-target-node" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none"></select>
+        </div>
+        <div>
+          <label class="text-slate-300 block mb-1">Hypothetical Action:</label>
+          <select id="whatif-action-type" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none">
+            <option value="change_assumption">Change / Invalidate Assumption</option>
+            <option value="remove_requirement">Remove Requirement</option>
+            <option value="reverse_decision">Reverse Decision</option>
+            <option value="remove_dependency">Remove Component Dependency</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-300 block mb-1">Simulated Change Description:</label>
+          <textarea id="whatif-change-desc" rows="2" placeholder="e.g. Assuming database cannot scale beyond 100 concurrent connections..." class="w-full bg-[#05060a] border border-white/10 rounded-xl p-2.5 text-slate-200 focus:outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="window.closeWhatIfModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-mono cursor-pointer">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-mono font-semibold cursor-pointer">Run Simulation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN: EXTENSIONS PLATFORM & MANAGER -->
+  <div id="page-extensions" class="page-view hidden flex-grow w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 py-8 space-y-8">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
+      <div class="space-y-1.5">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[11px] font-mono font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+          Extensions &amp; Extensibility Lab • Layer 3
+        </div>
+        <h1 class="font-serif text-2xl sm:text-3xl text-slate-100 font-bold">Extensions Platform &amp; Manager</h1>
+        <p class="text-xs sm:text-sm text-slate-400 font-sans max-w-2xl">
+          Modular themes, typography packs, UI layouts, and research workflow plugins. All configurations persist directly to PostgreSQL.
+        </p>
+      </div>
+    </header>
+
+    <!-- Filter & Search Controls -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-surface-container p-4 rounded-2xl border ghost-border">
+      <!-- Category Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+        <button data-category="All" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-mono text-xs font-medium cursor-pointer shadow-md transition-all">All</button>
+        <button data-category="Themes" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-mono text-xs font-medium cursor-pointer border border-white/5 transition-all">Themes</button>
+        <button data-category="Typography" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-mono text-xs font-medium cursor-pointer border border-white/5 transition-all">Typography</button>
+        <button data-category="Layouts" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-mono text-xs font-medium cursor-pointer border border-white/5 transition-all">Layouts</button>
+        <button data-category="Research" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-mono text-xs font-medium cursor-pointer border border-white/5 transition-all">Research</button>
+        <button data-category="Productivity" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-mono text-xs font-medium cursor-pointer border border-white/5 transition-all">Productivity</button>
+        <button data-category="Developer" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-mono text-xs font-medium cursor-pointer border border-white/5 transition-all">Developer</button>
+      </div>
+
+      <!-- Search & Status Filter -->
+      <div class="flex items-center gap-2.5">
+        <div class="relative flex-1 md:w-56">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">search</span>
+          <input id="extension-search-input" type="text" placeholder="Search extensions..." class="w-full bg-[#05060a] border border-white/10 rounded-xl pl-9 pr-3.5 py-2 text-xs font-sans text-slate-200 focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <div class="flex items-center gap-1 bg-[#05060a] p-1 rounded-xl border border-white/10 text-xs font-mono">
+          <button data-filter="all" class="ext-filter-btn px-2.5 py-1 rounded-lg bg-indigo-600 text-white transition-all cursor-pointer">All</button>
+          <button data-filter="installed" class="ext-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition-all cursor-pointer">Installed</button>
+          <button data-filter="enabled" class="ext-filter-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition-all cursor-pointer">Enabled</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extension Catalog Grid -->
+    <div id="extensions-catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full py-12 flex flex-col items-center justify-center space-y-3">
+        <div class="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+        <span class="text-xs font-mono text-slate-400">Loading extensions catalog...</span>
+      </div>
+    </div>
+  </div>
+
   <!-- SCREEN 6: ARCHIVE PAGE -->
   <div id="page-archive" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-8">
     <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
@@ -2489,6 +2948,224 @@
       </div>
     </div>
   </div>
+
+  <!-- Theme Studio Modal -->
+  <div id="theme-studio-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[640px] w-full p-6 rounded-2xl border ghost-border shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <span class="material-symbols-outlined text-[20px]">palette</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-lg text-slate-100 font-bold">Theme Studio</h3>
+            <p class="text-[11px] text-slate-400 font-sans">Select a research visual theme. Persisted to database.</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('theme-studio-modal')?.classList.remove('show')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <button onclick="window.applyTheme('midnight-research'); document.getElementById('theme-studio-modal')?.classList.remove('show')" class="p-3.5 rounded-xl bg-[#0B0F19] border border-[#263354] hover:border-indigo-400 transition-all text-left space-y-1 group">
+          <div class="flex items-center justify-between">
+            <strong class="text-slate-100 font-serif group-hover:text-indigo-300">Midnight Research</strong>
+            <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-snug">Deep navy canvas with indigo accents for prolonged academic research.</p>
+        </button>
+
+        <button onclick="window.applyTheme('neo-glass'); document.getElementById('theme-studio-modal')?.classList.remove('show')" class="p-3.5 rounded-xl bg-[#070913] border border-purple-500/30 hover:border-purple-400 transition-all text-left space-y-1 group">
+          <div class="flex items-center justify-between">
+            <strong class="text-slate-100 font-serif group-hover:text-purple-300">Neo Glass</strong>
+            <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-snug">Translucent glassmorphic surfaces with neon purple borders.</p>
+        </button>
+
+        <button onclick="window.applyTheme('terminal'); document.getElementById('theme-studio-modal')?.classList.remove('show')" class="p-3.5 rounded-xl bg-[#050709] border border-emerald-500/30 hover:border-emerald-400 transition-all text-left space-y-1 group">
+          <div class="flex items-center justify-between">
+            <strong class="text-slate-100 font-mono group-hover:text-emerald-300">Terminal Emerald</strong>
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-snug">High-contrast monochrome phosphor green aesthetics for telemetry.</p>
+        </button>
+
+        <button onclick="window.applyTheme('paper'); document.getElementById('theme-studio-modal')?.classList.remove('show')" class="p-3.5 rounded-xl bg-[#FBFBF9] border border-[#D8D8CF] hover:border-slate-500 transition-all text-left space-y-1 group">
+          <div class="flex items-center justify-between">
+            <strong class="text-slate-900 font-serif">Academic Paper</strong>
+            <span class="w-3 h-3 rounded-full bg-amber-700"></span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-snug">Off-white print-simulation background matching IEEE/Nature journal pages.</p>
+        </button>
+
+        <button onclick="window.applyTheme('solarized-lab'); document.getElementById('theme-studio-modal')?.classList.remove('show')" class="col-span-full p-3.5 rounded-xl bg-[#002B36] border border-[#586E75] hover:border-teal-400 transition-all text-left space-y-1 group">
+          <div class="flex items-center justify-between">
+            <strong class="text-[#FDF6E3] font-serif group-hover:text-teal-300">Solarized Lab</strong>
+            <span class="w-3 h-3 rounded-full bg-[#2AA198]"></span>
+          </div>
+          <p class="text-[11px] text-[#93A1A1] leading-snug">Scientifically calibrated color scheme designed for visual syntax precision.</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Typography Lab Modal -->
+  <div id="typography-lab-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[580px] w-full p-6 rounded-2xl border ghost-border shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
+            <span class="material-symbols-outlined text-[20px]">font_download</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-lg text-slate-100 font-bold">Typography Lab</h3>
+            <p class="text-[11px] text-slate-400 font-sans">Switch document typography styles across the workspace.</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('typography-lab-modal')?.classList.remove('show')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <button onclick="window.applyTypography('academic'); document.getElementById('typography-lab-modal')?.classList.remove('show')" class="w-full p-3 rounded-xl bg-[#05060a] hover:bg-slate-800/80 border border-white/5 transition-all text-left flex items-center justify-between group">
+          <div>
+            <strong class="text-slate-100 font-serif text-sm block group-hover:text-purple-300">Academic Serif (Source Serif 4 + Inter)</strong>
+            <span class="text-[11px] text-slate-400">Formal university &amp; journal publication typesetting.</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-purple-400">check_circle</span>
+        </button>
+
+        <button onclick="window.applyTypography('technical'); document.getElementById('typography-lab-modal')?.classList.remove('show')" class="w-full p-3 rounded-xl bg-[#05060a] hover:bg-slate-800/80 border border-white/5 transition-all text-left flex items-center justify-between group">
+          <div>
+            <strong class="text-slate-100 font-mono text-sm block group-hover:text-purple-300">Technical Monospace (JetBrains Mono)</strong>
+            <span class="text-[11px] text-slate-400">Engineered code and tensor specification layout.</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-purple-400">check_circle</span>
+        </button>
+
+        <button onclick="window.applyTypography('editorial'); document.getElementById('typography-lab-modal')?.classList.remove('show')" class="w-full p-3 rounded-xl bg-[#05060a] hover:bg-slate-800/80 border border-white/5 transition-all text-left flex items-center justify-between group">
+          <div>
+            <strong class="text-slate-100 font-serif text-sm block group-hover:text-purple-300">Editorial Classic (Georgia + Merriweather)</strong>
+            <span class="text-[11px] text-slate-400">Literary essays and deep investigative visual analysis.</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-purple-400">check_circle</span>
+        </button>
+
+        <button onclick="window.applyTypography('modern'); document.getElementById('typography-lab-modal')?.classList.remove('show')" class="w-full p-3 rounded-xl bg-[#05060a] hover:bg-slate-800/80 border border-white/5 transition-all text-left flex items-center justify-between group">
+          <div>
+            <strong class="text-slate-100 font-sans text-sm block group-hover:text-purple-300">Modern Swiss (Inter Clean)</strong>
+            <span class="text-[11px] text-slate-400">Crisp high-legibility geometric sans-serif.</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-purple-400">check_circle</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layouts Modal -->
+  <div id="layouts-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[580px] w-full p-6 rounded-2xl border ghost-border shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+            <span class="material-symbols-outlined text-[20px]">view_quilt</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-lg text-slate-100 font-bold">UI Layout Packs</h3>
+            <p class="text-[11px] text-slate-400 font-sans">Choose your preferred workspace canvas width and layout geometry.</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('layouts-modal')?.classList.remove('show')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <button onclick="window.applyLayoutMode('default'); document.getElementById('layouts-modal')?.classList.remove('show')" class="w-full p-3 rounded-xl bg-[#05060a] hover:bg-slate-800/80 border border-white/5 transition-all text-left flex items-center justify-between group">
+          <div>
+            <strong class="text-slate-100 font-sans text-sm block group-hover:text-amber-300">Standard Research Canvas (1240px)</strong>
+            <span class="text-[11px] text-slate-400">Optimal reading width balanced for charts and academic text.</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-amber-400">check_circle</span>
+        </button>
+
+        <button onclick="window.applyLayoutMode('compact'); document.getElementById('layouts-modal')?.classList.remove('show')" class="w-full p-3 rounded-xl bg-[#05060a] hover:bg-slate-800/80 border border-white/5 transition-all text-left flex items-center justify-between group">
+          <div>
+            <strong class="text-slate-100 font-sans text-sm block group-hover:text-amber-300">Compact Data-Dense (980px)</strong>
+            <span class="text-[11px] text-slate-400">Tightly-packed column layout for rapid review.</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-amber-400">check_circle</span>
+        </button>
+
+        <button onclick="window.applyLayoutMode('expanded'); document.getElementById('layouts-modal')?.classList.remove('show')" class="w-full p-3 rounded-xl bg-[#05060a] hover:bg-slate-800/80 border border-white/5 transition-all text-left flex items-center justify-between group">
+          <div>
+            <strong class="text-slate-100 font-sans text-sm block group-hover:text-amber-300">Expanded Wide Screen (1500px)</strong>
+            <span class="text-[11px] text-slate-400">Ultra-wide display optimized for high-resolution topology charts.</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-amber-400">check_circle</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prompt Playground Modal -->
+  <div id="playground-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[640px] w-full p-6 rounded-2xl border ghost-border shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <span class="material-symbols-outlined text-[18px]">terminal</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-base text-slate-100 font-bold flex items-center gap-2">
+              Prompt Playground
+              <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">EXPERIMENTAL</span>
+            </h3>
+            <p class="text-[11px] text-slate-400 font-sans">Test analysis prompt templates and reasoning directives safely.</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('playground-modal')?.classList.remove('show')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">close</span></button>
+      </div>
+
+      <div class="space-y-3 text-xs font-mono">
+        <div>
+          <label class="text-slate-300 block mb-1">Target Visual Subject / Domain Context:</label>
+          <input id="playground-context-input" type="text" value="Cloud Microservices Flowchart" class="w-full bg-[#05060a] border border-white/10 rounded-xl px-3 py-2 text-slate-200 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-slate-300 block mb-1">Custom Reasoning Directive / Schema Override:</label>
+          <textarea id="playground-prompt-input" rows="4" class="w-full bg-[#05060a] border border-white/10 rounded-xl p-3 text-slate-200 focus:outline-none leading-relaxed">Synthesize deep topological extraction focusing on single points of failure, unverified data pipelines, and synchronous bottle-neck operations.</textarea>
+        </div>
+        <div class="flex justify-between items-center pt-2">
+          <span class="text-[10px] text-slate-500">Sanitized client execution • Zero arbitrary code injection</span>
+          <button onclick="window.testPromptPlayground()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono font-semibold cursor-pointer flex items-center gap-1.5 shadow-md">
+            <span class="material-symbols-outlined text-[15px]">play_arrow</span>
+            Test Prompt Synthesis
+          </button>
+        </div>
+        <div id="playground-output-box" class="hidden p-3 rounded-xl bg-[#05060a] border border-white/10 text-[11px] text-slate-300 space-y-1">
+          <strong class="text-emerald-400 block">Prompt Directive Validated:</strong>
+          <p id="playground-output-text"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.testPromptPlayground = function() {
+      const prompt = document.getElementById('playground-prompt-input')?.value || '';
+      const ctx = document.getElementById('playground-context-input')?.value || '';
+      const box = document.getElementById('playground-output-box');
+      const text = document.getElementById('playground-output-text');
+      if (box && text) {
+        box.classList.remove('hidden');
+        text.textContent = `Injected directive for "${ctx}": Schema template conforming to 11-section research brief standards with active directive "${prompt.slice(0, 100)}..."`;
+      }
+    };
+  </script>
 
   <!-- Logout Confirmation Modal -->
   <div id="logout-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">

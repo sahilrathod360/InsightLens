@@ -21,6 +21,8 @@ let renderCallbacks = {
   renderDashboard: () => {},
   renderProfilePage: () => {},
   renderSettingsPage: () => {},
+  renderExtensionManager: () => {},
+  renderKnowledgePage: () => {},
   updateAuthUI: () => {},
   setAuthModeUI: () => {}
 };
@@ -121,6 +123,10 @@ export function navigateTo(pageId) {
     renderCallbacks.renderProfilePage();
   } else if (pageId === 'settings') {
     renderCallbacks.renderSettingsPage();
+  } else if (pageId === 'extensions') {
+    renderCallbacks.renderExtensionManager();
+  } else if (pageId === 'knowledge') {
+    renderCallbacks.renderKnowledgePage();
   }
 
   document.getElementById('user-dropdown-menu')?.classList.remove('show');

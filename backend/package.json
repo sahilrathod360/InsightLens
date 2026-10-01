@@ -8,7 +8,7 @@
     "build": "node -e \"console.log('Backend build verified')\"",
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/audit-fixes.test.mjs && node test/ai-pipeline-phase1.test.mjs && node test/phase2-non-generic.test.mjs",
+    "test": "node test/audit-fixes.test.mjs && node test/ai-pipeline-phase1.test.mjs && node test/phase2-non-generic.test.mjs && node test/pdf-section-parity.test.mjs && node test/dfd-structural-integrity.test.mjs && node test/knowledge-intelligence.test.mjs && node test/extensions-platform.test.mjs && node test/knowledge-governance.test.mjs",
     "test:live": "node test/ai-reliability.test.mjs"
   },
   "keywords": [],

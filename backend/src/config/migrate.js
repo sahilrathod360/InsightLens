@@ -31,6 +31,16 @@ export async function initDb() {
       await client.query(`CREATE INDEX IF NOT EXISTS idx_app_metrics_user_email ON app_metrics(user_email)`);
       await client.query('COMMIT');
       console.log('[Database Migration] PostgreSQL tables & indexes verified successfully.');
+
+      // Seed builtin extensions and catalog
+      try {
+        const { default: ExtensionService } = await import('../services/extensions/ExtensionService.js');
+        await ExtensionService.seedBuiltinExtensions();
+        console.log('[Database Migration] Built-in extensions catalog seeded successfully.');
+      } catch (seedErr) {
+        console.warn('[Database Migration] Extension seeding warning:', seedErr.message);
+      }
+
       return { initialized: true };
     } catch (queryErr) {
       await client.query('ROLLBACK');

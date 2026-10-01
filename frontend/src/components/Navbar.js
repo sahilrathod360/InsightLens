@@ -493,4 +493,12 @@ export function setupUserDropdownMenu() {
   document.getElementById('menu-history-btn')?.addEventListener('click', () => {
     navigateTo('archive');
   });
+
+  document.getElementById('menu-knowledge-btn')?.addEventListener('click', () => {
+    navigateTo('knowledge');
+  });
+
+  document.getElementById('menu-extensions-btn')?.addEventListener('click', () => {
+    navigateTo('extensions');
+  });
 }

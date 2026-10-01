@@ -75,12 +75,18 @@ function normalizeClaims(rawClaims, evidenceLedger = [], visualEvidence = [], ob
     let rawStatus = typeof item === 'object' ? (item.status || item.supportStatus || item.evidenceStatus) : 'OBSERVED';
     let status = normalizeEvidenceStatus(rawStatus);
 
-    if (item.evidenceType === 'visual_observation' && (item.supportStatus === 'supported' || item.supportStatus === 'partially_supported')) {
+    const isExternalResearchFact = /\b(created in (18|19|20)\d{2}|first appeared in|published in|released in|debuted in|grossed|box office|\$\d+|(?:billion|million) dollars?|invented by|founded by|written by|directed by|created by|authored by|debuted in comic|comic book history|box-office)\b/i.test(statement);
+
+    if (item.evidenceType === 'visual_observation' && (item.supportStatus === 'supported' || item.supportStatus === 'partially_supported') && !isExternalResearchFact) {
       status = 'OBSERVED';
-    } else if (item.evidenceType === 'inference' || (item.evidenceType === 'external_source' && status !== 'UNDETERMINABLE')) {
-      status = 'INFERRED';
+    } else if (item.evidenceType === 'inference' || item.evidenceType === 'external_source' || isExternalResearchFact) {
+      status = (status === 'UNDETERMINABLE') ? 'UNDETERMINABLE' : 'INFERRED';
     } else if (item.supportStatus === 'uncertain' || item.supportStatus === 'unsupported') {
       status = 'UNDETERMINABLE';
+    }
+
+    if (status === 'OBSERVED' && isExternalResearchFact) {
+      status = 'INFERRED';
     }
 
     const evidence = sanitizeBiometricText(typeof item === 'object' ? (item.evidence || item.observation || '') : '').trim() || (status === 'OBSERVED' ? 'Direct visual optical evidence' : 'Contextual domain reasoning');
@@ -92,8 +98,8 @@ function normalizeClaims(rawClaims, evidenceLedger = [], visualEvidence = [], ob
       statement,
       status, // 'OBSERVED' | 'INFERRED' | 'UNDETERMINABLE'
       evidence,
-      source: source || (status === 'OBSERVED' ? 'Visual Optical Frame' : 'Domain Context'),
-      reasoning: reasoning || (status === 'OBSERVED' ? 'Direct optical observation visible in image artifact.' : 'Analytical inference derived from observable features.')
+      source: source || (status === 'OBSERVED' ? 'Visual Optical Frame' : 'Historical & Domain Reference'),
+      reasoning: reasoning || (status === 'OBSERVED' ? 'Direct optical observation visible in image artifact.' : 'Analytical inference derived from domain records.')
     });
   }
 
@@ -103,13 +109,15 @@ function normalizeClaims(rawClaims, evidenceLedger = [], visualEvidence = [], ob
     for (const obs of combined) {
       const stmt = sanitizeBiometricText(typeof obs === 'string' ? obs : (obs.statement || '')).trim();
       if (!stmt) continue;
-      const st = normalizeEvidenceStatus(obs.status);
+      const isExt = /\b(created in (18|19|20)\d{2}|first appeared in|published in|released in|debuted in|grossed|box office|\$\d+|(?:billion|million) dollars?|invented by|founded by|written by|directed by|created by|authored by|debuted in comic|comic book history|box-office)\b/i.test(stmt);
+      let st = normalizeEvidenceStatus(obs.status);
+      if (st === 'OBSERVED' && isExt) st = 'INFERRED';
       result.push({
         id: `claim_${counter++}`,
         statement: stmt,
         status: st,
         evidence: stmt,
-        source: 'Visual Optical Frame',
+        source: st === 'OBSERVED' ? 'Visual Optical Frame' : 'Domain Context',
         reasoning: st === 'OBSERVED' ? 'Direct optical observation in visual artifact.' : 'Inferred from visual presentation.'
       });
     }
@@ -131,8 +139,10 @@ function normalizeEvidenceLedger(items) {
 
       const isNamedIdentityAssertion = /\b(identity (is\s+)?(verified|confirmed)|uniquely identif|facial|biometric)\b/i.test(claim) ||
         (/\b(subject|person|individual) is [A-Z][a-z]+\s+[A-Z][a-z]+/i.test(claim) && !/\b(wearing|holding|standing|running|positioned|seated|dressed|equipped)\b/i.test(claim));
-      if (evidenceType === 'visual_observation' && isNamedIdentityAssertion) {
-        evidenceType = 'inference';
+      const isHistoricalOrExternal = /\b(created in (18|19|20)\d{2}|first appeared in|published in|released in|debuted in|grossed|box office|\$\d+|(?:billion|million) dollars?|invented by|founded by|written by|directed by|created by|authored by|debuted in comic|comic book history|box-office)\b/i.test(claim);
+
+      if (evidenceType === 'visual_observation' && (isNamedIdentityAssertion || isHistoricalOrExternal)) {
+        evidenceType = isHistoricalOrExternal ? 'external_source' : 'inference';
       }
 
       const rawStatus = String(item.supportStatus || '').toLowerCase().trim();
@@ -243,9 +253,30 @@ export function normalizeReport(raw) {
   const structuredFindings = normalizeStructuredFindings(raw.structuredFindings, claims, observations);
 
   const statuses = claims.map(c => c.status);
-  const evidenceStatus = statuses.includes('OBSERVED')
+  let evidenceStatus = statuses.includes('OBSERVED')
     ? 'observed'
     : (statuses.includes('INFERRED') ? 'inferred' : 'undeterminable');
+
+  // Normalize visualType & specialized structures
+  const rawVisualType = String(raw.visualType || '').toLowerCase().trim();
+  const hasDiagramNodes = raw.diagramStructure && Array.isArray(raw.diagramStructure.nodes) && raw.diagramStructure.nodes.length > 0;
+  const hasChartPoints = raw.chartStructure && Array.isArray(raw.chartStructure.dataPoints) && raw.chartStructure.dataPoints.length > 0;
+
+  const isDiagram = rawVisualType === 'diagram' || (hasDiagramNodes && rawVisualType !== 'chart');
+  const isChart = !isDiagram && (rawVisualType === 'chart' || hasChartPoints);
+
+  const visualType = isDiagram ? 'diagram' : (isChart ? 'chart' : (rawVisualType || 'photograph'));
+
+  const diagramStructure = isDiagram ? DiagramStructureValidator.validateAndRepair(raw.diagramStructure, true) : null;
+  const chartStructure = isChart ? ChartStructureValidator.validateAndRepair(raw.chartStructure, true) : null;
+
+  if (isDiagram && diagramStructure && (diagramStructure.extractionCompleteness === 'partial' || diagramStructure.extractionCompleteness === 'uncertain')) {
+    if (evidenceStatus === 'observed') {
+      evidenceStatus = 'inferred';
+    }
+  }
+
+  let specializedPipeline = raw.specializedPipeline || (isDiagram && diagramStructure?.displayType ? `${diagramStructure.displayType} Analysis Pipeline` : (isDiagram ? 'Diagram Analysis Pipeline' : (isChart ? 'Chart Analysis Pipeline' : `${visualType.charAt(0).toUpperCase() + visualType.slice(1)} Analysis Pipeline`)));
 
   const structuredSections = Array.isArray(raw.structuredSections)
     ? raw.structuredSections
@@ -274,18 +305,13 @@ export function normalizeReport(raw) {
   const isBiological = isBiologicalDomain(subject, category);
   const domainClassification = String(raw.domainClassification || (isBiological ? (raw.scientificName || 'Biological Specimen') : (category || 'Empirical Visual Analysis'))).trim();
 
-  // Normalize specialized structures
-  const isDiagram = raw.visualType === 'diagram' || (raw.diagramStructure && Array.isArray(raw.diagramStructure.nodes) && raw.diagramStructure.nodes.length > 0);
-  const diagramStructure = DiagramStructureValidator.validateAndRepair(raw.diagramStructure, isDiagram);
-
-  const isChart = raw.visualType === 'chart' || (raw.chartStructure && ((Array.isArray(raw.chartStructure.dataPoints) && raw.chartStructure.dataPoints.length > 0) || raw.chartStructure.chartType));
-  const chartStructure = ChartStructureValidator.validateAndRepair(raw.chartStructure, isChart);
-
   const normalized = {
     ...raw,
     id: raw.id ? normalizeReportId(raw.id) : undefined,
     title,
     subject,
+    visualType,
+    specializedPipeline,
     category: category || 'Visual Science',
     domainClassification,
     reportVersion: '2.2',

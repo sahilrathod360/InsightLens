@@ -21,6 +21,8 @@ import archiveRoutes from './src/routes/archive.routes.js';
 import dashboardRoutes from './src/routes/dashboard.routes.js';
 import historyRoutes from './src/routes/history.routes.js';
 import settingsRoutes from './src/routes/settings.routes.js';
+import extensionsRoutes from './src/routes/extensions.routes.js';
+import knowledgeRoutes from './src/routes/knowledge.routes.js';
 
 console.log('Creating Express app instance...');
 const app = express();
@@ -162,6 +164,8 @@ app.use('/api/archive', requireAuth, archiveRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/history', requireAuth, historyRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
+app.use('/api/extensions', requireAuth, extensionsRoutes);
+app.use('/api/knowledge', requireAuth, knowledgeRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

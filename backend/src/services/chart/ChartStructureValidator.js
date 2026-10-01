@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Phase 1: Structural Chart Extraction & Validation Engine
  * 
  * Provides controlled vocabularies, numerical validation, and resilient
@@ -86,7 +86,7 @@ export class ChartStructureValidator {
    * Validates and repairs a chartStructure object.
    */
   static validateAndRepair(rawStructure, isChart = true) {
-    if (!isChart && (!rawStructure || typeof rawStructure !== 'object')) {
+    if (!isChart) {
       return null;
     }
 
