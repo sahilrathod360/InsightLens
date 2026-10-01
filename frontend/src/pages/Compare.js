@@ -99,6 +99,32 @@ export function renderComparePage() {
   setupCompareEvents();
 }
 
+function updateSlotPreview(slotIndex) {
+  const container = document.getElementById(`slot-preview-${slotIndex}`);
+  if (!container) return;
+
+  const item = selectedSlotImages[slotIndex];
+  if (item) {
+    container.innerHTML = `
+      <div class="relative w-full h-full flex flex-col items-center justify-center p-2 space-y-2">
+        <div class="w-full h-28 rounded-lg overflow-hidden border border-white/10 bg-black">
+          <img src="${item.dataUrl}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover" />
+        </div>
+        <div class="text-[11px] font-mono text-indigo-300 font-bold truncate max-w-full">
+          ${escapeHtml(item.title || `Image ${slotIndex + 1}`)}
+        </div>
+      </div>
+    `;
+  } else {
+    const isRequired = slotIndex < 2;
+    container.innerHTML = `
+      <span class="material-symbols-outlined text-[40px] ${isRequired ? 'text-indigo-400/60' : 'text-slate-600'}">add_photo_alternate</span>
+      <p class="text-xs ${isRequired ? 'text-slate-400' : 'text-slate-500'} mt-2 font-sans">${isRequired ? `Upload or Drag Image ${slotIndex + 1}` : 'Upload Optional Image 3'}</p>
+      <input type="file" accept="image/*" onchange="window.handleCompareFileSelect(${slotIndex}, event)" class="absolute inset-0 opacity-0 cursor-pointer" />
+    `;
+  }
+}
+
 function setupCompareEvents() {
   window.handleCompareFileSelect = (slotIndex, event) => {
     const file = event.target.files?.[0];
