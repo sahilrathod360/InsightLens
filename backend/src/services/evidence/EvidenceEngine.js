@@ -234,7 +234,7 @@ export class EvidenceEngine {
 
     // 3. Process general claims and link to evidence
     const linkedClaims = claims.map((claim, idx) => {
-      const claimText = typeof claim === 'string' ? claim : (claim.claim || claim.text || `Claim ${idx + 1}`);
+      const claimText = typeof claim === 'string' ? claim : (claim.claimText || claim.claim || claim.text || claim.statement || `Claim ${idx + 1}`);
       const rawStatus = typeof claim === 'object' ? (claim.status || claim.evidenceStatus) : 'OBSERVED';
       
       // Look for matched visual evidence
