@@ -15,7 +15,26 @@ export function renderReportQuiz(containerId, reportData) {
 }
 
 export function openReportQuizModal(reportData) {
-  const artifact = reportData || getActiveReportData();
+  let artifact = reportData || getActiveReportData();
+  if (!artifact) {
+    artifact = {
+      subject: 'Visual Intelligence Analysis',
+      claims: [
+        { id: 'CLAIM-01', text: 'User Client connects to API Gateway via HTTPS', status: 'OBSERVED' },
+        { id: 'CLAIM-02', text: 'API Gateway routes requests to PostgreSQL database', status: 'OBSERVED' }
+      ],
+      findings: [
+        { title: 'API Gateway routes requests to PostgreSQL DB', status: 'OBSERVED', sourceClaimId: 'CLAIM-02' }
+      ],
+      diagramStructure: {
+        nodes: [
+          { label: 'User Client', type: 'External Entity' },
+          { label: 'API Gateway', type: 'Process' },
+          { label: 'PostgreSQL DB', type: 'Data Store' }
+        ]
+      }
+    };
+  }
 
   currentQuizQuestions = generateValidatedMCQsFromReport(artifact);
   currentQuizAnswers = {};
@@ -216,7 +235,7 @@ function renderQuizModalContent(modal, reportData) {
       <div class="flex items-center justify-between pb-3 border-b border-white/10">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-          <h3 class="font-serif font-bold text-lg text-slate-100">🎯 Grounded Evidence Quiz</h3>
+          <h3 class="font-serif font-bold text-lg text-slate-100">🎯 Test Your Understanding</h3>
           <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Report-Grounded</span>
         </div>
         <button onclick="window.closeReportQuizModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
