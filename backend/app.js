@@ -146,7 +146,7 @@ const analyzeLimiter = rateLimit({
 
 const generalApiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.API_RATE_LIMIT_MAX, 10) || 150,
+  max: parseInt(process.env.API_RATE_LIMIT_MAX, 10) || 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
