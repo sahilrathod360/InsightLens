@@ -9,6 +9,8 @@ import { showToast } from '../utils/toast.js';
 import { renderMarkdownToHtml } from '../utils/markdown.js';
 import { escapeHtml, sanitizeUrl } from '../utils/sanitize.js';
 import { updateTelemetryUI } from './LoadingPipeline.js';
+import { openNarrationModal } from './Narration/NarrationPlayerComponent.js';
+import { openReportQuizModal } from './Guess/GuessComponent.js';
 
 export function isBiologicalEntity(subject = '', category = '') {
   const combined = `${subject} ${category}`.toLowerCase();
@@ -1236,16 +1238,12 @@ export function setupReportActions(startAnalysisPipeline) {
 
   setupExplainReportPanel();
 
-  document.getElementById('report-run-evolution-btn')?.addEventListener('click', () => {
-    navigateTo('workspace');
+  document.getElementById('explain-report-btn')?.addEventListener('click', () => {
+    openNarrationModal(getActiveReportData());
   });
 
-  document.getElementById('report-stress-test-btn')?.addEventListener('click', () => {
-    navigateTo('workspace');
-  });
-
-  document.getElementById('report-devils-advocate-btn')?.addEventListener('click', () => {
-    navigateTo('workspace');
+  document.getElementById('test-understanding-btn')?.addEventListener('click', () => {
+    openReportQuizModal(getActiveReportData());
   });
 
   const retryHandler = () => {

@@ -6,6 +6,7 @@ let liveStreamTrack = null;
 let liveAnalysisInterval = null;
 let isAnalyzingFrame = false;
 let currentFrameRegions = [];
+let currentFacingMode = 'environment';
 
 export function renderLiveVisionPage() {
   const container = document.getElementById('page-livevision');
@@ -32,6 +33,10 @@ export function renderLiveVisionPage() {
           <button id="start-camera-btn" onclick="window.startLiveCameraStream()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold text-xs font-mono shadow-lg flex items-center gap-2 cursor-pointer transition-all">
             <span class="material-symbols-outlined text-[18px]">videocam</span>
             Start Camera
+          </button>
+          <button id="switch-camera-btn" onclick="window.switchLiveCameraStream()" class="hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 font-semibold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-[18px]">flip_camera_ios</span>
+            Switch Camera
           </button>
           <button id="stop-camera-btn" onclick="window.stopLiveCameraStream()" class="hidden px-4 py-2.5 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white font-semibold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all">
             <span class="material-symbols-outlined text-[18px]">videocam_off</span>
@@ -118,13 +123,18 @@ export function renderLiveVisionPage() {
 }
 
 function setupLiveVisionEvents() {
-  window.startLiveCameraStream = async () => {
+  window.startLiveCameraStream = async (facingMode = null) => {
+    if (facingMode) {
+      currentFacingMode = facingMode;
+    }
+
     const errorContainer = document.getElementById('live-camera-error-container');
     const placeholder = document.getElementById('live-camera-placeholder');
     const wrapper = document.getElementById('live-video-wrapper');
     const sceneActions = document.getElementById('live-scene-actions');
     const video = document.getElementById('live-camera-feed');
     const startBtn = document.getElementById('start-camera-btn');
+    const switchBtn = document.getElementById('switch-camera-btn');
     const stopBtn = document.getElementById('stop-camera-btn');
 
     if (errorContainer) errorContainer.classList.add('hidden');
@@ -148,18 +158,23 @@ function setupLiveVisionEvents() {
 
     showToast('Initializing camera stream...', 'info');
 
-    // Detect mobile vs desktop camera options
+    // Detect mobile vs desktop camera options with facingMode toggle
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const videoConstraints = isMobile
-      ? { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } }
-      : { video: { width: { ideal: 1280 }, height: { ideal: 720 } } };
+      ? { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } }
+      : { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } };
 
     try {
+      if (liveStreamTrack) {
+        liveStreamTrack.getTracks().forEach(track => track.stop());
+        liveStreamTrack = null;
+      }
+
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia(videoConstraints);
       } catch (errFirst) {
-        console.warn('[LiveVision] Ideal constraints failed, falling back to basic video:', errFirst);
+        console.warn('[LiveVision] Preferred constraints failed, falling back to basic video:', errFirst);
         stream = await navigator.mediaDevices.getUserMedia({ video: true });
       }
 
@@ -173,9 +188,10 @@ function setupLiveVisionEvents() {
       wrapper?.classList.remove('hidden');
       sceneActions?.classList.remove('hidden');
       startBtn?.classList.add('hidden');
+      switchBtn?.classList.remove('hidden');
       stopBtn?.classList.remove('hidden');
 
-      showToast('Camera active. Real-time visual discovery engaged.', 'success');
+      showToast(`Camera active (${currentFacingMode}). Real-time visual discovery engaged.`, 'success');
       startLightweightFrameLoop();
     } catch (err) {
       console.error('[LiveVision] getUserMedia Error:', err);
@@ -197,6 +213,12 @@ function setupLiveVisionEvents() {
     }
   };
 
+  window.switchLiveCameraStream = () => {
+    currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    showToast(`Switching camera to ${currentFacingMode}...`, 'info');
+    window.startLiveCameraStream(currentFacingMode);
+  };
+
   window.stopLiveCameraStream = () => {
     if (liveAnalysisInterval) {
       clearInterval(liveAnalysisInterval);
@@ -212,12 +234,14 @@ function setupLiveVisionEvents() {
     const wrapper = document.getElementById('live-video-wrapper');
     const sceneActions = document.getElementById('live-scene-actions');
     const startBtn = document.getElementById('start-camera-btn');
+    const switchBtn = document.getElementById('switch-camera-btn');
     const stopBtn = document.getElementById('stop-camera-btn');
 
     wrapper?.classList.add('hidden');
     sceneActions?.classList.add('hidden');
     placeholder?.classList.remove('hidden');
     startBtn?.classList.remove('hidden');
+    switchBtn?.classList.add('hidden');
     stopBtn?.classList.add('hidden');
 
     showToast('Camera stream stopped.', 'info');
@@ -243,7 +267,6 @@ function setupLiveVisionEvents() {
     if (typeof window.startAnalysisWithDataUrl === 'function') {
       window.startAnalysisWithDataUrl(frameDataUrl);
     } else {
-      // Fallback to navigate to desk
       if (typeof window.navigateTo === 'function') {
         window.navigateTo('desk');
       }
@@ -303,21 +326,69 @@ function startLightweightFrameLoop() {
   }, 2500);
 }
 
+function getVideoDisplayRect(video) {
+  if (!video || !video.videoWidth || !video.videoHeight) {
+    return { left: 0, top: 0, width: 0, height: 0 };
+  }
+  const container = video.parentElement;
+  if (!container) return { left: 0, top: 0, width: video.clientWidth || 640, height: video.clientHeight || 480 };
+
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight;
+  const videoWidth = video.videoWidth;
+  const videoHeight = video.videoHeight;
+
+  const containerAspect = containerWidth / containerHeight;
+  const videoAspect = videoWidth / videoHeight;
+
+  let renderWidth, renderHeight, offsetLeft, offsetTop;
+
+  // object-cover calculation
+  if (containerAspect > videoAspect) {
+    renderWidth = containerWidth;
+    renderHeight = containerWidth / videoAspect;
+    offsetLeft = 0;
+    offsetTop = (containerHeight - renderHeight) / 2;
+  } else {
+    renderWidth = containerHeight * videoAspect;
+    renderHeight = containerHeight;
+    offsetLeft = (containerWidth - renderWidth) / 2;
+    offsetTop = 0;
+  }
+
+  return { left: offsetLeft, top: offsetTop, width: renderWidth, height: renderHeight };
+}
+
 function renderLiveBoundingBoxes(regions = []) {
   const layer = document.getElementById('live-bounding-box-layer');
-  if (!layer) return;
+  const video = document.getElementById('live-camera-feed');
+  if (!layer || !video) return;
+
+  const rect = getVideoDisplayRect(video);
+  const useAbsoluteRect = rect.width > 0 && rect.height > 0;
 
   layer.innerHTML = regions.map((r, idx) => {
     const coords = r.coordinates || { x: 0.1 + idx * 0.25, y: 0.2, width: 0.22, height: 0.35 };
-    const left = (coords.x * 100).toFixed(1);
-    const top = (coords.y * 100).toFixed(1);
-    const width = (coords.width * 100).toFixed(1);
-    const height = (coords.height * 100).toFixed(1);
+    
+    let styleStr = '';
+    if (useAbsoluteRect) {
+      const boxLeft = rect.left + coords.x * rect.width;
+      const boxTop = rect.top + coords.y * rect.height;
+      const boxWidth = coords.width * rect.width;
+      const boxHeight = coords.height * rect.height;
+      styleStr = `left: ${boxLeft}px; top: ${boxTop}px; width: ${boxWidth}px; height: ${boxHeight}px;`;
+    } else {
+      const left = (coords.x * 100).toFixed(1);
+      const top = (coords.y * 100).toFixed(1);
+      const width = (coords.width * 100).toFixed(1);
+      const height = (coords.height * 100).toFixed(1);
+      styleStr = `left: ${left}%; top: ${top}%; width: ${width}%; height: ${height}%;`;
+    }
 
     return `
       <div 
         onclick="window.showLiveRegionDetails(${idx})"
-        style="left: ${left}%; top: ${top}%; width: ${width}%; height: ${height}%;"
+        style="${styleStr}"
         class="absolute border-2 border-purple-400 bg-purple-500/10 hover:bg-purple-500/20 transition-all cursor-pointer rounded-lg group shadow-lg flex items-start p-1"
       >
         <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white font-mono font-bold text-[10px] tracking-wider uppercase shadow">
@@ -357,3 +428,4 @@ function renderLiveBoundingBoxes(regions = []) {
     `;
   };
 }
+

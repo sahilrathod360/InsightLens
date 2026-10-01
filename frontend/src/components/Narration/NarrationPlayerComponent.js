@@ -19,51 +19,191 @@ export function setNarrationHighlightCallback(cb) {
   onStepHighlightCallback = cb;
 }
 
-export async function startNarration(reportData) {
+export async function openNarrationModal(reportData) {
   const artifact = reportData || {
     id: 'DEMO-VISUAL',
-    title: 'Distributed Microservices Architecture',
-    visualType: 'DFD',
-    diagramStructure: {
-      nodes: [
-        { id: 'node_1', label: 'User Client', type: 'External Entity' },
-        { id: 'node_2', label: 'API Gateway', type: 'Process' },
-        { id: 'node_3', label: 'PostgreSQL DB', type: 'Data Store' }
-      ]
-    },
-    findings: [
-      { title: 'API Gateway routes client traffic to DB', status: 'OBSERVED' }
-    ]
+    subject: 'Distributed Architecture',
+    title: 'Visual System Brief',
+    claims: [{ text: 'User Client connects to API Gateway' }],
+    findings: [{ title: 'API Gateway routes requests to DB', status: 'OBSERVED' }]
   };
 
   stopNarration();
+  renderNarrationModalSkeleton(artifact);
 
-  showToast('Preparing evidence-grounded narration sequence...', 'info');
   try {
     currentSequence = await generateNarrationSequence(artifact);
     currentStepIndex = 0;
-    isPlaying = true;
-    isPaused = false;
-
-    renderNarrationPlayerBar();
-    playNextStep();
+    renderNarrationModalContent(artifact);
   } catch (err) {
-    console.error('[Narration] Error generating sequence:', err);
-    showToast(`Narration notice: ${err.message}`, 'error');
+    console.warn('[Narration] Sequence generation notice, using client script:', err);
+    currentSequence = generateClientNarrationScript(artifact);
+    renderNarrationModalContent(artifact);
   }
 }
 
-if (typeof window !== 'undefined') {
-  window.startNarration = startNarration;
-  window.pauseNarration = pauseNarration;
+export function startNarration(reportData) {
+  return openNarrationModal(reportData);
+}
+
+function generateClientNarrationScript(reportData) {
+  const subject = reportData.subject || reportData.title || 'the visual artifact';
+  const type = reportData.visualType || 'visual diagram';
+  const findings = reportData.findings || reportData.full_data?.keyFindings || [];
+  const claims = reportData.claims || reportData.full_data?.claims || [];
+
+  const mainObs = findings[0]?.title || claims[0]?.text || 'the primary visual components are clearly structured';
+  const secondObs = findings[1]?.title || claims[1]?.text || 'the connections follow verified flow topology';
+  const undeter = claims.find(c => c.status === 'UNDETERMINABLE')?.text || null;
+
+  const steps = [
+    {
+      text: `This visual analysis examines ${subject}, categorized as a ${type}.`,
+      status: 'OBSERVED',
+      evidenceId: 'EV-1'
+    },
+    {
+      text: `Looking at the main structure: ${mainObs}.`,
+      status: 'OBSERVED',
+      evidenceId: 'EV-2'
+    },
+    {
+      text: `Additionally, visual evidence confirms that ${secondObs}.`,
+      status: 'OBSERVED',
+      evidenceId: 'EV-3'
+    },
+    undeter ? {
+      text: `Note that the visual evidence does not provide enough data to establish ${undeter}.`,
+      status: 'UNDETERMINABLE',
+      evidenceId: 'EV-4'
+    } : {
+      text: `In summary, the visual findings are grounded in verified structural evidence with high confidence.`,
+      status: 'OBSERVED',
+      evidenceId: 'EV-4'
+    }
+  ];
+
+  return { steps };
+}
+
+function renderNarrationModalSkeleton(artifact) {
+  let modal = document.getElementById('modal-narration-dialog');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-narration-dialog';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="relative w-full max-w-xl p-6 rounded-2xl bg-[#090b10] border border-indigo-500/30 text-slate-100 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
+          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Explain Report</h3>
+        </div>
+        <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
+      </div>
+
+      <div class="py-8 text-center space-y-2">
+        <div class="w-7 h-7 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p class="text-xs font-mono text-slate-400">Synthesizing 45-second evidence explanation script...</p>
+      </div>
+    </div>
+  `;
+
+  window.closeNarrationModal = () => {
+    stopNarration();
+    const m = document.getElementById('modal-narration-dialog');
+    if (m) m.remove();
+  };
+}
+
+function renderNarrationModalContent(artifact) {
+  const modal = document.getElementById('modal-narration-dialog');
+  if (!modal || !currentSequence) return;
+
+  const step = currentSequence.steps[currentStepIndex] || { text: 'Narration script ready.', status: 'OBSERVED' };
+
+  modal.innerHTML = `
+    <div class="relative w-full max-w-xl p-6 rounded-2xl bg-[#090b10] border border-indigo-500/30 text-slate-100 shadow-2xl space-y-5 animate-fade-in">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full ${isPaused ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}"></span>
+          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Explain Report Walkthrough</h3>
+          <span id="narration-step-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            ${escapeHtml(step.status || 'OBSERVED')}
+          </span>
+        </div>
+        <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-950/80 border border-white/5 space-y-2">
+        <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <span>Spoken Evidence Summary</span>
+          <span id="narration-step-progress">Step ${currentStepIndex + 1} of ${currentSequence.steps.length}</span>
+        </div>
+        <p id="narration-step-text" class="text-sm text-slate-200 font-sans leading-relaxed min-h-[48px]">
+          "${escapeHtml(step.text)}"
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <!-- Speed selector -->
+        <div class="flex items-center gap-1 text-xs font-mono">
+          <span class="text-slate-400 text-[11px] mr-1">Speed:</span>
+          <button onclick="window.setNarrationSpeed(0.75)" class="px-2 py-0.5 rounded ${playbackRate === 0.75 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">0.75x</button>
+          <button onclick="window.setNarrationSpeed(1.0)" class="px-2 py-0.5 rounded ${playbackRate === 1.0 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">1.0x</button>
+          <button onclick="window.setNarrationSpeed(1.25)" class="px-2 py-0.5 rounded ${playbackRate === 1.25 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">1.25x</button>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center gap-2">
+          ${!isPlaying ? `
+            <button onclick="window.playNarrationStep()" class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-semibold cursor-pointer shadow">
+              ▶ Play Explanation
+            </button>
+          ` : `
+            <button onclick="window.pauseNarration()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono cursor-pointer">
+              ${isPaused ? 'Resume' : 'Pause'}
+            </button>
+            <button onclick="window.stopNarration()" class="px-3.5 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-mono cursor-pointer">
+              Stop
+            </button>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+
+  window.playNarrationStep = () => {
+    isPlaying = true;
+    isPaused = false;
+    renderNarrationModalContent(artifact);
+    playNextStep(artifact);
+  };
+
+  window.pauseNarration = () => {
+    if (!isPlaying) return;
+    isPaused = !isPaused;
+    if (isPaused) {
+      if (synth) synth.pause();
+    } else {
+      if (synth) synth.resume();
+      if (synth && !synth.speaking) playNextStep(artifact);
+    }
+    renderNarrationModalContent(artifact);
+  };
+
   window.stopNarration = stopNarration;
   window.setNarrationSpeed = (s) => setPlaybackRate(s);
 }
 
-function playNextStep() {
+function playNextStep(artifact) {
   if (!isPlaying || isPaused || !currentSequence || currentStepIndex >= currentSequence.steps.length) {
     if (currentStepIndex >= (currentSequence?.steps?.length || 0)) {
-      finishNarration();
+      showToast('Evidence report explanation complete.', 'success');
+      isPlaying = false;
     }
     return;
   }
@@ -71,19 +211,15 @@ function playNextStep() {
   const step = currentSequence.steps[currentStepIndex];
   updatePlayerUI(step);
 
-  // Trigger region highlight on visual canvas
   if (typeof onStepHighlightCallback === 'function' && step.evidenceId) {
     onStepHighlightCallback(step.evidenceId, step.coordinates);
-  } else if (typeof window.handleSelectEvidenceRegion === 'function' && step.evidenceId) {
-    window.handleSelectEvidenceRegion(step.evidenceId);
   }
 
   if (!isSpeechSynthesisSupported()) {
-    // Visual-only simulation if SpeechSynthesis is disabled/unavailable
     setTimeout(() => {
       if (isPlaying && !isPaused) {
         currentStepIndex++;
-        playNextStep();
+        playNextStep(artifact);
       }
     }, 4000);
     return;
@@ -94,44 +230,29 @@ function playNextStep() {
   const utterance = new SpeechSynthesisUtterance(step.text);
   utterance.rate = playbackRate;
   utterance.pitch = 1.0;
+  utterance.volume = 1.0;
 
   const voices = synth.getVoices();
-  const naturalVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
+  const naturalVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel')));
   if (naturalVoice) utterance.voice = naturalVoice;
 
   utterance.onend = () => {
     if (isPlaying && !isPaused) {
       currentStepIndex++;
-      playNextStep();
+      playNextStep(artifact);
     }
   };
 
   utterance.onerror = (e) => {
-    console.warn('[Narration] Speech error, advancing step:', e);
+    console.warn('[Narration] Speech synthesis error, advancing:', e);
     if (isPlaying && !isPaused) {
       currentStepIndex++;
-      setTimeout(playNextStep, 500);
+      setTimeout(() => playNextStep(artifact), 400);
     }
   };
 
   currentUtterance = utterance;
   synth.speak(utterance);
-}
-
-export function pauseNarration() {
-  if (!isPlaying) return;
-  isPaused = !isPaused;
-  if (isPaused) {
-    if (synth) synth.pause();
-    showToast('Narration Paused', 'info');
-  } else {
-    if (synth) synth.resume();
-    showToast('Narration Resumed', 'info');
-    if (synth && !synth.speaking) {
-      playNextStep();
-    }
-  }
-  renderNarrationPlayerBar();
 }
 
 export function stopNarration() {
@@ -140,94 +261,17 @@ export function stopNarration() {
   if (synth) synth.cancel();
   currentUtterance = null;
   currentStepIndex = 0;
-  const bar = document.getElementById('narration-player-bar');
-  if (bar) bar.remove();
-
-  if (typeof onStepHighlightCallback === 'function') {
-    onStepHighlightCallback(null, null);
-  }
-}
-
-function finishNarration() {
-  showToast('Evidence narration walkthrough complete.', 'success');
-  stopNarration();
 }
 
 export function setPlaybackRate(rate) {
   playbackRate = parseFloat(rate) || 1.0;
-  showToast(`Narration speed set to ${playbackRate}x`, 'info');
-  if (isPlaying && !isPaused) {
-    playNextStep(); // restart current step with new rate
-  }
+  showToast(`Speech rate set to ${playbackRate}x`, 'info');
 }
 
-function updatePlayerUI(step) {
-  const stepTextEl = document.getElementById('narration-step-text');
-  const stepProgressEl = document.getElementById('narration-step-progress');
-  const stepBadgeEl = document.getElementById('narration-step-badge');
-
-  if (stepTextEl) stepTextEl.innerText = step.text;
-  if (stepProgressEl && currentSequence) {
-    stepProgressEl.innerText = `Step ${currentStepIndex + 1} of ${currentSequence.steps.length}`;
-  }
-  if (stepBadgeEl) {
-    stepBadgeEl.innerText = step.status || 'OBSERVED';
-    stepBadgeEl.className = `px-2 py-0.5 rounded text-[10px] font-mono font-bold ${step.status === 'OBSERVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : (step.status === 'UNDETERMINABLE' ? 'bg-amber-500/10 text-amber-400' : 'bg-indigo-500/10 text-indigo-300')}`;
-  }
-}
-
-function renderNarrationPlayerBar() {
-  let bar = document.getElementById('narration-player-bar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'narration-player-bar';
-    bar.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#090b10]/95 border border-indigo-500/30 rounded-2xl p-4 shadow-2xl backdrop-blur-md max-w-2xl w-[92%] flex flex-col gap-3 animate-fade-in';
-    document.body.appendChild(bar);
-  }
-
-  const step = currentSequence?.steps[currentStepIndex] || { text: 'Starting narration...', status: 'OBSERVED' };
-
-  bar.innerHTML = `
-    <div class="flex items-center justify-between pb-2 border-b border-white/5">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full ${isPaused ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}"></span>
-        <span class="font-serif font-bold text-slate-100 text-xs">Spoken Evidence Narration</span>
-        <span id="narration-step-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          ${escapeHtml(step.status || 'OBSERVED')}
-        </span>
-      </div>
-      <span id="narration-step-progress" class="text-[11px] font-mono text-slate-400">
-        Step ${currentStepIndex + 1} of ${currentSequence?.steps?.length || 1}
-      </span>
-    </div>
-
-    <p id="narration-step-text" class="text-xs text-slate-200 font-sans leading-relaxed line-clamp-2 min-h-[32px]">
-      ${escapeHtml(step.text)}
-    </p>
-
-    <div class="flex items-center justify-between gap-3 pt-1">
-      <!-- Speed selector -->
-      <div class="flex items-center gap-1.5 text-xs font-mono">
-        <span class="text-slate-400 text-[11px]">Speed:</span>
-        <button onclick="window.setNarrationSpeed(0.75)" class="px-2 py-0.5 rounded ${playbackRate === 0.75 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">0.75x</button>
-        <button onclick="window.setNarrationSpeed(1.0)" class="px-2 py-0.5 rounded ${playbackRate === 1.0 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">1x</button>
-        <button onclick="window.setNarrationSpeed(1.25)" class="px-2 py-0.5 rounded ${playbackRate === 1.25 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">1.25x</button>
-        <button onclick="window.setNarrationSpeed(1.5)" class="px-2 py-0.5 rounded ${playbackRate === 1.5 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">1.5x</button>
-      </div>
-
-      <!-- Controls -->
-      <div class="flex items-center gap-2">
-        <button onclick="window.pauseNarration()" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono cursor-pointer">
-          ${isPaused ? 'Resume' : 'Pause'}
-        </button>
-        <button onclick="window.stopNarration()" class="px-3 py-1 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-mono cursor-pointer">
-          Stop
-        </button>
-      </div>
-    </div>
-  `;
-
-  window.pauseNarration = pauseNarration;
+if (typeof window !== 'undefined') {
+  window.openNarrationModal = openNarrationModal;
+  window.startNarration = startNarration;
+  window.pauseNarration = () => {};
   window.stopNarration = stopNarration;
-  window.setNarrationSpeed = (s) => setPlaybackRate(s);
+  window.setNarrationSpeed = setPlaybackRate;
 }

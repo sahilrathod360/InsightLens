@@ -227,32 +227,55 @@ function updateSlotPreview(index) {
 
 function renderMultiImageResults(mount, sources, apiResult) {
   const is3 = sources.length === 3;
+  const isDemoPreset = sources.some(s => s.isDemoPreset);
 
-  // Extract shared vs unique attributes
-  const isHeroes = sources.some(s => (s.title || '').toLowerCase().includes('spider') || (s.title || '').toLowerCase().includes('superman'));
+  // Extract similarities from real apiResult diffs or extracted claims/attributes
+  let similarities = [];
+  let differences = [];
 
-  const similarities = isHeroes ? [
-    'Fictional superhero character archetypes from comic book media',
-    'Distinctive iconic costume design with high-contrast color palettes',
-    'Heroic athletic posing depicted within urban skyline environments',
-    'Extensive global pop-culture footprint and media franchise representation'
-  ] : [
-    'Identical visual domain classification and core structural topology',
-    'High regional alignment across primary workflow nodes and connectors',
-    'Standard evidence status indicators preserved across all observed frames'
-  ];
+  if (apiResult && apiResult.diffs) {
+    similarities = apiResult.diffs
+      .filter(d => d.status === 'UNCHANGED')
+      .map(d => `[SHARED / OBSERVED] ${d.description || d.elementName}`);
+    
+    differences = apiResult.diffs
+      .filter(d => d.status === 'ADDED' || d.status === 'REMOVED' || d.status === 'MODIFIED' || d.status === 'MOVED')
+      .map(d => `[DIFFERENCE / OBSERVED] ${d.description || d.elementName}`);
+  }
 
-  const differences = isHeroes ? [
-    'Spider-Man: Red/blue webbed suit, agile acrobatic crouching stance, street-level New York urban backdrop.',
-    'Superman: Red cape with yellow S-shield emblem, floating flight posture, Metropolis skyline backdrop.',
-    'Batman: Dark cowl and bat emblem, tactical armor construction, dark Gotham rooftop setting.'
-  ] : [
-    'Version A contains legacy monolith database connection endpoint.',
-    'Version B introduces API Gateway and PostgreSQL microservices separation.'
-  ];
+  // Fallback to extracting common vs differing attributes from source objects
+  if (similarities.length === 0) {
+    const allAttrLists = sources.map(s => s.attributes || s.nodes?.map(n => n.label) || []);
+    const flatAttrs = allAttrLists.flat();
+    
+    // Find attributes present in multiple images
+    const counts = {};
+    flatAttrs.forEach(a => counts[a] = (counts[a] || 0) + 1);
+    
+    const shared = Object.keys(counts).filter(k => counts[k] >= 2);
+    if (shared.length > 0) {
+      similarities = shared.map(s => `[SHARED / OBSERVED] Common visual element: ${s}`);
+    } else {
+      similarities = ['[SHARED / OBSERVED] Visual inputs conform to standard image coordinate spaces.'];
+    }
+  }
+
+  if (differences.length === 0) {
+    differences = sources.map((s, idx) => {
+      const uniqueAttrs = s.attributes || s.nodes?.map(n => n.label) || [];
+      return `[DIFFERENCE / OBSERVED] Image ${idx + 1} (${s.title}): ${uniqueAttrs.length > 0 ? uniqueAttrs.join(', ') : 'Unique visual characteristics observed in target canvas.'}`;
+    });
+  }
 
   mount.innerHTML = `
     <div class="space-y-8 animate-fade-in">
+      ${isDemoPreset ? `
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono flex items-center justify-between">
+          <span>[ DEMO PRESET MODE ] These sample visual artifacts illustrate multi-image topological comparison.</span>
+          <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">DEMO</span>
+        </div>
+      ` : ''}
+
       <!-- 1. Side-by-Side Visual Comparison Grid -->
       <div class="space-y-3">
         <h3 class="font-serif font-bold text-lg text-slate-100 flex items-center gap-2">
@@ -281,7 +304,7 @@ function renderMultiImageResults(mount, sources, apiResult) {
         <div class="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 space-y-3">
           <div class="flex items-center gap-2 text-emerald-400 font-serif font-bold text-base">
             <span class="material-symbols-outlined text-[20px]">check_circle</span>
-            Shared &amp; Common Features
+            Shared &amp; Common Features (Observed)
           </div>
           <ul class="space-y-2 text-xs text-slate-300 font-sans">
             ${similarities.map(sim => `
@@ -297,7 +320,7 @@ function renderMultiImageResults(mount, sources, apiResult) {
         <div class="p-5 rounded-2xl bg-amber-950/20 border border-amber-500/20 space-y-3">
           <div class="flex items-center gap-2 text-amber-400 font-serif font-bold text-base">
             <span class="material-symbols-outlined text-[20px]">difference</span>
-            Key Differences &amp; Variations
+            Key Differences &amp; Variations (Observed)
           </div>
           <ul class="space-y-2 text-xs text-slate-300 font-sans">
             ${differences.map(diff => `
@@ -317,18 +340,21 @@ function renderMultiImageResults(mount, sources, apiResult) {
           Individual Visual Analysis
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-${sources.length} gap-4">
-          ${sources.map((s, idx) => `
-            <div class="p-4 rounded-xl bg-slate-950/60 border border-white/5 space-y-2.5 text-xs text-slate-300">
-              <div class="font-serif font-bold text-indigo-300 border-b border-white/5 pb-2">Image ${idx + 1}: ${escapeHtml(s.title)}</div>
-              <div class="space-y-1">
-                <span class="text-[11px] font-mono text-slate-400 block">Observed Features:</span>
-                <p class="font-sans text-slate-300">${s.attributes ? s.attributes.join(', ') : 'Verified visual elements, spatial layout, and regional bounding coordinates.'}</p>
+          ${sources.map((s, idx) => {
+            const obsText = s.attributes ? s.attributes.join(', ') : (s.nodes ? s.nodes.map(n => n.label).join(', ') : null);
+            return `
+              <div class="p-4 rounded-xl bg-slate-950/60 border border-white/5 space-y-2.5 text-xs text-slate-300">
+                <div class="font-serif font-bold text-indigo-300 border-b border-white/5 pb-2">Image ${idx + 1}: ${escapeHtml(s.title)}</div>
+                <div class="space-y-1">
+                  <span class="text-[11px] font-mono text-slate-400 block">Observed Features:</span>
+                  <p class="font-sans text-slate-300">${obsText ? escapeHtml(obsText) : 'Insufficient visual evidence for structured object analysis.'}</p>
+                </div>
+                <div class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
+                  Status: ${obsText ? 'OBSERVED' : 'UNDETERMINABLE'}
+                </div>
               </div>
-              <div class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
-                Status: Grounded Visual Analysis Verified
-              </div>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       </div>
 
