@@ -4,9 +4,12 @@ import { sendSuccess, sendError, APIError } from '../utils/apiUtils.js';
 class ComparisonController {
   async compareVisuals(req, res, next) {
     try {
-      const { sourceA, sourceB, intent } = req.body;
+      const sourceA = req.body.sourceA || req.body.before;
+      const sourceB = req.body.sourceB || req.body.after;
+      const intent = req.body.intent || req.body.analysisIntent;
+
       if (!sourceA || !sourceB) {
-        throw new APIError('sourceA and sourceB artifacts are required for comparison', 400);
+        throw new APIError('sourceA (before) and sourceB (after) artifacts are required for comparison', 400);
       }
 
       const result = VisualComparisonEngine.compareVisuals(sourceA, sourceB, { intent });

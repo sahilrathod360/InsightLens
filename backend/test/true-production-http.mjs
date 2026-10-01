@@ -290,9 +290,11 @@ async function runTrueProductionHttpSuite() {
       })
     }, authToken);
     assert.equal(compRes.status, 200);
-    assert.ok(compRes.json.data.nodeDiff.added.length >= 2, 'Must detect added microservices');
-    assert.ok(compRes.json.data.nodeDiff.removed.length >= 1, 'Must detect removed legacy monolith');
-    record('Visual Comparison Topology Diff API', true, `Detected +${compRes.json.data.nodeDiff.added.length} added, -${compRes.json.data.nodeDiff.removed.length} removed nodes`);
+    const addedCount = compRes.json.data.summary?.addedCount || compRes.json.data.diffs?.filter(d => d.status === 'ADDED').length;
+    const removedCount = compRes.json.data.summary?.removedCount || compRes.json.data.diffs?.filter(d => d.status === 'REMOVED').length;
+    assert.ok(addedCount >= 2, 'Must detect added microservices');
+    assert.ok(removedCount >= 1, 'Must detect removed legacy monolith');
+    record('Visual Comparison Topology Diff API', true, `Detected +${addedCount} added, -${removedCount} removed elements`);
 
     // 3. Cross-Visual Consistency Engine
     console.log('Testing Cross-Visual Consistency API...');

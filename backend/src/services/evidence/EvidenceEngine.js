@@ -245,7 +245,9 @@ export class EvidenceEngine {
 
       let finalStatus = rawStatus;
       if (!matchedEvidence) {
-        // Synthesize bounded evidence region for standard findings if credible
+        // If diagram or chart structure is provided but no element matches the claim, mark UNDETERMINABLE
+        const statusForUnmatched = (diagramStructure || chartStructure) ? 'UNDETERMINABLE' : (VALID_EVIDENCE_STATUSES.includes(rawStatus) ? rawStatus : 'INFERRED');
+        
         const synthCoords = {
           x: 0.05 + (idx % 4) * 0.22,
           y: 0.05 + Math.floor(idx / 4) * 0.2,
@@ -262,9 +264,11 @@ export class EvidenceEngine {
           sourceImageId: 'PRIMARY_IMAGE',
           coordinates: coordCheck.coordinates,
           label: claimText.slice(0, 40),
-          relation: rawStatus === 'UNDETERMINABLE' ? 'INSUFFICIENT' : 'SUPPORTS',
-          status: VALID_EVIDENCE_STATUSES.includes(rawStatus) ? rawStatus : 'INFERRED',
-          explanation: `Visual grounding region for assertion: "${claimText}".`
+          relation: statusForUnmatched === 'UNDETERMINABLE' ? 'INSUFFICIENT' : 'SUPPORTS',
+          status: statusForUnmatched,
+          explanation: statusForUnmatched === 'UNDETERMINABLE' 
+            ? `No visual proof or connection found in source artifact for claim: "${claimText}".`
+            : `Visual grounding region for assertion: "${claimText}".`
         };
         evidenceList.push(matchedEvidence);
       }
@@ -272,7 +276,9 @@ export class EvidenceEngine {
       return {
         id: `CLM-${idx + 1}`,
         claim: claimText,
+        claimText: claimText,
         status: matchedEvidence.status,
+        evidenceStatus: matchedEvidence.status,
         evidenceId: matchedEvidence.id,
         evidenceType: matchedEvidence.evidenceType,
         evidenceRegion: matchedEvidence.region,
@@ -284,6 +290,7 @@ export class EvidenceEngine {
     return {
       evidence: evidenceList,
       linkedClaims,
+      claimsWithEvidence: linkedClaims,
       totalEvidenceCount: evidenceList.length,
       observedCount: evidenceList.filter(e => e.status === 'OBSERVED').length,
       inferredCount: evidenceList.filter(e => e.status === 'INFERRED').length,
