@@ -57,7 +57,7 @@ async function runRealWorldVerification() {
 
   // Step 15, 16, 17, 18: UI Layout Packs & Command Center Application & Persistence
   console.log('\nStep 15, 16, 17 & 18: Testing Layout Packs & Command Center...');
-  await extService.installExtension(testUser, 'ui-layouts');
+  await extService.installExtension(testUser, 'layout-packs');
   await extService.updateActiveState(testUser, { layout: 'command-center' });
   const layoutState = await extService.getActiveState(testUser);
   console.log(`   - Applied & Persisted Layout: ${layoutState.layout} ${layoutState.layout === 'command-center' ? 'PASS' : 'FAIL'}`);

@@ -3,63 +3,43 @@
 import { API_BASE, getAuthHeaders } from '../utils/api.js';
 
 export async function fetchExtensions() {
-  try {
-    const res = await fetch(`${API_BASE}/api/extensions`, {
-      method: 'GET',
-      headers: getAuthHeaders()
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message || 'Failed to fetch extensions');
-    return json.data?.extensions || [];
-  } catch (err) {
-    console.warn('[ExtensionsAPI] Fetch extensions notice:', err.message);
-    return [];
-  }
+  const res = await fetch(`${API_BASE}/api/extensions`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || `Failed to fetch extensions (HTTP ${res.status})`);
+  return json.data?.extensions || [];
 }
 
 export async function fetchThemes() {
-  try {
-    const res = await fetch(`${API_BASE}/api/extensions/themes`, {
-      method: 'GET',
-      headers: getAuthHeaders()
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message || 'Failed to fetch themes');
-    return json.data?.themes || [];
-  } catch (err) {
-    console.warn('[ExtensionsAPI] Fetch themes notice:', err.message);
-    return [];
-  }
+  const res = await fetch(`${API_BASE}/api/extensions/themes`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || `Failed to fetch themes (HTTP ${res.status})`);
+  return json.data?.themes || [];
 }
 
 export async function fetchTypographyPacks() {
-  try {
-    const res = await fetch(`${API_BASE}/api/extensions/typography`, {
-      method: 'GET',
-      headers: getAuthHeaders()
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message || 'Failed to fetch typography');
-    return json.data?.typographyPacks || [];
-  } catch (err) {
-    console.warn('[ExtensionsAPI] Fetch typography notice:', err.message);
-    return [];
-  }
+  const res = await fetch(`${API_BASE}/api/extensions/typography`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || `Failed to fetch typography (HTTP ${res.status})`);
+  return json.data?.typographyPacks || [];
 }
 
 export async function fetchLayoutPacks() {
-  try {
-    const res = await fetch(`${API_BASE}/api/extensions/layouts`, {
-      method: 'GET',
-      headers: getAuthHeaders()
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message || 'Failed to fetch layouts');
-    return json.data?.layoutPacks || [];
-  } catch (err) {
-    console.warn('[ExtensionsAPI] Fetch layouts notice:', err.message);
-    return [];
-  }
+  const res = await fetch(`${API_BASE}/api/extensions/layouts`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || `Failed to fetch layouts (HTTP ${res.status})`);
+  return json.data?.layoutPacks || [];
 }
 
 export async function installExtension(id) {

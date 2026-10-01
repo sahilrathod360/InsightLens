@@ -294,7 +294,7 @@ export const BUILTIN_EXTENSIONS = [
     is_builtin: true
   },
   {
-    id: 'ui-layouts',
+    id: 'layout-packs',
     name: 'UI Layout Packs',
     version: '1.1.0',
     description: 'Flexible viewport layouts ranging from ultra-wide Command Center to single-column Minimal Workspace.',
@@ -303,7 +303,7 @@ export const BUILTIN_EXTENSIONS = [
     icon: 'dashboard_customize',
     capabilities: ['layout_modes', 'viewport_structure'],
     manifest: {
-      id: 'ui-layouts',
+      id: 'layout-packs',
       name: 'UI Layout Packs',
       version: '1.1.0',
       description: 'Flexible viewport layouts ranging from ultra-wide Command Center to single-column Minimal Workspace.',
@@ -443,22 +443,22 @@ export const BUILTIN_EXTENSIONS = [
     is_builtin: true
   },
   {
-    id: 'playground',
-    name: 'InsightLens Experimental Playground',
-    version: '0.9.0-beta',
-    description: 'Early-access sandbox to test upcoming experimental reasoning capabilities without affecting stable workflows.',
+    id: 'prompt-playground',
+    name: 'Prompt Playground & Experiments',
+    version: '1.0.0',
+    description: 'Early-access sandbox to test prompt configurations and visual reasoning parameters without affecting stable workflows.',
     author: 'InsightLens Lab Incubator',
     category: 'Experimental',
     icon: 'science',
-    capabilities: ['experimental_sandbox', 'early_access_tools', 'prototype_lab'],
+    capabilities: ['prompt_engineering', 'experimental_sandbox', 'prototype_lab'],
     manifest: {
-      id: 'playground',
-      name: 'InsightLens Experimental Playground',
-      version: '0.9.0-beta',
-      description: 'Early-access sandbox to test upcoming experimental reasoning capabilities without affecting stable workflows.',
+      id: 'prompt-playground',
+      name: 'Prompt Playground & Experiments',
+      version: '1.0.0',
+      description: 'Early-access sandbox to test prompt configurations and visual reasoning parameters without affecting stable workflows.',
       author: 'InsightLens Lab Incubator',
       category: 'Experimental',
-      capabilities: ['experimental_sandbox', 'early_access_tools', 'prototype_lab'],
+      capabilities: ['prompt_engineering', 'experimental_sandbox', 'prototype_lab'],
       isBeta: true
     },
     is_builtin: true

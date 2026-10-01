@@ -1,11 +1,10 @@
 {
   "installedBy": "production-verifier-1790844997859@insightlens.edu",
-  "installedAt": "2026-10-01T08:56:37.868Z",
+  "installedAt": "2026-10-01T08:56:37.870Z",
   "version": "1.1.0",
   "capabilities": [
-    "typography",
-    "font_pairing",
-    "text_hierarchy"
+    "layout_modes",
+    "viewport_structure"
   ],
   "status": "ACTIVE"
 }

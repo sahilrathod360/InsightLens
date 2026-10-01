@@ -1,0 +1,45 @@
+{
+  "id": "layout-packs",
+  "name": "UI Layout Packs",
+  "version": "1.1.0",
+  "description": "Flexible viewport layouts ranging from ultra-wide Command Center to single-column Minimal Workspace.",
+  "author": "InsightLens Core Team",
+  "category": "Layouts",
+  "capabilities": [
+    "layout_modes",
+    "viewport_structure"
+  ],
+  "layoutsCount": 5,
+  "layouts": [
+    {
+      "id": "layout-command-center",
+      "name": "Command Center",
+      "slug": "command-center",
+      "description": "Multi-column dense monitoring layout optimized for high-resolution desktop displays."
+    },
+    {
+      "id": "layout-research-desk",
+      "name": "Research Desk",
+      "slug": "research-desk",
+      "description": "Balanced research workbench with prominent visual target staging and side-by-side telemetry."
+    },
+    {
+      "id": "layout-minimal-workspace",
+      "name": "Minimal Workspace",
+      "slug": "minimal-workspace",
+      "description": "Single-column content-first reading view with minimized lateral chrome."
+    },
+    {
+      "id": "layout-analysis-lab",
+      "name": "Analysis Lab",
+      "slug": "analysis-lab",
+      "description": "Split-pane layout prioritizing data tables, node graphs, and claim verification ledgers."
+    },
+    {
+      "id": "layout-presentation-board",
+      "name": "Presentation Board",
+      "slug": "presentation-board",
+      "description": "Wide-screen presentation view suitable for projections, reviews, and faculty demonstrations."
+    }
+  ]
+}

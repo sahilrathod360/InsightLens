@@ -24,9 +24,11 @@ export async function renderExtensionManager() {
     updateExtensionsView();
   } catch (err) {
     container.innerHTML = `
-      <div class="col-span-full p-8 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center space-y-2">
-        <p class="text-xs text-rose-300 font-mono">Failed to load extensions catalog: ${escapeHtml(err.message)}</p>
-        <button onclick="window.renderExtensionManager()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-200 text-xs font-mono hover:bg-slate-700">Retry</button>
+      <div class="col-span-full p-8 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center space-y-3">
+        <span class="material-symbols-outlined text-4xl text-rose-400">cloud_off</span>
+        <h4 class="font-serif font-bold text-rose-200 text-base">Unable to load extensions</h4>
+        <p class="text-xs text-rose-300 font-mono">${escapeHtml(err.message)}</p>
+        <button onclick="window.renderExtensionManager()" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-mono font-medium hover:bg-indigo-500 shadow-md cursor-pointer">Retry</button>
       </div>
     `;
   }

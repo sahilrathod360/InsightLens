@@ -42,7 +42,8 @@ export const ALLOWED_CAPABILITIES = [
   'evidence_workbench',
   'experimental_sandbox',
   'early_access_tools',
-  'prototype_lab'
+  'prototype_lab',
+  'prompt_engineering'
 ];
 
 export function validateExtensionManifest(manifest) {

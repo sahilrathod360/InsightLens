@@ -62,14 +62,14 @@ describe('Extensions Platform & Security Suite', () => {
     const expectedIds = [
       'theme-studio',
       'typography-lab',
-      'ui-layouts',
+      'layout-packs',
       'hint-engine',
       'academic-mode',
       'presentation-mode',
       'focus-mode',
       'developer-mode',
       'research-mode',
-      'playground'
+      'prompt-playground'
     ];
 
     for (const expectedId of expectedIds) {
