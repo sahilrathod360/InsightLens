@@ -1,0 +1,12 @@
+{
+  "id": "theme-studio",
+  "name": "Theme Studio",
+  "version": "1.2.0",
+  "description": "Curated collection of 5 academic, glassmorphic, and high-contrast color palettes for InsightLens.",
+  "author": "InsightLens Design Lab",
+  "category": "Themes",
+  "icon": "palette",
+  "capabilities": ["themes", "ui_styling", "color_palette"],
+  "entrypoint": "themeRuntime.js",
+  "themesCount": 5
+}

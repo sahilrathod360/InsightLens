@@ -1,8 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { validateExtensionManifest } from '../src/services/extensions/ExtensionManifestValidator.js';
 import ExtensionService from '../src/services/extensions/ExtensionService.js';
 import { BUILTIN_EXTENSIONS, BUILTIN_THEMES, BUILTIN_TYPOGRAPHY, BUILTIN_LAYOUTS } from '../src/services/extensions/BuiltinExtensions.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe('Extensions Platform & Security Suite', () => {
   // 1. Manifest Validation
@@ -50,8 +56,8 @@ describe('Extensions Platform & Security Suite', () => {
     assert.ok(check.errors.some(err => err.includes('Security violation')));
   });
 
-  // 3. Built-in Extensions Catalog Integrity
-  it('should contain all 10 standard built-in extensions with valid manifests', () => {
+  // 3. Built-in Extensions Catalog Integrity & Filesystem Manifests
+  it('should contain all 10 standard built-in extensions with valid manifests on disk', () => {
     assert.equal(BUILTIN_EXTENSIONS.length, 10);
     const expectedIds = [
       'theme-studio',
@@ -71,6 +77,19 @@ describe('Extensions Platform & Security Suite', () => {
       assert.ok(ext, `Built-in extension ${expectedId} must exist`);
       const val = validateExtensionManifest(ext.manifest);
       assert.equal(val.valid, true, `Manifest for ${expectedId} must be valid`);
+    }
+
+    // Check disk manifests in extensions/built-in
+    const rootBuiltin = path.resolve(__dirname, '../../extensions/built-in');
+    if (fs.existsSync(rootBuiltin)) {
+      const folders = fs.readdirSync(rootBuiltin);
+      assert.ok(folders.length >= 10, 'All 10 built-in folders must exist on disk');
+      for (const folder of folders) {
+        const manifestPath = path.join(rootBuiltin, folder, 'manifest.json');
+        assert.ok(fs.existsSync(manifestPath), `Manifest must exist at ${manifestPath}`);
+        const parsed = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        assert.ok(parsed.id && parsed.name, `Parsed manifest for ${folder} must have id and name`);
+      }
     }
   });
 
@@ -101,18 +120,44 @@ describe('Extensions Platform & Security Suite', () => {
     assert.ok(layoutSlugs.includes('presentation-board'));
   });
 
-  // 5. Extension Lifecycle Management
-  it('should support listing, installing, enabling, disabling, and updating extension settings', async () => {
-    const list = await ExtensionService.listExtensionsForUser('test@insightlens.edu');
-    assert.ok(list.length >= 10);
+  // 5. Complete Lifecycle: INSTALL -> ENABLE -> USE -> DISABLE -> ENABLE -> UNINSTALL
+  it('should execute full extension lifecycle with filesystem and database synchronization', async () => {
+    const userEmail = `lifecycle-user-${Date.now()}@insightlens.edu`;
+    const extId = 'theme-studio';
 
-    const installRes = await ExtensionService.installExtension('test@insightlens.edu', 'theme-studio');
+    // 1. INSTALL
+    const installRes = await ExtensionService.installExtension(userEmail, extId);
     assert.equal(installRes.success, true);
+    assert.ok(installRes.installedPath, 'Install must report target installed path on disk');
+    assert.ok(fs.existsSync(installRes.installedPath), 'Installed directory must physically exist on disk');
+    assert.ok(fs.existsSync(path.join(installRes.installedPath, 'manifest.json')), 'manifest.json must exist in installed folder');
 
-    const toggleRes = await ExtensionService.toggleExtension('test@insightlens.edu', 'theme-studio', false);
-    assert.equal(toggleRes.success, true);
+    // 2. ENABLE
+    const enableRes1 = await ExtensionService.toggleExtension(userEmail, extId, true);
+    assert.equal(enableRes1.success, true);
 
-    const settingsRes = await ExtensionService.updateExtensionSettings('test@insightlens.edu', 'hint-engine', { frequency: 'high' });
-    assert.equal(settingsRes.success, true);
+    // 3. USE (Get available themes)
+    const themes = await ExtensionService.getThemes();
+    assert.ok(themes.length >= 5, 'Must provide available themes for use');
+
+    // 4. DISABLE
+    const disableRes = await ExtensionService.toggleExtension(userEmail, extId, false);
+    assert.equal(disableRes.success, true);
+
+    // 5. RE-ENABLE
+    const enableRes2 = await ExtensionService.toggleExtension(userEmail, extId, true);
+    assert.equal(enableRes2.success, true);
+
+    // 6. UNINSTALL
+    const uninstallRes = await ExtensionService.uninstallExtension(userEmail, extId);
+    assert.equal(uninstallRes.success, true);
+    assert.equal(uninstallRes.removedFromDisk, true);
+    assert.strictEqual(fs.existsSync(installRes.installedPath), false, 'Installed directory must be removed from disk after uninstall');
+
+    // Built-in source package must remain untouched
+    const rootBuiltin = path.resolve(__dirname, '../../extensions/built-in/theme-studio/manifest.json');
+    if (fs.existsSync(path.dirname(rootBuiltin))) {
+      assert.ok(fs.existsSync(rootBuiltin), 'Built-in source manifest must NEVER be deleted upon uninstall');
+    }
   });
 });

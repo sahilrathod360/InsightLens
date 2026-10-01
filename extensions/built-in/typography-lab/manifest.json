@@ -1,0 +1,12 @@
+{
+  "id": "typography-lab",
+  "name": "Typography Lab",
+  "version": "1.1.0",
+  "description": "Selectable font pairings and line-height presets tailored for research papers and technical reading.",
+  "author": "InsightLens Core Team",
+  "category": "Typography",
+  "icon": "font_download",
+  "capabilities": ["typography", "font_pairing", "text_hierarchy"],
+  "entrypoint": "typographyRuntime.js",
+  "packsCount": 5
+}

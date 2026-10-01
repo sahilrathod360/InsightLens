@@ -1,0 +1,11 @@
+{
+  "id": "presentation-mode",
+  "name": "Presentation & Review Mode",
+  "version": "1.0.2",
+  "description": "Clean, distraction-free view with large findings and step-by-step navigation ideal for faculty demos.",
+  "author": "InsightLens Core Team",
+  "category": "Productivity",
+  "icon": "co_present",
+  "capabilities": ["presentation_view", "slide_navigation", "clean_display"],
+  "entrypoint": "presentationMode.js"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "focus-mode",
+  "name": "Focus Mode (Zen Workspace)",
+  "version": "1.0.1",
+  "description": "Collapses secondary sidebars and non-essential widgets to let you focus on active document reasoning.",
+  "author": "InsightLens Core Team",
+  "category": "Productivity",
+  "icon": "center_focus_strong",
+  "capabilities": ["minimal_ui", "distraction_free", "zen_analysis"],
+  "entrypoint": "focusMode.js"
+}

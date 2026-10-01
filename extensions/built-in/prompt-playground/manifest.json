@@ -1,0 +1,12 @@
+{
+  "id": "playground",
+  "name": "InsightLens Experimental Playground",
+  "version": "0.9.0-beta",
+  "description": "Early-access sandbox to test upcoming experimental reasoning capabilities without affecting stable workflows.",
+  "author": "InsightLens Lab Incubator",
+  "category": "Experimental",
+  "icon": "science",
+  "capabilities": ["experimental_sandbox", "early_access_tools", "prototype_lab"],
+  "entrypoint": "playground.js",
+  "isBeta": true
+}

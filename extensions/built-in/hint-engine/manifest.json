@@ -1,0 +1,17 @@
+{
+  "id": "hint-engine",
+  "name": "Contextual Hint Engine",
+  "version": "1.0.4",
+  "description": "Intelligent, non-intrusive contextual tips recommending next-best actions without disruptive popups.",
+  "author": "InsightLens UX Team",
+  "category": "Productivity",
+  "icon": "tips_and_updates",
+  "capabilities": ["contextual_hints", "workflow_guidance"],
+  "entrypoint": "hintEngine.js",
+  "defaultSettings": {
+    "frequency": "medium",
+    "showOnUpload": true,
+    "showOnUncertainClaims": true,
+    "showOnVersionMismatch": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ui-layouts",
+  "name": "UI Layout Packs",
+  "version": "1.1.0",
+  "description": "Flexible viewport layouts ranging from ultra-wide Command Center to single-column Minimal Workspace.",
+  "author": "InsightLens Core Team",
+  "category": "Layouts",
+  "icon": "dashboard_customize",
+  "capabilities": ["layout_modes", "viewport_structure"],
+  "entrypoint": "layoutRuntime.js",
+  "layoutsCount": 5
+}

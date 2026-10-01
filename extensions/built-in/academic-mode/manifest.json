@@ -1,0 +1,11 @@
+{
+  "id": "academic-mode",
+  "name": "Academic Paper Mode",
+  "version": "1.3.0",
+  "description": "Optimized workflow for literature reviews, research papers, dissertation figures, and citation checks.",
+  "author": "InsightLens Academic Council",
+  "category": "Research",
+  "icon": "school",
+  "capabilities": ["academic_workflows", "citation_tools", "methodology_shortcuts"],
+  "entrypoint": "academicMode.js"
+}

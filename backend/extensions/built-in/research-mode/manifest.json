@@ -1,0 +1,11 @@
+{
+  "id": "research-mode",
+  "name": "Deep Research Workspace",
+  "version": "1.2.0",
+  "description": "Multi-document claim organization matrix and evidence ledger comparison workspace.",
+  "author": "InsightLens Research Group",
+  "category": "Research",
+  "icon": "biotech",
+  "capabilities": ["claim_organizer", "source_matrix", "evidence_workbench"],
+  "entrypoint": "researchMode.js"
+}
