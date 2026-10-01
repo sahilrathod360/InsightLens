@@ -13,14 +13,30 @@ export async function extractEvidence(reportData, imageDimensions = null) {
   return json.data;
 }
 
-export async function compareVisuals(sourceA, sourceB, intent = 'Comparison') {
+export async function compareVisuals(sources, secondArg, thirdArg) {
+  let sourcesArr = [];
+  let intent = 'Comparison';
+
+  if (Array.isArray(sources)) {
+    sourcesArr = sources;
+    intent = secondArg || 'Comparison';
+  } else {
+    sourcesArr = [sources, secondArg].filter(Boolean);
+    intent = thirdArg || 'Comparison';
+  }
+
   const res = await fetch(`${API_BASE}/api/comparison/compare`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify({ sourceA, sourceB, intent })
+    body: JSON.stringify({
+      sources: sourcesArr,
+      sourceA: sourcesArr[0],
+      sourceB: sourcesArr[1],
+      intent
+    })
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.message || 'Failed to compare visuals');
+  if (!res.ok) throw new Error(json.message || 'AI visual analysis unavailable.');
   return json.data;
 }
 
