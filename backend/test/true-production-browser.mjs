@@ -227,8 +227,8 @@ async function runAcceptanceAudit() {
     // --------------------------------------------------------------------------
     console.log('--- AUDIT 4: REAL INSTALL ACTION VIA BROWSER ---');
     console.log('Clicking "Install" on Theme Studio card...');
-    await page.evaluate(() => {
-      window.handleInstallExtension('theme-studio');
+    await page.evaluate(async () => {
+      await window.handleInstallExtension('theme-studio');
     });
     await new Promise(r => setTimeout(r, 2000));
 
