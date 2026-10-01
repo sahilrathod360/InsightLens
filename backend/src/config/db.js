@@ -66,4 +66,5 @@ export async function testDbConnection() {
   }
 }
 
+export { pool };
 export default pool;

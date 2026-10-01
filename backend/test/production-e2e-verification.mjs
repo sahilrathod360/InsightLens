@@ -5,6 +5,7 @@ import CrossVisualConsistencyEngine from '../src/services/consistency/CrossVisua
 import VisualQAEngine from '../src/services/visualqa/VisualQAEngine.js';
 import RelevanceEngine from '../src/services/relevance/RelevanceEngine.js';
 import VisualWorkspaceService from '../src/services/workspace/VisualWorkspaceService.js';
+import { pool } from '../src/config/db.js';
 
 async function runRealWorldVerification() {
   console.log('============================================================');
@@ -111,10 +112,9 @@ async function runRealWorldVerification() {
 
 runRealWorldVerification()
   .then(async () => {
-    if (pool) {
-      try { await pool.end(); } catch (e) {}
-    }
-    process.exit(0);
+    try {
+      if (pool) await pool.end();
+    } catch (e) {}
   })
   .catch((err) => {
     console.error('[E2E Error]', err);
