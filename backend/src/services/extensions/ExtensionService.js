@@ -131,6 +131,12 @@ class ExtensionService {
         `, [lp.id, lp.name, lp.slug, lp.description, JSON.stringify(lp.layout_data), lp.is_builtin]);
       }
 
+      // 5. Clean up legacy aliases if present
+      await client.query(`
+        DELETE FROM extensions 
+        WHERE id NOT IN ('theme-studio', 'typography-lab', 'layout-packs', 'hint-engine', 'academic-mode', 'research-mode', 'presentation-mode', 'focus-mode', 'developer-mode', 'prompt-playground');
+      `);
+
       await client.query('COMMIT');
     } catch (err) {
       await client.query('ROLLBACK');
@@ -179,6 +185,7 @@ class ExtensionService {
       FROM extensions e
       LEFT JOIN user_extensions ue ON ue.extension_id = e.id AND ue.user_email = $1
       LEFT JOIN extension_settings es ON es.extension_id = e.id AND es.user_email = $1
+      WHERE e.id IN ('theme-studio', 'typography-lab', 'layout-packs', 'hint-engine', 'academic-mode', 'research-mode', 'presentation-mode', 'focus-mode', 'developer-mode', 'prompt-playground')
       ORDER BY e.name ASC;
     `;
 
