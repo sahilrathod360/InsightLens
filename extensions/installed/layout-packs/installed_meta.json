@@ -1,10 +1,10 @@
 {
-  "installedBy": "production-verifier-1790845971558@insightlens.edu",
-  "installedAt": "2026-10-01T09:12:51.566Z",
+  "installedBy": "production-verifier-1790846406260@insightlens.edu",
+  "installedAt": "2026-10-01T09:20:06.266Z",
   "version": "1.1.0",
   "capabilities": [
     "layout_modes",
     "viewport_structure"
   ],
-  "status": "ACTIVE"
+  "status": "INSTALLED"
 }

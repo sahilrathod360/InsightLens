@@ -42,6 +42,28 @@ export async function fetchLayoutPacks() {
   return json.data?.layoutPacks || [];
 }
 
+export async function downloadExtensionPackage(id) {
+  const res = await fetch(`${API_BASE}/api/extensions/${id}/download`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  if (!res.ok) {
+    const errorJson = await res.json().catch(() => ({}));
+    throw new Error(errorJson.message || `Failed to download extension package (HTTP ${res.status})`);
+  }
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = `${id}-extension.zip`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  return true;
+}
+
 export async function installExtension(id) {
   const res = await fetch(`${API_BASE}/api/extensions/${id}/install`, {
     method: 'POST',
@@ -49,6 +71,26 @@ export async function installExtension(id) {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || 'Installation failed');
+  return json.data;
+}
+
+export async function enableExtension(id) {
+  const res = await fetch(`${API_BASE}/api/extensions/${id}/enable`, {
+    method: 'POST',
+    headers: getAuthHeaders()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Enable failed');
+  return json.data;
+}
+
+export async function disableExtension(id) {
+  const res = await fetch(`${API_BASE}/api/extensions/${id}/disable`, {
+    method: 'POST',
+    headers: getAuthHeaders()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Disable failed');
   return json.data;
 }
 

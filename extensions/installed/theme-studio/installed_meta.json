@@ -1,11 +1,11 @@
 {
-  "installedBy": "production-verifier-1790845971558@insightlens.edu",
-  "installedAt": "2026-10-01T09:12:51.560Z",
+  "installedBy": "production-verifier-1790846406260@insightlens.edu",
+  "installedAt": "2026-10-01T09:20:06.262Z",
   "version": "1.2.0",
   "capabilities": [
     "themes",
     "ui_styling",
     "color_palette"
   ],
-  "status": "ACTIVE"
+  "status": "INSTALLED"
 }

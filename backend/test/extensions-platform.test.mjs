@@ -120,37 +120,70 @@ describe('Extensions Platform & Security Suite', () => {
     assert.ok(layoutSlugs.includes('presentation-board'));
   });
 
-  // 5. Complete Lifecycle: INSTALL -> ENABLE -> USE -> DISABLE -> ENABLE -> UNINSTALL
-  it('should execute full extension lifecycle with filesystem and database synchronization', async () => {
+  // 5. Fresh User Starts with 0 Extensions Installed
+  it('fresh user must start with ALL 10 extensions = NOT INSTALLED and NOT ENABLED', async () => {
+    const freshUser = `fresh-test-${Date.now()}@insightlens.edu`;
+    const extensions = await ExtensionService.listExtensionsForUser(freshUser);
+    
+    assert.equal(extensions.length, 10);
+    for (const ext of extensions) {
+      assert.strictEqual(ext.is_installed, false, `Extension ${ext.id} must be NOT installed for fresh user`);
+      assert.strictEqual(ext.is_enabled, false, `Extension ${ext.id} must be NOT enabled for fresh user`);
+    }
+  });
+
+  // 6. Download ZIP Package Archive
+  it('should create valid .zip package for any extension with manifest, README, package.json', async () => {
+    const pkg = await ExtensionService.downloadExtensionPackage('theme-studio');
+    assert.ok(pkg.buffer instanceof Buffer);
+    assert.ok(pkg.size > 100);
+    assert.equal(pkg.contentType, 'application/zip');
+    assert.ok(pkg.filename.includes('theme-studio'));
+    // Verify PK header
+    assert.equal(pkg.buffer[0], 0x50);
+    assert.equal(pkg.buffer[1], 0x4b);
+  });
+
+  // 7. Full VS-Code Lifecycle: DOWNLOAD -> INSTALL -> ENABLE -> USE -> DISABLE -> RE-ENABLE -> UNINSTALL
+  it('should execute full extension lifecycle: INSTALL -> ENABLE -> USE -> DISABLE -> ENABLE -> UNINSTALL', async () => {
     const userEmail = `lifecycle-user-${Date.now()}@insightlens.edu`;
     const extId = 'theme-studio';
 
-    // 1. INSTALL
+    // 1. INSTALL (Registers in DB & writes to disk, but NOT yet enabled)
     const installRes = await ExtensionService.installExtension(userEmail, extId);
     assert.equal(installRes.success, true);
+    assert.equal(installRes.is_installed, true);
+    assert.equal(installRes.is_enabled, false, 'Installed extension should default to is_enabled: false until explicitly enabled');
     assert.ok(installRes.installedPath, 'Install must report target installed path on disk');
     assert.ok(fs.existsSync(installRes.installedPath), 'Installed directory must physically exist on disk');
     assert.ok(fs.existsSync(path.join(installRes.installedPath, 'manifest.json')), 'manifest.json must exist in installed folder');
 
     // 2. ENABLE
-    const enableRes1 = await ExtensionService.toggleExtension(userEmail, extId, true);
+    const enableRes1 = await ExtensionService.enableExtension(userEmail, extId);
     assert.equal(enableRes1.success, true);
+    assert.equal(enableRes1.is_enabled, true);
 
-    // 3. USE (Get available themes)
+    // 3. USE (Get available themes and apply)
     const themes = await ExtensionService.getThemes();
     assert.ok(themes.length >= 5, 'Must provide available themes for use');
+    await ExtensionService.updateActiveState(userEmail, { theme: 'neo-glass' });
 
-    // 4. DISABLE
-    const disableRes = await ExtensionService.toggleExtension(userEmail, extId, false);
+    // 4. DISABLE (Should revert active theme if theme-studio is disabled)
+    const disableRes = await ExtensionService.disableExtension(userEmail, extId);
     assert.equal(disableRes.success, true);
+    assert.equal(disableRes.is_enabled, false);
+    assert.equal(disableRes.revertedState.theme, 'midnight-research');
 
     // 5. RE-ENABLE
-    const enableRes2 = await ExtensionService.toggleExtension(userEmail, extId, true);
+    const enableRes2 = await ExtensionService.enableExtension(userEmail, extId);
     assert.equal(enableRes2.success, true);
+    assert.equal(enableRes2.is_enabled, true);
 
-    // 6. UNINSTALL
+    // 6. UNINSTALL (Removes folder from disk, sets uninstalled in DB, reverts UI)
     const uninstallRes = await ExtensionService.uninstallExtension(userEmail, extId);
     assert.equal(uninstallRes.success, true);
+    assert.equal(uninstallRes.is_installed, false);
+    assert.equal(uninstallRes.is_enabled, false);
     assert.equal(uninstallRes.removedFromDisk, true);
     assert.strictEqual(fs.existsSync(installRes.installedPath), false, 'Installed directory must be removed from disk after uninstall');
 
@@ -161,7 +194,7 @@ describe('Extensions Platform & Security Suite', () => {
     }
   });
 
-  // 6. Authoritative PostgreSQL UI & Extension State Persistence
+  // 8. Authoritative PostgreSQL UI & Extension State Persistence
   it('should persist and retrieve authoritative active UI state from PostgreSQL', async () => {
     const userEmail = `pref-user-${Date.now()}@insightlens.edu`;
 

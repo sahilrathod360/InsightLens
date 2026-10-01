@@ -12,6 +12,20 @@ class ExtensionsController {
     }
   }
 
+  async downloadPackage(req, res, next) {
+    try {
+      const { id } = req.params;
+      const pkg = await ExtensionService.downloadExtensionPackage(id);
+      
+      res.setHeader('Content-Type', pkg.contentType || 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="${pkg.filename}"`);
+      res.setHeader('Content-Length', pkg.size);
+      return res.send(pkg.buffer);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async getActiveState(req, res, next) {
     try {
       const userEmail = req.user?.email || 'guest@insightlens.edu';
@@ -38,7 +52,29 @@ class ExtensionsController {
       const userEmail = req.user?.email || 'guest@insightlens.edu';
       const { id } = req.params;
       const result = await ExtensionService.installExtension(userEmail, id);
-      return sendSuccess(res, result, `Extension "${id}" installed successfully`);
+      return sendSuccess(res, result, `Extension "${id}" installed successfully (ready to enable)`);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async enableExtension(req, res, next) {
+    try {
+      const userEmail = req.user?.email || 'guest@insightlens.edu';
+      const { id } = req.params;
+      const result = await ExtensionService.enableExtension(userEmail, id);
+      return sendSuccess(res, result, `Extension "${id}" enabled successfully`);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async disableExtension(req, res, next) {
+    try {
+      const userEmail = req.user?.email || 'guest@insightlens.edu';
+      const { id } = req.params;
+      const result = await ExtensionService.disableExtension(userEmail, id);
+      return sendSuccess(res, result, `Extension "${id}" disabled and workspace state restored`);
     } catch (err) {
       next(err);
     }

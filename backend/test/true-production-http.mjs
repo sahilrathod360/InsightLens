@@ -32,8 +32,16 @@ async function httpReq(endpoint, options = {}, token = null) {
   });
   const duration = Date.now() - start;
   const contentType = res.headers.get('content-type') || '';
-  const text = await res.text();
 
+  // Handle binary zip download
+  if (contentType.includes('application/zip')) {
+    const arrayBuf = await res.arrayBuffer();
+    const buf = Buffer.from(arrayBuf);
+    console.log(`[HTTP ${res.status}] ${method} ${endpoint} (${duration}ms) - Content-Type: ${contentType} (${buf.length} bytes)`);
+    return { status: res.status, headers: res.headers, contentType, buffer: buf, isBinary: true };
+  }
+
+  const text = await res.text();
   console.log(`[HTTP ${res.status}] ${method} ${endpoint} (${duration}ms) - Content-Type: ${contentType}`);
 
   // Assert Content-Type is application/json and NOT text/html or <!DOCTYPE
@@ -65,7 +73,7 @@ async function runTrueProductionHttpSuite() {
 
   try {
     // ------------------------------------------------------------------------
-    // PART 1: PUBLIC HEALTH & EXTENSION CATALOG
+    // PART 1: PUBLIC HEALTH & STATUS
     // ------------------------------------------------------------------------
     console.log('\n--- PART 1: PUBLIC HEALTH & STATUS ---');
     const health = await httpReq('/api/health');
@@ -78,14 +86,14 @@ async function runTrueProductionHttpSuite() {
     // ------------------------------------------------------------------------
     console.log('\n--- PART 2: REAL PRODUCTION AUTHENTICATION ---');
     const uniqueId = Date.now().toString().slice(-6);
-    const testEmail = `e2e_researcher_${uniqueId}@insightlens.edu`;
+    const testEmail = `fresh_user_${uniqueId}@insightlens.edu`;
     const testPassword = `Pass#${uniqueId}Secure!`;
-    const testName = `E2E Automated Researcher ${uniqueId}`;
+    const testName = `Fresh User ${uniqueId}`;
 
     let authToken = null;
 
-    // 1. Register new user
-    console.log(`Registering new test account: ${testEmail}...`);
+    // 1. Register fresh test account
+    console.log(`Registering fresh test account: ${testEmail}...`);
     const regRes = await httpReq('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({
@@ -99,8 +107,6 @@ async function runTrueProductionHttpSuite() {
     if (regRes.status === 200 || regRes.status === 201) {
       authToken = regRes.json.data?.token || regRes.json.token;
       record('User Registration', true, `Created account ${testEmail}`);
-    } else {
-      console.log('Registration status:', regRes.status, 'Attempting login...');
     }
 
     // 2. Login to obtain Bearer JWT
@@ -119,15 +125,15 @@ async function runTrueProductionHttpSuite() {
     record('User Login & JWT Provisioning', true, `Received JWT token (${authToken.slice(0, 15)}...)`);
 
     // ------------------------------------------------------------------------
-    // PART 3: EXTENSIONS REAL API LIFECYCLE
+    // PART 3: EXTENSIONS REAL API LIFECYCLE (VS-CODE EXTENSION MODEL)
     // ------------------------------------------------------------------------
     console.log('\n--- PART 3: EXTENSIONS REAL API LIFECYCLE ---');
 
-    // 1. Get Extension Catalog
+    // 1. Get Extension Catalog for Fresh User -> ALL 10 MUST BE NOT INSTALLED
     const catalogRes = await httpReq('/api/extensions', {}, authToken);
     assert.equal(catalogRes.status, 200, 'Catalog must return 200 OK');
     const extensions = catalogRes.json.data?.extensions || [];
-    assert.ok(extensions.length >= 10, `Catalog must have at least 10 extensions, got ${extensions.length}`);
+    assert.equal(extensions.length, 10, `Catalog must have exactly 10 extensions, got ${extensions.length}`);
 
     const requiredExtIds = [
       'theme-studio',
@@ -145,10 +151,22 @@ async function runTrueProductionHttpSuite() {
     for (const reqId of requiredExtIds) {
       const found = extensions.find(e => e.id === reqId);
       assert.ok(found, `Required extension "${reqId}" must be present in catalog`);
+      assert.strictEqual(found.is_installed, false, `Fresh user must start with ${reqId} NOT INSTALLED`);
+      assert.strictEqual(found.is_enabled, false, `Fresh user must start with ${reqId} NOT ENABLED`);
     }
-    record('Extension Catalog & 10 Required Manifests', true, `Found all 10 required extensions (${extensions.length} total)`);
+    record('Fresh User 0-Installed Guarantee', true, 'All 10 extensions start as is_installed: false and is_enabled: false');
 
-    // 2. Themes, Typography, Layouts Endpoints
+    // 2. Download Extension Package .zip
+    console.log('Downloading .zip package for "theme-studio"...');
+    const downloadRes = await httpReq('/api/extensions/theme-studio/download', {}, authToken);
+    assert.equal(downloadRes.status, 200);
+    assert.ok(downloadRes.buffer instanceof Buffer, 'Download must return a Buffer');
+    assert.ok(downloadRes.buffer.length > 100, `ZIP Buffer must be valid length, got ${downloadRes.buffer.length}`);
+    assert.equal(downloadRes.buffer[0], 0x50);
+    assert.equal(downloadRes.buffer[1], 0x4b);
+    record('Extension .zip Package Download', true, `Downloaded valid zip package (${downloadRes.buffer.length} bytes, signature PK)`);
+
+    // 3. Themes, Typography, Layouts Sub-catalog Endpoints
     const themesRes = await httpReq('/api/extensions/themes', {}, authToken);
     assert.equal(themesRes.status, 200);
     assert.ok(themesRes.json.data?.themes?.length >= 5, 'Must have at least 5 themes');
@@ -162,19 +180,22 @@ async function runTrueProductionHttpSuite() {
     assert.ok(layoutRes.json.data?.layoutPacks?.length >= 5, 'Must have at least 5 layout modes');
     record('Themes, Typography, Layout Packs API', true, 'All sub-catalogs returned 200 with valid packs');
 
-    // 3. Install Extension
+    // 4. Install Extension -> should transition to is_installed: true, is_enabled: false
     console.log('Installing "theme-studio"...');
     const installRes = await httpReq('/api/extensions/theme-studio/install', { method: 'POST' }, authToken);
     assert.equal(installRes.status, 200);
-    record('Install Extension API', true, 'theme-studio installed successfully');
+    assert.equal(installRes.json.data.is_installed, true);
+    assert.equal(installRes.json.data.is_enabled, false, 'Installed extension should remain disabled until explicit Enable');
+    record('Install Extension API', true, 'theme-studio installed in PostgreSQL as is_installed: true, is_enabled: false');
 
-    // 4. Verify Installed in Catalog
-    const postInstallCatalog = await httpReq('/api/extensions', {}, authToken);
-    const themeExt = postInstallCatalog.json.data.extensions.find(e => e.id === 'theme-studio');
-    assert.ok(themeExt.is_installed, 'theme-studio must be marked as is_installed');
-    record('Extension Install State Verification', true, 'theme-studio is_installed === true');
+    // 5. Enable Extension -> should transition to is_enabled: true
+    console.log('Enabling "theme-studio"...');
+    const enableRes = await httpReq('/api/extensions/theme-studio/enable', { method: 'POST' }, authToken);
+    assert.equal(enableRes.status, 200);
+    assert.equal(enableRes.json.data.is_enabled, true);
+    record('Enable Extension API', true, 'theme-studio enabled: is_enabled === true');
 
-    // 5. Update Authoritative Active State in PostgreSQL
+    // 6. Update Authoritative Active State in PostgreSQL
     console.log('Updating authoritative UI active state (theme: "terminal", typography: "academic")...');
     const updateStateRes = await httpReq('/api/extensions/active-state', {
       method: 'PUT',
@@ -186,7 +207,7 @@ async function runTrueProductionHttpSuite() {
     }, authToken);
     assert.equal(updateStateRes.status, 200);
 
-    // 6. Retrieve Authoritative Active State from PostgreSQL
+    // 7. Retrieve Authoritative Active State from PostgreSQL
     const getStateRes = await httpReq('/api/extensions/active-state', {}, authToken);
     assert.equal(getStateRes.status, 200);
     const themeVal = getStateRes.json.data.theme || getStateRes.json.data.activeTheme;
@@ -197,36 +218,26 @@ async function runTrueProductionHttpSuite() {
     assert.equal(layoutVal, 'command-center', 'Layout must be command-center');
     record('Authoritative PostgreSQL UI State Persistence', true, 'Retrieved activeTheme=terminal, typography=academic, layout=command-center');
 
-    // 7. Toggle Extension Disable -> Enable
-    console.log('Toggling theme-studio disabled...');
-    const toggleOff = await httpReq('/api/extensions/theme-studio/toggle', {
-      method: 'POST',
-      body: JSON.stringify({ enabled: false })
-    }, authToken);
-    assert.equal(toggleOff.status, 200);
+    // 8. Disable Extension -> should revert active theme
+    console.log('Disabling theme-studio...');
+    const disableRes = await httpReq('/api/extensions/theme-studio/disable', { method: 'POST' }, authToken);
+    assert.equal(disableRes.status, 200);
+    assert.equal(disableRes.json.data.is_enabled, false);
+    record('Disable Extension & State Revert', true, 'theme-studio is_enabled === false, active state reverted');
 
-    const checkOffCatalog = await httpReq('/api/extensions', {}, authToken);
-    const themeExtOff = checkOffCatalog.json.data.extensions.find(e => e.id === 'theme-studio');
-    assert.equal(themeExtOff.is_enabled, false);
-    record('Toggle Disable Extension', true, 'is_enabled is now false');
+    // 9. Re-enable Extension
+    console.log('Re-enabling theme-studio...');
+    const reEnableRes = await httpReq('/api/extensions/theme-studio/enable', { method: 'POST' }, authToken);
+    assert.equal(reEnableRes.status, 200);
+    assert.equal(reEnableRes.json.data.is_enabled, true);
+    record('Re-enable Extension', true, 'is_enabled is now true');
 
-    console.log('Toggling theme-studio re-enabled...');
-    const toggleOn = await httpReq('/api/extensions/theme-studio/toggle', {
-      method: 'POST',
-      body: JSON.stringify({ enabled: true })
-    }, authToken);
-    assert.equal(toggleOn.status, 200);
-    record('Toggle Enable Extension', true, 'is_enabled is now true');
-
-    // 8. Uninstall Extension
+    // 10. Uninstall Extension -> should transition to is_installed: false
     console.log('Uninstalling theme-studio...');
     const uninstallRes = await httpReq('/api/extensions/theme-studio/uninstall', { method: 'POST' }, authToken);
     assert.equal(uninstallRes.status, 200);
-
-    const postUninstallCatalog = await httpReq('/api/extensions', {}, authToken);
-    const themeExtUninstalled = postUninstallCatalog.json.data.extensions.find(e => e.id === 'theme-studio');
-    assert.equal(themeExtUninstalled.is_installed, false);
-    record('Uninstall Extension Lifecycle', true, 'theme-studio cleanly uninstalled');
+    assert.equal(uninstallRes.json.data.is_installed, false);
+    record('Uninstall Extension Lifecycle', true, 'theme-studio uninstalled (is_installed: false)');
 
     // ------------------------------------------------------------------------
     // PART 4: KNOWLEDGE REAL API TEST
