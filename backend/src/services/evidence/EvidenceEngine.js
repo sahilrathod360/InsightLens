@@ -238,10 +238,15 @@ export class EvidenceEngine {
       const rawStatus = typeof claim === 'object' ? (claim.status || claim.evidenceStatus) : 'OBSERVED';
       
       // Look for matched visual evidence
-      let matchedEvidence = evidenceList.find(e => 
-        claimText.toLowerCase().includes(e.label.toLowerCase()) || 
-        (e.region && claimText.toLowerCase().includes(e.region.toLowerCase()))
-      );
+      let matchedEvidence = evidenceList.find(e => {
+        if (!e.label) return false;
+        const labelLower = e.label.toLowerCase();
+        const claimLower = claimText.toLowerCase();
+        if (claimLower.includes(labelLower)) return true;
+        if (e.region && claimLower.includes(e.region.toLowerCase())) return true;
+        const words = labelLower.split(/\s+/).filter(w => w.length >= 4);
+        return words.length > 0 && words.some(w => claimLower.includes(w));
+      });
 
       let finalStatus = rawStatus;
       if (!matchedEvidence) {

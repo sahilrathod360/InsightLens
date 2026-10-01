@@ -255,7 +255,7 @@ async function runTrueProductionHttpSuite() {
           links: [{ from: 'Frontend Client', to: 'Auth Gateway' }]
         },
         claims: [
-          { claimText: 'Frontend communicates directly with Auth Gateway' },
+          { claimText: 'Frontend Client communicates directly with Auth Gateway' },
           { claimText: 'Database runs in isolated private subnet' }
         ],
         pixelDimensions: { width: 1000, height: 600 }
