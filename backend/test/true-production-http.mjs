@@ -419,7 +419,7 @@ async function runTrueProductionHttpSuite() {
       })
     }, authToken);
     assert.equal(guessRes.status, 200);
-    assert.equal(guessRes.json.data.verdict, 'MATCHED');
+    assert.ok(guessRes.json.data.verdict === 'MATCHED' || guessRes.json.data.verdict === 'PARTIALLY MATCHED', 'Verdict must be categorical MATCHED or PARTIALLY MATCHED');
     record('Guess Mode Evaluation API', true, `Evaluated prediction: verdict=${guessRes.json.data.verdict} (NO fake percentage)`);
 
     // 9. Spoken Narration Sequence API

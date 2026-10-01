@@ -21,6 +21,7 @@ import { setupWorkspaceEvents, renderVisualWorkspace } from './components/Worksp
 import { initThemeRuntime, applyTheme, applyTypography, applyLayoutMode } from './services/themeRuntime.js';
 import { initHintEngine } from './services/hintEngine.js';
 
+window.navigateTo = navigateTo;
 window.exportCleanPDF = exportCleanPDF;
 window.getActiveReportData = getActiveReportData;
 window.setActiveReportData = setActiveReportData;
