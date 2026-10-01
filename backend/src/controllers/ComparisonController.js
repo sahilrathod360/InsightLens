@@ -4,18 +4,18 @@ import { sendSuccess, sendError, APIError } from '../utils/apiUtils.js';
 class ComparisonController {
   async compareVisuals(req, res, next) {
     try {
-      const sourceA = req.body.sourceA || req.body.before;
-      const sourceB = req.body.sourceB || req.body.after;
-      const intent = req.body.intent || req.body.analysisIntent;
+      const sources = req.body.sources || [req.body.sourceA, req.body.sourceB, req.body.sourceC].filter(Boolean);
+      const intent = req.body.intent || req.body.analysisIntent || 'Comparison';
 
-      if (!sourceA || !sourceB) {
-        throw new APIError('sourceA (before) and sourceB (after) artifacts are required for comparison', 400);
+      if (!sources || !Array.isArray(sources) || sources.length < 2) {
+        throw new APIError('At least 2 visual artifacts/images are required for comparison', 400);
       }
 
-      const result = VisualComparisonEngine.compareVisuals(sourceA, sourceB, { intent });
+      const result = await VisualComparisonEngine.compareVisuals(sources, { intent });
       return sendSuccess(res, result, 'Visual comparison completed successfully');
     } catch (err) {
-      next(err);
+      console.error('[ComparisonController] Error during visual comparison:', err.message);
+      return sendError(res, 'AI visual analysis unavailable.', err.statusCode || 500, [err.message]);
     }
   }
 }

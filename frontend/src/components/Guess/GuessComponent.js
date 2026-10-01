@@ -15,26 +15,7 @@ export function renderReportQuiz(containerId, reportData) {
 }
 
 export function openReportQuizModal(reportData) {
-  let artifact = reportData || getActiveReportData();
-  if (!artifact) {
-    artifact = {
-      subject: 'Visual Intelligence Analysis',
-      claims: [
-        { id: 'CLAIM-01', text: 'User Client connects to API Gateway via HTTPS', status: 'OBSERVED' },
-        { id: 'CLAIM-02', text: 'API Gateway routes requests to PostgreSQL database', status: 'OBSERVED' }
-      ],
-      findings: [
-        { title: 'API Gateway routes requests to PostgreSQL DB', status: 'OBSERVED', sourceClaimId: 'CLAIM-02' }
-      ],
-      diagramStructure: {
-        nodes: [
-          { label: 'User Client', type: 'External Entity' },
-          { label: 'API Gateway', type: 'Process' },
-          { label: 'PostgreSQL DB', type: 'Data Store' }
-        ]
-      }
-    };
-  }
+  const artifact = reportData || getActiveReportData();
 
   currentQuizQuestions = generateValidatedMCQsFromReport(artifact);
   currentQuizAnswers = {};
@@ -61,7 +42,7 @@ function generateValidatedMCQsFromReport(data) {
   const chartData = data.chartStructure || data.fullData?.chartStructure;
   const summary = data.summary || data.fullData?.summary;
 
-  if (!subject && claims.length === 0 && findings.length === 0 && nodes.length === 0) {
+  if (!subject && claims.length === 0 && findings.length === 0 && nodes.length === 0 && !summary) {
     return [];
   }
 
@@ -78,7 +59,7 @@ function generateValidatedMCQsFromReport(data) {
         question: `Based on the visual evidence of ${subject || 'the visual artifact'}, which finding was explicitly observed?`,
         options: [
           { key: 'A', text: f1, isCorrect: true, explanation: `Correct. Grounded visual evidence explicitly observed: "${f1}".` },
-          { key: 'B', text: `Unrelated visual entity not found in ${subject || 'the image'}`, isCorrect: false, explanation: 'Incorrect. This was not detected in the visual evidence.' },
+          { key: 'B', text: `Unrelated visual entity not present in ${subject || 'the image'}`, isCorrect: false, explanation: 'Incorrect. This was not detected in the visual evidence.' },
           { key: 'C', text: `Contradicted layout assumption`, isCorrect: false, explanation: 'Incorrect. No visual contradiction was observed.' },
           { key: 'D', text: `Unverified background noise`, isCorrect: false, explanation: 'Incorrect. The observed finding is structured and verified.' }
         ]
@@ -100,14 +81,14 @@ function generateValidatedMCQsFromReport(data) {
         options: [
           { key: 'A', text: `Status: ${c1Status}`, isCorrect: true, explanation: `Correct. Claim ${c1Id} is classified as ${c1Status} based on strict visual evidence.` },
           { key: 'B', text: `Status: ${c1Status === 'OBSERVED' ? 'CONTRADICTED' : 'OBSERVED'}`, isCorrect: false, explanation: `Incorrect. Grounded report evidence confirms status is ${c1Status}.` },
-          { key: 'C', text: 'Status: UNCHECKED', isCorrect: false, explanation: 'Incorrect. InsightLens verified this claim during extraction.' },
+          { key: 'C', text: 'Status: UNCHECKED', isCorrect: false, explanation: 'Incorrect. Claim verification was completed during extraction.' },
           { key: 'D', text: 'Status: REJECTED', isCorrect: false, explanation: 'Incorrect. The claim was not rejected.' }
         ]
       });
     }
   }
 
-  // 3. Topology Component Question
+  // 3. Topology / Structure Question
   if (nodes.length >= 2) {
     const n1 = nodes[0].label || 'Primary Component';
     const n2 = nodes[1].label || 'Secondary Component';
@@ -116,7 +97,7 @@ function generateValidatedMCQsFromReport(data) {
     candidateQuestions.push({
       id: qId++,
       sourceClaimId: `TOPOLOGY-01`,
-      question: `In the visual structural topology of ${subject || 'the image'}, which node directly connects to "${n1}"?`,
+      question: `In the visual structural topology of ${subject || 'the image'}, which node connects to "${n1}"?`,
       options: [
         { key: 'A', text: n2, isCorrect: true, explanation: `Correct. Topological graph links "${n1}" to "${n2}".` },
         { key: 'B', text: n3, isCorrect: false, explanation: `Incorrect. "${n3}" is downstream or disconnected.` },
@@ -135,11 +116,11 @@ function generateValidatedMCQsFromReport(data) {
       candidateQuestions.push({
         id: qId++,
         sourceClaimId: c2Id,
-        question: `According to evidence claim [${c2Id}], which statement about ${subject || 'the subject'} is correct?`,
+        question: `According to evidence claim [${c2Id}], which statement regarding ${subject || 'the subject'} is correct?`,
         options: [
           { key: 'A', text: c2, isCorrect: true, explanation: `Correct. Grounded evidence [${c2Id}] explicitly asserts: "${c2}".` },
           { key: 'B', text: `Inverted statement: Opposite of ${c2.slice(0, 30)}...`, isCorrect: false, explanation: 'Incorrect. This directly contradicts report evidence.' },
-          { key: 'C', text: `Speculative hypothesis not grounded in the image`, isCorrect: false, explanation: 'Incorrect. InsightLens requires grounded evidence.' },
+          { key: 'C', text: `Speculative hypothesis not grounded in the image`, isCorrect: false, explanation: 'Incorrect. Analysis requires grounded evidence.' },
           { key: 'D', text: `Unrelated domain assertion`, isCorrect: false, explanation: 'Incorrect. Assertion is unrelated to report.' }
         ]
       });
@@ -183,7 +164,7 @@ function generateValidatedMCQsFromReport(data) {
       options: [
         { key: 'A', text: summary.slice(0, 90) + (summary.length > 90 ? '...' : ''), isCorrect: true, explanation: `Correct. Grounded report summary: "${summary.slice(0, 100)}..."` },
         { key: 'B', text: 'The visual artifact contains no extractable features or structure', isCorrect: false, explanation: 'Incorrect. Full structural model was generated.' },
-        { key: 'C', text: 'The analysis inconclusive due to low resolution', isCorrect: false, explanation: 'Incorrect. Analysis was successfully concluded.' },
+        { key: 'C', text: 'The analysis is inconclusive due to low resolution', isCorrect: false, explanation: 'Incorrect. Analysis was successfully concluded.' },
         { key: 'D', text: 'Standard placeholder description', isCorrect: false, explanation: 'Incorrect. Summary is specific to the uploaded visual.' }
       ]
     });
@@ -202,7 +183,7 @@ function renderQuizModalContent(modal, reportData) {
         <div class="flex items-center justify-between pb-3 border-b border-white/10">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-            <h3 class="font-serif font-bold text-lg text-slate-100">🎯 Post-Report Quiz</h3>
+            <h3 class="font-serif font-bold text-lg text-slate-100">🎯 Test Your Understanding</h3>
           </div>
           <button onclick="window.closeReportQuizModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
         </div>

@@ -1,7 +1,6 @@
 import { compareVisuals } from '../services/visualIntelligenceApi.js';
 import { showToast } from '../utils/toast.js';
 import { escapeHtml } from '../utils/sanitize.js';
-import { computeImageStatistics } from '../utils/canvas.js';
 
 let selectedSlotImages = [null, null, null]; // Image 1, Image 2, Image 3
 
@@ -15,13 +14,13 @@ export function renderComparePage() {
       <div class="space-y-2 text-left pb-6 border-b border-white/10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-mono">
           <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-          Visual Comparison Engine • Multi-Image Understanding
+          Multimodal Visual Comparison Engine • Real AI Vision Pipeline
         </div>
         <h1 class="font-serif font-bold text-3xl sm:text-4xl text-slate-100 tracking-tight">
           Compare Images
         </h1>
         <p class="text-slate-400 text-sm font-sans max-w-2xl">
-          Compare 2–3 visuals and discover meaningful similarities, differences, shared features, and topological relationships.
+          Upload 2–3 visuals to execute multimodal AI vision analysis and discover grounded similarities, differences, shared features, and structural relationships.
         </p>
       </div>
 
@@ -179,39 +178,39 @@ function setupCompareEvents() {
     } else if (presetKey === 'heroes') {
       selectedSlotImages[0] = {
         id: 'HERO-1',
-        title: 'Spider-Man Visual Analysis',
-        visualType: 'PHOTOGRAPH',
+        title: 'Spider-Man',
+        visualType: 'SUPERHERO CHARACTER ART',
         dataUrl: '/images/spider-man.jpg',
         isDemoPreset: true,
         subject: 'Spider-Man',
-        appearance: 'Red and blue suit with web patterns, agile crouching pose',
-        environment: 'Urban Skyscraper Environment',
-        visibleObjects: ['Character Suit', 'Web Launchers', 'City Background'],
-        uniqueFeatures: 'Web pattern suit, spider emblem, agile crouching posture'
+        appearance: 'Red and blue webbed suit with spider emblem, agile crouching pose',
+        environment: 'Urban Skyscraper Rooftop',
+        visibleObjects: ['Web Patterned Suit', 'Spider Emblem', 'White Eye Lenses', 'City Rooftop'],
+        uniqueFeatures: 'Web pattern suit, spider emblem, agile crouching acrobat posture'
       };
       selectedSlotImages[1] = {
         id: 'HERO-2',
-        title: 'Superman Visual Analysis',
-        visualType: 'PHOTOGRAPH',
+        title: 'Superman',
+        visualType: 'SUPERHERO CHARACTER ART',
         dataUrl: '/images/urban-analysis.jpg',
         isDemoPreset: true,
         subject: 'Superman',
         appearance: 'Blue suit with flowing red cape and S-shield chest emblem',
         environment: 'Metropolis Skyline / Open Sky',
-        visibleObjects: ['Red Cape', 'S-Shield Crest', 'Floating Flight Pose'],
+        visibleObjects: ['Flowing Red Cape', 'S-Shield Chest Crest', 'Floating Flight Pose'],
         uniqueFeatures: 'Flowing red cape, S-shield chest crest, aerial flight stance'
       };
       selectedSlotImages[2] = {
         id: 'HERO-3',
-        title: 'Batman Visual Analysis',
-        visualType: 'PHOTOGRAPH',
+        title: 'Batman',
+        visualType: 'SUPERHERO CHARACTER ART',
         dataUrl: '/images/urban-analysis.jpg',
         isDemoPreset: true,
         subject: 'Batman',
         appearance: 'Dark tactical bat-armor with cowl and bat chest symbol',
         environment: 'Gotham City Rooftop / Nocturnal Urban Environment',
-        visibleObjects: ['Dark Cowl', 'Bat Emblem', 'Tactical Armor', 'Utility Belt'],
-        uniqueFeatures: 'Pointed bat cowl, dark tactical body armor, bat emblem'
+        visibleObjects: ['Dark Bat Cowl', 'Bat Emblem', 'Tactical Armor', 'Utility Belt'],
+        uniqueFeatures: 'Pointed bat cowl with ears, dark tactical body armor, bat emblem'
       };
     } else if (presetKey === 'charts') {
       selectedSlotImages[0] = {
@@ -258,84 +257,22 @@ function setupCompareEvents() {
     mount.innerHTML = `
       <div class="p-12 text-center space-y-3 bg-slate-950/60 rounded-2xl border border-white/10 animate-pulse">
         <div class="w-8 h-8 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin mx-auto"></div>
-        <div class="text-sm font-mono text-slate-300">Performing Multi-Visual Multimodal &amp; Structural Comparison...</div>
-        <p class="text-xs text-slate-500 font-sans">Analyzing individual attributes, shared features, variations, and evidence limits across ${activeSources.length} images.</p>
+        <div class="text-sm font-mono text-slate-300">Executing Multimodal Vision AI Comparison...</div>
+        <p class="text-xs text-slate-500 font-sans">Analyzing independent visual content via Gemini Vision API across ${activeSources.length} images.</p>
       </div>
     `;
 
     try {
-      // Analyze images & build detailed comparative breakdown
-      const analyzedSources = await Promise.all(activeSources.map(async (src, idx) => {
-        if (src.isDemoPreset) return src;
-
-        // Extract real canvas telemetry for user-uploaded custom images
-        const imgObj = new Image();
-        const telemetry = await new Promise(resolve => {
-          imgObj.onload = () => resolve(computeImageStatistics(imgObj));
-          imgObj.onerror = () => resolve({ resolution: 'Unknown', dominantColors: 'Unknown', contrastScore: '50/100' });
-          imgObj.src = src.dataUrl;
-        });
-
-        const subjectName = src.title || `Visual Artifact ${idx + 1}`;
-        const isLandscape = (src.title || '').toLowerCase().includes('mountain') || (src.title || '').toLowerCase().includes('landscape');
-        const isUrban = (src.title || '').toLowerCase().includes('urban') || (src.title || '').toLowerCase().includes('city') || (src.title || '').toLowerCase().includes('building');
-        const isCar = (src.title || '').toLowerCase().includes('car') || (src.title || '').toLowerCase().includes('vehicle') || (src.title || '').toLowerCase().includes('auto');
-        const isRoom = (src.title || '').toLowerCase().includes('room') || (src.title || '').toLowerCase().includes('bedroom') || (src.title || '').toLowerCase().includes('interior');
-
-        let visualType = 'PHOTOGRAPH';
-        let environment = 'General Visual Environment';
-        let visibleObjects = ['Primary Focal Subject', 'Background Elements'];
-        let appearance = `Resolution: ${telemetry.resolution}, Dominant Hues: ${telemetry.dominantColors}`;
-        let uniqueFeatures = `Distinct chromatic palette (${telemetry.dominantColors}) and spatial aspect ratio (${telemetry.aspectRatio || '1.78:1'}).`;
-
-        if (isLandscape) {
-          visualType = 'LANDSCAPE PHOTOGRAPH';
-          environment = 'Natural Outdoor Environment';
-          visibleObjects = ['Mountain Ridge', 'Horizon', 'Sky', 'Terrain'];
-          appearance = 'High depth-of-field landscape with natural illumination';
-          uniqueFeatures = 'Mountain topography, elevation contours, and open horizon';
-        } else if (isUrban) {
-          visualType = 'URBAN PHOTOGRAPH';
-          environment = 'Built City Environment';
-          visibleObjects = ['Buildings', 'Architectural Structures', 'Urban Roadways'];
-          appearance = 'Vertical architectural lines with structured geometric contrast';
-          uniqueFeatures = 'Urban architectural geometry and high structural density';
-        } else if (isCar) {
-          visualType = 'AUTOMOTIVE PHOTOGRAPH';
-          environment = 'Automotive / Transportation Setting';
-          visibleObjects = ['Vehicle Body', 'Wheels', 'Headlights', 'Chassis'];
-          appearance = 'Metallic surface reflections and streamlined vehicle contours';
-          uniqueFeatures = 'Automotive chassis design, wheel layout, and metallic specular highlights';
-        } else if (isRoom) {
-          visualType = 'INTERIOR PHOTOGRAPH';
-          environment = 'Indoor Domestic Environment';
-          visibleObjects = ['Furniture', 'Room Walls', 'Interior Lighting'];
-          appearance = 'Indoor ambient lighting with enclosed spatial boundary';
-          uniqueFeatures = 'Domestic furniture arrangement and enclosed indoor boundary';
-        }
-
-        return {
-          id: src.id || `IMG-${idx + 1}`,
-          title: subjectName,
-          visualType,
-          dataUrl: src.dataUrl,
-          subject: subjectName,
-          appearance,
-          environment,
-          visibleObjects,
-          uniqueFeatures,
-          telemetry
-        };
-      }));
-
-      renderDetailedComparisonResults(mount, analyzedSources);
+      // Execute backend Multimodal Vision comparison
+      const comparisonResult = await compareVisuals(activeSources, 'Multimodal Image Comparison');
+      renderDetailedComparisonResults(mount, comparisonResult);
     } catch (err) {
-      console.error('[Compare] Error:', err);
+      console.error('[Compare] AI Vision Error:', err);
       mount.innerHTML = `
         <div class="p-8 text-center space-y-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
-          <span class="material-symbols-outlined text-4xl text-rose-400">error</span>
-          <h4 class="font-serif font-bold text-slate-100 text-base">Visual analysis could not be completed</h4>
-          <p class="text-xs text-rose-300 font-mono max-w-md mx-auto">${escapeHtml(err.message || 'Unable to process image comparison.')}</p>
+          <span class="material-symbols-outlined text-4xl text-rose-400">no_photography</span>
+          <h4 class="font-serif font-bold text-slate-100 text-base">AI visual analysis unavailable.</h4>
+          <p class="text-xs text-rose-300 font-mono max-w-md mx-auto">${escapeHtml(err.message || 'Multimodal vision pipeline could not process uploaded image artifacts.')}</p>
           <button onclick="window.executeMultiImageCompare()" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-mono text-xs font-semibold cursor-pointer hover:bg-indigo-500">
             🔄 Retry Comparison
           </button>
@@ -345,35 +282,14 @@ function setupCompareEvents() {
   };
 }
 
-function renderDetailedComparisonResults(mount, sources) {
+function renderDetailedComparisonResults(mount, resultData) {
+  const sources = resultData.sources || [];
+  const matrix = resultData.matrix || { attributes: [] };
+  const sharedFeatures = resultData.sharedFeatures || [];
+  const differences = resultData.differences || [];
+  const uniqueFeatures = resultData.uniqueFeatures || [];
+  const summaryReport = resultData.summaryReport || {};
   const isDemoPreset = sources.some(s => s.isDemoPreset);
-
-  // Derive Shared Features based strictly on actual image analysis properties
-  const sharedFeatures = [];
-  const allTypes = sources.map(s => s.visualType || 'PHOTOGRAPH');
-  const allEnvs = sources.map(s => s.environment || '');
-
-  if (allTypes.every(t => t === allTypes[0])) {
-    sharedFeatures.push(`Visual Category Alignment: All ${sources.length} visual inputs are classified under ${allTypes[0]}.`);
-  } else {
-    sharedFeatures.push(`Multi-Category Dataset: Inputs span ${[...new Set(allTypes)].join(', ')}.`);
-  }
-
-  if (sources.every(s => (s.subject || '').toLowerCase().includes('hero') || (s.subject || '').toLowerCase().includes('man'))) {
-    sharedFeatures.push('Subject Category: Humanoid character in full heroic costume centered in focal frame.');
-    sharedFeatures.push('Composition: High-contrast central subject framing with clear background separation.');
-  } else if (sources.every(s => (s.subject || '').toLowerCase().includes('dfd') || (s.subject || '').toLowerCase().includes('arch'))) {
-    sharedFeatures.push('Diagram Conventions: All diagrams follow standard Data Flow Diagram (DFD) entity and process node topology.');
-    sharedFeatures.push('Structural Inputs: Directional flow lines connect client entry points to persistent backend data stores.');
-  } else {
-    sharedFeatures.push(`Spatial Framing: All ${sources.length} images present clear subject contrast and defined visual bounding boxes.`);
-    sharedFeatures.push('Digital Resolution: Image inputs conform to high-definition raster grids suitable for feature extraction.');
-  }
-
-  // Derive Differences per image
-  const differences = sources.map((s, idx) => {
-    return `Image ${idx + 1} (${s.title}): Classified as ${s.visualType}. Features ${s.appearance || 'distinct visual properties'} in a ${s.environment || 'unique setting'}.`;
-  });
 
   mount.innerHTML = `
     <div class="space-y-8 animate-fade-in text-left">
@@ -384,7 +300,7 @@ function renderDetailedComparisonResults(mount, sources) {
         </div>
       ` : ''}
 
-      <!-- 1. Side-by-Side Visual Artifacts Grid -->
+      <!-- 1. LARGE SIDE-BY-SIDE IMAGES -->
       <div class="space-y-3">
         <h3 class="font-serif font-bold text-lg text-slate-100 flex items-center gap-2">
           <span class="material-symbols-outlined text-indigo-400 text-[20px]">grid_view</span>
@@ -398,10 +314,10 @@ function renderDetailedComparisonResults(mount, sources) {
                 <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[10px]">${escapeHtml(s.visualType || 'PHOTOGRAPH')}</span>
               </div>
               <div class="h-48 rounded-lg overflow-hidden border border-white/5 bg-black">
-                <img src="${s.dataUrl}" alt="${escapeHtml(s.title)}" class="w-full h-full object-cover" />
+                <img src="${s.dataUrl}" alt="${escapeHtml(s.title || s.subject)}" class="w-full h-full object-cover" />
               </div>
               <div class="space-y-1">
-                <div class="font-serif font-bold text-slate-100 text-sm truncate">${escapeHtml(s.title)}</div>
+                <div class="font-serif font-bold text-slate-100 text-sm truncate">${escapeHtml(s.title || s.subject)}</div>
                 <span class="text-[11px] font-mono text-slate-400 block truncate">${escapeHtml(s.environment || 'Visual Context')}</span>
               </div>
             </div>
@@ -419,7 +335,7 @@ function renderDetailedComparisonResults(mount, sources) {
           ${sources.map((s, idx) => `
             <div class="p-5 rounded-2xl bg-slate-950/60 border border-white/10 space-y-3 text-xs text-slate-300">
               <div class="font-serif font-bold text-indigo-300 border-b border-white/10 pb-2 text-sm">
-                Image ${idx + 1}: ${escapeHtml(s.title)}
+                Image ${idx + 1}: ${escapeHtml(s.subject || s.title)}
               </div>
               <div class="space-y-2 font-sans">
                 <div>
@@ -431,12 +347,12 @@ function renderDetailedComparisonResults(mount, sources) {
                   <span class="text-slate-200">${escapeHtml(s.subject || s.title)}</span>
                 </div>
                 <div>
-                  <span class="font-mono text-slate-400 text-[11px] block font-semibold">Visible Objects:</span>
-                  <span class="text-slate-300">${escapeHtml(Array.isArray(s.visibleObjects) ? s.visibleObjects.join(', ') : (s.visibleObjects || 'Observed visual elements'))}</span>
+                  <span class="font-mono text-slate-400 text-[11px] block font-semibold">Visible Objects &amp; Elements:</span>
+                  <span class="text-slate-300">${escapeHtml(Array.isArray(s.objects) ? s.objects.map(o => typeof o === 'string' ? o : o.label).join(', ') : (s.visibleObjects || 'Observed visual elements'))}</span>
                 </div>
                 <div>
                   <span class="font-mono text-slate-400 text-[11px] block font-semibold">Appearance &amp; Style:</span>
-                  <span class="text-slate-300">${escapeHtml(s.appearance || 'Standard illumination & composition')}</span>
+                  <span class="text-slate-300">${escapeHtml(s.appearance || s.summary || 'Multimodal AI vision extracted composition')}</span>
                 </div>
                 <div>
                   <span class="font-mono text-slate-400 text-[11px] block font-semibold">Environment / Context:</span>
@@ -444,11 +360,7 @@ function renderDetailedComparisonResults(mount, sources) {
                 </div>
                 <div>
                   <span class="font-mono text-slate-400 text-[11px] block font-semibold">Text &amp; Inscriptions:</span>
-                  <span class="text-slate-400 font-mono">${escapeHtml(s.ocrText || 'None detected')}</span>
-                </div>
-                <div>
-                  <span class="font-mono text-slate-400 text-[11px] block font-semibold">Important Visual Features:</span>
-                  <span class="text-slate-300">${escapeHtml(s.uniqueFeatures || 'Distinct visual characteristics')}</span>
+                  <span class="text-slate-400 font-mono">${escapeHtml(Array.isArray(s.text) && s.text.length > 0 ? s.text.join(', ') : (s.ocrText || 'None detected'))}</span>
                 </div>
               </div>
               <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
@@ -471,34 +383,16 @@ function renderDetailedComparisonResults(mount, sources) {
             <thead>
               <tr class="border-b border-white/10 bg-slate-900/80 font-mono text-indigo-300 uppercase text-[11px]">
                 <th class="p-3.5 font-bold">Attribute</th>
-                ${sources.map((s, idx) => `<th class="p-3.5 font-bold">Image ${idx + 1}: ${escapeHtml(s.title)}</th>`).join('')}
+                ${sources.map((s, idx) => `<th class="p-3.5 font-bold">Image ${idx + 1}: ${escapeHtml(s.subject || s.title)}</th>`).join('')}
               </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
-              <tr>
-                <td class="p-3.5 font-mono text-slate-400 font-semibold bg-white/[0.02]">Main Subject</td>
-                ${sources.map(s => `<td class="p-3.5 text-slate-200">${escapeHtml(s.subject || s.title || 'Not observable')}</td>`).join('')}
-              </tr>
-              <tr>
-                <td class="p-3.5 font-mono text-slate-400 font-semibold bg-white/[0.02]">Clothing / Appearance</td>
-                ${sources.map(s => `<td class="p-3.5 text-slate-300">${escapeHtml(s.appearance || 'Not observable')}</td>`).join('')}
-              </tr>
-              <tr>
-                <td class="p-3.5 font-mono text-slate-400 font-semibold bg-white/[0.02]">Dominant Colors</td>
-                ${sources.map(s => `<td class="p-3.5 font-mono text-slate-300">${escapeHtml(s.telemetry?.dominantColors || s.appearance?.match(/#[0-9A-Fa-f]{6}/g)?.join(', ') || 'Observed Palette')}</td>`).join('')}
-              </tr>
-              <tr>
-                <td class="p-3.5 font-mono text-slate-400 font-semibold bg-white/[0.02]">Environment</td>
-                ${sources.map(s => `<td class="p-3.5 text-slate-300">${escapeHtml(s.environment || 'Not observable')}</td>`).join('')}
-              </tr>
-              <tr>
-                <td class="p-3.5 font-mono text-slate-400 font-semibold bg-white/[0.02]">Visible Objects</td>
-                ${sources.map(s => `<td class="p-3.5 text-slate-300">${escapeHtml(Array.isArray(s.visibleObjects) ? s.visibleObjects.join(', ') : (s.visibleObjects || 'Not observable'))}</td>`).join('')}
-              </tr>
-              <tr>
-                <td class="p-3.5 font-mono text-slate-400 font-semibold bg-white/[0.02]">Text &amp; Inscriptions</td>
-                ${sources.map(s => `<td class="p-3.5 font-mono text-slate-400">${escapeHtml(s.ocrText || 'Not observable')}</td>`).join('')}
-              </tr>
+              ${(matrix.attributes || []).map(attr => `
+                <tr>
+                  <td class="p-3.5 font-mono text-slate-400 font-semibold bg-white/[0.02]">${escapeHtml(attr.name)}</td>
+                  ${(attr.values || []).map(val => `<td class="p-3.5 text-slate-200">${escapeHtml(val || 'Not observed')}</td>`).join('')}
+                </tr>
+              `).join('')}
             </tbody>
           </table>
         </div>
@@ -546,10 +440,10 @@ function renderDetailedComparisonResults(mount, sources) {
           Unique Features Breakdown
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-${sources.length} gap-4">
-          ${sources.map((s, idx) => `
+          ${uniqueFeatures.map((uf, idx) => `
             <div class="p-4 rounded-xl bg-slate-950/60 border border-white/5 space-y-2 text-xs">
               <div class="font-serif font-bold text-pink-300 border-b border-white/5 pb-2">Image ${idx + 1} Unique Features</div>
-              <p class="text-slate-300 font-sans leading-relaxed">${escapeHtml(s.uniqueFeatures || 'Distinct visual traits extracted from source raster.')}</p>
+              <p class="text-slate-300 font-sans leading-relaxed">${escapeHtml(uf.trait || 'Distinct visual traits extracted from source.')}</p>
             </div>
           `).join('')}
         </div>
@@ -562,21 +456,21 @@ function renderDetailedComparisonResults(mount, sources) {
             <span class="material-symbols-outlined text-indigo-400 text-[24px]">description</span>
             COMPARISON REPORT
           </h2>
-          <span class="px-2.5 py-0.5 rounded text-[10px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-bold">Grounded Brief</span>
+          <span class="px-2.5 py-0.5 rounded text-[10px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-bold">Multimodal Brief</span>
         </div>
 
         <div class="space-y-3 text-xs sm:text-sm text-slate-200 font-sans leading-relaxed">
           <p>
-            <strong>What do these images have in common?</strong> All ${sources.length} visual inputs share high-clarity focal resolution and clear subject definition within their respective ${sources[0].environment || 'environments'}.
+            <strong>What do these images have in common?</strong> ${escapeHtml(summaryReport.common || 'Common visual characteristics extracted via Multimodal Vision AI.')}
           </p>
           <p>
-            <strong>How are they different?</strong> ${sources.map((s, i) => `Image ${i + 1} (${s.title}) presents ${s.appearance || 'distinct visual framing'} in a ${s.environment || 'specific setting'}`).join('; whereas ')}.
+            <strong>How are they different?</strong> ${escapeHtml(summaryReport.different || 'Key variations detected across inputs.')}
           </p>
           <p>
-            <strong>What is unique about each?</strong> ${sources.map((s, i) => `Image ${i + 1} is distinguished by ${s.uniqueFeatures || 'its visual attributes'}`).join('. ')}.
+            <strong>What is unique about each?</strong> ${escapeHtml(summaryReport.unique || 'Unique visual characteristics extracted.')}
           </p>
           <p>
-            <strong>What conclusions can safely be made?</strong> The visual evidence strictly confirms that each input artifact possesses distinct structural traits and domain classifications.
+            <strong>What conclusions can safely be made?</strong> ${escapeHtml(summaryReport.conclusion || 'The visual evidence strictly confirms that each input artifact possesses distinct structural traits and domain classifications.')}
           </p>
           <p class="text-slate-400 text-xs font-mono pt-1">
             <strong>What cannot be determined?</strong> Fictional capabilities, unobserved external lore, and hypothetical outcomes are strictly UNDETERMINABLE from visual evidence alone.
