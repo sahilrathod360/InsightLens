@@ -98,6 +98,26 @@ export class VisualQAEngine {
       if (mentionedNodes.length === 1) {
         const node = mentionedNodes[0];
         const label = node.label || node.id;
+        
+        // If the user asks a relational/connection question ("Does X connect/link/access/talk to Y?"), but Y is not found
+        const isRelationalQuery = q.includes('connect') || q.includes('link') || q.includes('access') || q.includes('flow') || q.includes('call') || q.includes('to ');
+        if (isRelationalQuery) {
+          return {
+            queryId: generateCustomId('VQA'),
+            query,
+            status: 'UNDETERMINABLE',
+            verdict: 'UNDETERMINABLE',
+            answer: `UNDETERMINABLE. "${label}" was identified, but the queried target connection is not observed in the visual artifact.`,
+            reason: `Target entity or relationship queried in "${query}" is not evidenced in the visual structure.`,
+            evidenceRegions: [
+              {
+                label: `Node: ${label}`,
+                coordinates: node.coordinates || { x: 0.2, y: 0.2, width: 0.2, height: 0.1, normalized: true }
+              }
+            ]
+          };
+        }
+
         const connectedLinks = links.filter(l => 
           (l.from || l.source || '').toLowerCase().includes(label.toLowerCase()) ||
           (l.to || l.target || '').toLowerCase().includes(label.toLowerCase())

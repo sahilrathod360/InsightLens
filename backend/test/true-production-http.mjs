@@ -390,7 +390,7 @@ async function runTrueProductionHttpSuite() {
 
     // 7. Region-Specific Analysis API
     console.log('Testing Region-Specific Analysis API...');
-    const regRes = await httpReq('/api/regions/analyze', {
+    const regionAnalysisRes = await httpReq('/api/regions/analyze', {
       method: 'POST',
       body: JSON.stringify({
         regionId: 'REG-PROD-1',
@@ -399,9 +399,9 @@ async function runTrueProductionHttpSuite() {
         visualType: 'DIAGRAM'
       })
     }, authToken);
-    assert.equal(regRes.status, 200);
-    assert.ok(regRes.json.data.findings.observed.includes('Observed'));
-    record('Region-Specific Contextual Analysis API', true, `Analyzed region "${regRes.json.data.label}" with grounded observations`);
+    assert.equal(regionAnalysisRes.status, 200);
+    assert.ok(regionAnalysisRes.json.data.findings.observed.includes('Observed'));
+    record('Region-Specific Contextual Analysis API', true, `Analyzed region "${regionAnalysisRes.json.data.label}" with grounded observations`);
 
     // 8. Guess Before You See Evaluation API
     console.log('Testing Guess Evaluation API...');
