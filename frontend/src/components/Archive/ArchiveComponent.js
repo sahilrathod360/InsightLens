@@ -127,7 +127,7 @@ export async function renderArchivePage() {
   archiveContainer.innerHTML = `
     <div id="archive-header-loaded" class="hidden"></div>
     <!-- ARCHIVE HEADER -->
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
+    <header class="product-page-header flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
       <div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700/50 mb-2.5">
           Persistent Knowledge Repository
@@ -143,7 +143,7 @@ export async function renderArchivePage() {
     </header>
 
     <!-- SEARCH & FILTER TOOLBAR -->
-    <section class="bg-surface-container p-4 sm:p-5 rounded-2xl ghost-border space-y-4">
+    <section class="product-filter-panel bg-surface-container p-4 sm:p-5 rounded-2xl ghost-border space-y-4">
       <!-- SEARCH INPUT -->
       <div class="relative">
         <span class="material-symbols-outlined absolute left-3.5 top-3 text-slate-400 text-[20px]">search</span>

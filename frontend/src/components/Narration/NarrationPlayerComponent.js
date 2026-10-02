@@ -143,11 +143,12 @@ function renderNarrationModalSkeleton(artifact) {
   }
 
   modal.innerHTML = `
-    <div class="relative w-full max-w-xl p-6 rounded-2xl bg-[#090b10] border border-indigo-500/30 text-slate-100 shadow-2xl space-y-5">
+    <div class="relative w-full max-w-xl p-6 rounded-2xl bg-[#090b10] border border-indigo-500/30 text-slate-100 shadow-2xl space-y-5" role="dialog" aria-modal="true" aria-labelledby="narration-title">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
-          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Documentary Narration</h3>
+          <span class="material-symbols-outlined text-indigo-300">graphic_eq</span>
+          <h3 id="narration-title" class="font-serif font-bold text-lg text-slate-100">Explain this report</h3>
         </div>
         <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
       </div>
@@ -175,7 +176,8 @@ function renderNarrationModalError(message) {
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Documentary Narration</h3>
+          <span class="material-symbols-outlined text-indigo-300">graphic_eq</span>
+          <h3 id="narration-title" class="font-serif font-bold text-lg text-slate-100">Explain this report</h3>
         </div>
         <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
       </div>
@@ -213,13 +215,14 @@ function renderNarrationModalContent(artifact) {
   }
 
   modal.innerHTML = `
-    <div class="relative w-full max-w-xl p-6 rounded-2xl bg-[#090b10] border border-indigo-500/30 text-slate-100 shadow-2xl space-y-5 animate-fade-in">
+    <div class="relative w-full max-w-xl p-6 rounded-2xl bg-[#090b10] border border-indigo-500/30 text-slate-100 shadow-2xl space-y-5 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="narration-title">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center gap-2">
-          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Documentary Narration</h3>
+          <span class="material-symbols-outlined text-indigo-300">graphic_eq</span>
+          <h3 id="narration-title" class="font-serif font-bold text-lg text-slate-100">Explain this report</h3>
           ${statusBadge}
         </div>
-        <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
+        <button onclick="window.closeNarrationModal()" aria-label="Close report explanation" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">Close</button>
       </div>
 
       <div class="p-4 rounded-xl bg-slate-950/80 border border-white/5 space-y-2">

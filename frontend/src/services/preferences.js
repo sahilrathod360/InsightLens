@@ -1,7 +1,6 @@
 // InsightLens Preferences & Diagnostic Service (Backed by Aiven PostgreSQL)
 
 import { API_BASE, getAuthHeaders } from '../utils/api.js';
-import { getUserSession } from '../state.js';
 
 export const DEFAULT_PREFERENCES = {
   theme: 'dark', // 'dark' | 'light' | 'system'
@@ -45,10 +44,8 @@ export function saveStoredPreferences(newPrefs) {
 }
 
 export async function fetchPreferencesFromBackend() {
-  const session = getUserSession();
-  const email = session ? session.email : 'guest@insightlens.edu';
   try {
-    const res = await fetch(`${API_BASE}/api/settings?email=${encodeURIComponent(email)}`, {
+    const res = await fetch(`${API_BASE}/api/settings`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -84,15 +81,12 @@ export async function fetchPreferencesFromBackend() {
 }
 
 export async function syncPreferencesToBackend(prefs) {
-  const session = getUserSession();
-  const email = session ? session.email : 'guest@insightlens.edu';
   try {
     await fetch(`${API_BASE}/api/settings`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         ...prefs,
-        userEmail: email
       })
     });
   } catch (err) {

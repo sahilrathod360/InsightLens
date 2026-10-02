@@ -23,19 +23,26 @@ export async function optimizeImage(dataUrl) {
   let mimeType = 'image/jpeg';
 
   if (dataUrl.startsWith('data:')) {
-    const parts = dataUrl.split(',');
-    if (parts.length < 2 || !parts[1]) {
+    const match = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/i);
+    if (!match) {
       throw new APIError('Malformed dataUrl string format.', 400, 'ImageOptimizer', 'MALFORMED_DATAURL');
     }
-    const headerMime = dataUrl.substring(dataUrl.indexOf(':') + 1, dataUrl.indexOf(';'));
-    if (headerMime) mimeType = headerMime.toLowerCase().trim();
-    inputBuffer = Buffer.from(parts[1], 'base64');
+    mimeType = match[1].toLowerCase();
+    const encoded = match[2];
+    if (encoded.length > Math.ceil(config.maxFileSize / 3) * 4 + 4) {
+      throw new APIError('Uploaded image exceeds the configured file size limit.', 413, 'ImageOptimizer', 'FILE_TOO_LARGE');
+    }
+    inputBuffer = Buffer.from(encoded, 'base64');
   } else {
     inputBuffer = Buffer.from(dataUrl, 'base64');
   }
 
   if (!inputBuffer || inputBuffer.length === 0) {
     throw new APIError('Uploaded image payload is empty.', 400, 'ImageOptimizer', 'EMPTY_IMAGE');
+  }
+
+  if (inputBuffer.length > config.maxFileSize) {
+    throw new APIError('Uploaded image exceeds the configured file size limit.', 413, 'ImageOptimizer', 'FILE_TOO_LARGE');
   }
 
   // Normalize image/jpg -> image/jpeg
@@ -53,6 +60,8 @@ export async function optimizeImage(dataUrl) {
   // large resize buffers.
   let metadata;
   try {
+    // Metadata inspection does not decode the full pixel buffer; perform the
+    // explicit pixel-limit check below before any resize operation.
     metadata = await sharp(inputBuffer).metadata();
   } catch (err) {
     throw new APIError('Uploaded file is corrupted or not a valid image.', 400, 'ImageOptimizer', 'CORRUPT_IMAGE');

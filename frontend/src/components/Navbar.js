@@ -16,6 +16,7 @@ export function setupNavigation() {
   });
 
   document.getElementById('hero-start-btn')?.addEventListener('click', () => navigateTo('desk'));
+  document.getElementById('analyze-livevision-btn')?.addEventListener('click', () => navigateTo('livevision'));
   document.getElementById('hero-login-btn')?.addEventListener('click', () => openLoginModal());
   document.getElementById('export-nav-btn')?.addEventListener('click', exportCleanPDF);
   document.getElementById('dash-new-analysis-btn')?.addEventListener('click', () => navigateTo('desk'));

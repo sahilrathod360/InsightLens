@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import pool from '../../config/db.js';
 import { APIError } from '../../utils/apiUtils.js';
@@ -53,6 +54,19 @@ class ExtensionService {
       this.inMemoryUserExtensions.set(userEmail, new Map());
     }
     return this.inMemoryUserExtensions.get(userEmail);
+  }
+
+  _validateExtensionId(extensionId) {
+    if (typeof extensionId !== 'string' || !/^[a-z0-9][a-z0-9-]{2,79}$/.test(extensionId)) {
+      throw new APIError('Invalid extension identifier.', 400, 'ExtensionService');
+    }
+    return extensionId;
+  }
+
+  _getUserInstallFolder(userEmail, extensionId) {
+    const safeId = this._validateExtensionId(extensionId);
+    const userKey = crypto.createHash('sha256').update(String(userEmail).trim().toLowerCase()).digest('hex').slice(0, 32);
+    return path.join(INSTALLED_DIR, 'users', userKey, safeId);
   }
 
   /**
@@ -197,6 +211,7 @@ class ExtensionService {
    * Generates a downloadable .zip package archive for an extension.
    */
   async downloadExtensionPackage(extensionId) {
+    this._validateExtensionId(extensionId);
     const builtin = BUILTIN_EXTENSIONS.find(e => e.id === extensionId);
     let manifest = builtin?.manifest;
     let name = builtin?.name || extensionId;
@@ -290,6 +305,7 @@ export function deactivate() {
    * 4. Registers in PostgreSQL user_extensions.
    */
   async installExtension(userEmail, extensionId) {
+    this._validateExtensionId(extensionId);
     const builtin = BUILTIN_EXTENSIONS.find(e => e.id === extensionId);
     let manifest = builtin?.manifest;
 
@@ -313,7 +329,7 @@ export function deactivate() {
     const capabilities = manifest.capabilities || builtin?.capabilities || [];
 
     // Filesystem registration
-    const targetFolder = path.join(INSTALLED_DIR, extensionId);
+    const targetFolder = this._getUserInstallFolder(userEmail, extensionId);
     try {
       if (!fs.existsSync(targetFolder)) {
         fs.mkdirSync(targetFolder, { recursive: true });
@@ -374,6 +390,7 @@ export function deactivate() {
    * Enables an installed extension for a user.
    */
   async enableExtension(userEmail, extensionId) {
+    this._validateExtensionId(extensionId);
     // 1. In-memory
     if (!pool) {
       const userStore = this._getUserExtStore(userEmail);
@@ -425,6 +442,7 @@ export function deactivate() {
    * reverts those elements back to system defaults.
    */
   async disableExtension(userEmail, extensionId) {
+    this._validateExtensionId(extensionId);
     // 1. In-memory
     if (!pool) {
       const userStore = this._getUserExtStore(userEmail);
@@ -492,6 +510,7 @@ export function deactivate() {
    * Toggles enabled/disabled state of an installed extension.
    */
   async toggleExtension(userEmail, extensionId, enabled) {
+    this._validateExtensionId(extensionId);
     if (enabled) {
       return this.enableExtension(userEmail, extensionId);
     } else {
@@ -506,8 +525,9 @@ export function deactivate() {
    * 3. Reverts any dependent UI theme/typography/layout/modes to system default.
    */
   async uninstallExtension(userEmail, extensionId) {
+    this._validateExtensionId(extensionId);
     // 1. Filesystem cleanup
-    const targetFolder = path.join(INSTALLED_DIR, extensionId);
+    const targetFolder = this._getUserInstallFolder(userEmail, extensionId);
     try {
       if (fs.existsSync(targetFolder)) {
         fs.rmSync(targetFolder, { recursive: true, force: true });

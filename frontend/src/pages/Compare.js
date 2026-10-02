@@ -11,7 +11,7 @@ export function renderComparePage() {
   container.innerHTML = `
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
       <!-- Header -->
-      <div class="space-y-2 text-left pb-6 border-b border-white/10">
+      <div class="space-y-3 text-left pb-6 border-b border-white/10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-mono">
           <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
           Multimodal Visual Comparison Engine • Real AI Vision Pipeline
@@ -22,6 +22,27 @@ export function renderComparePage() {
         <p class="text-slate-400 text-sm font-sans max-w-2xl">
           Upload 2–3 visuals to execute multimodal AI vision analysis and discover grounded similarities, differences, shared features, and structural relationships.
         </p>
+      </div>
+
+      <div class="compare-status-card rounded-2xl p-4 sm:p-5">
+        <div class="status-grid text-left">
+          <div>
+            <div class="text-[10px] uppercase tracking-[0.18em] text-indigo-300 font-mono">Selection</div>
+            <div id="compare-selection-count" class="mt-2 text-xl font-serif font-bold text-white">0 / 2 required</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase tracking-[0.18em] text-slate-300 font-mono">Current state</div>
+            <div id="compare-selection-status" class="mt-2 text-sm font-medium text-slate-200">Choose two images to begin.</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase tracking-[0.18em] text-slate-300 font-mono">Best fits</div>
+            <div class="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-mono text-indigo-200">
+              <span class="rounded-full border border-indigo-400/30 bg-indigo-500/10 px-2 py-1">Photos</span>
+              <span class="rounded-full border border-purple-400/30 bg-purple-500/10 px-2 py-1">Diagrams</span>
+              <span class="rounded-full border border-pink-400/30 bg-pink-500/10 px-2 py-1">Charts</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Quick Preset Sample Buttons -->
@@ -38,12 +59,18 @@ export function renderComparePage() {
         </button>
       </div>
 
+      <div class="grid grid-cols-3 gap-2 text-[10px] sm:text-xs font-mono text-center uppercase tracking-[0.12em] text-slate-500">
+        <div class="rounded-lg border border-indigo-400/20 bg-indigo-500/5 px-2 py-2 text-indigo-200">1. Add visual</div>
+        <div class="rounded-lg border border-indigo-400/20 bg-indigo-500/5 px-2 py-2 text-indigo-200">2. Add visual</div>
+        <div class="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-2">3. Optional</div>
+      </div>
+
       <!-- 3 Image Selection Slots -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Slot 1 -->
         <div id="compare-slot-0" class="compare-upload-slot p-5 rounded-2xl bg-slate-950/60 border border-dashed border-indigo-500/30 hover:border-indigo-500/60 transition-all space-y-4 text-center relative group">
           <div class="flex items-center justify-between">
-            <span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-300 text-xs font-mono font-bold">Image 1 (Required)</span>
+            <span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-300 text-xs font-mono font-bold">Visual 1 (Required)</span>
             <button onclick="window.clearCompareSlot(0)" class="text-slate-500 hover:text-rose-400 text-xs font-mono cursor-pointer">Clear</button>
           </div>
           <div id="slot-preview-0" class="min-h-[160px] flex flex-col items-center justify-center p-4">
@@ -56,7 +83,7 @@ export function renderComparePage() {
         <!-- Slot 2 -->
         <div id="compare-slot-1" class="compare-upload-slot p-5 rounded-2xl bg-slate-950/60 border border-dashed border-indigo-500/30 hover:border-indigo-500/60 transition-all space-y-4 text-center relative group">
           <div class="flex items-center justify-between">
-            <span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-300 text-xs font-mono font-bold">Image 2 (Required)</span>
+            <span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-300 text-xs font-mono font-bold">Visual 2 (Required)</span>
             <button onclick="window.clearCompareSlot(1)" class="text-slate-500 hover:text-rose-400 text-xs font-mono cursor-pointer">Clear</button>
           </div>
           <div id="slot-preview-1" class="min-h-[160px] flex flex-col items-center justify-center p-4">
@@ -69,7 +96,7 @@ export function renderComparePage() {
         <!-- Slot 3 (Optional) -->
         <div id="compare-slot-2" class="compare-upload-slot p-5 rounded-2xl bg-slate-950/60 border border-dashed border-white/10 hover:border-white/20 transition-all space-y-4 text-center relative group">
           <div class="flex items-center justify-between">
-            <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-400 text-xs font-mono font-medium">Image 3 (Optional)</span>
+            <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-400 text-xs font-mono font-medium">Visual 3 (Optional)</span>
             <button onclick="window.clearCompareSlot(2)" class="text-slate-500 hover:text-rose-400 text-xs font-mono cursor-pointer">Clear</button>
           </div>
           <div id="slot-preview-2" class="min-h-[160px] flex flex-col items-center justify-center p-4">
@@ -98,19 +125,42 @@ export function renderComparePage() {
   setupCompareEvents();
 }
 
+function updateCompareSelectionStatus() {
+  const activeCount = selectedSlotImages.filter(Boolean).length;
+  const requiredCount = 2;
+  const countEl = document.getElementById('compare-selection-count');
+  const statusEl = document.getElementById('compare-selection-status');
+
+  if (countEl) {
+    countEl.textContent = `${activeCount} / ${requiredCount} required`;
+  }
+
+  if (statusEl) {
+    const completedRequired = selectedSlotImages.slice(0, requiredCount).every(Boolean);
+    if (completedRequired) {
+      statusEl.textContent = activeCount > requiredCount ? 'Ready to compare. Optional third image is available.' : 'Ready to compare.';
+    } else {
+      const missing = Math.max(0, requiredCount - selectedSlotImages.slice(0, requiredCount).filter(Boolean).length);
+      statusEl.textContent = missing === 1 ? 'Add one more required image.' : 'Choose two images to begin.';
+    }
+  }
+}
+
 function updateSlotPreview(slotIndex) {
   const container = document.getElementById(`slot-preview-${slotIndex}`);
   if (!container) return;
+
+  updateCompareSelectionStatus();
 
   const item = selectedSlotImages[slotIndex];
   if (item) {
     container.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-center p-2 space-y-2">
         <div class="w-full h-28 rounded-lg overflow-hidden border border-white/10 bg-black">
-          <img src="${item.dataUrl}" alt="${escapeHtml(item.fileName || item.title || `Image ${slotIndex + 1}`)}" class="w-full h-full object-cover" />
+          <img src="${item.dataUrl}" alt="${escapeHtml(item.subject || item.title || `Selected visual ${slotIndex + 1}`)}" class="w-full h-full object-cover" />
         </div>
         <div class="text-[11px] font-mono text-indigo-300 font-bold truncate max-w-full">
-          ${escapeHtml(item.fileName || item.title || `Image ${slotIndex + 1}`)}
+          ${escapeHtml(item.subject || item.title || `Selected visual ${slotIndex + 1}`)}
         </div>
       </div>
     `;
@@ -149,6 +199,7 @@ function setupCompareEvents() {
   };
 
   window.loadComparePreset = (presetKey) => {
+    updateCompareSelectionStatus();
     if (presetKey === 'dfd') {
       selectedSlotImages[0] = {
         id: 'DFD-V1',
@@ -175,6 +226,7 @@ function setupCompareEvents() {
         uniqueFeatures: 'Decoupled API Gateway routing layer & isolated Auth service'
       };
       selectedSlotImages[2] = null;
+      updateCompareSelectionStatus();
     } else if (presetKey === 'heroes') {
       selectedSlotImages[0] = {
         id: 'HERO-1',
@@ -212,6 +264,7 @@ function setupCompareEvents() {
         visibleObjects: ['Dark Bat Cowl', 'Bat Emblem', 'Tactical Armor', 'Utility Belt'],
         uniqueFeatures: 'Pointed bat cowl with ears, dark tactical body armor, bat emblem'
       };
+      updateCompareSelectionStatus();
     } else if (presetKey === 'charts') {
       selectedSlotImages[0] = {
         id: 'CHART-Q1',
@@ -238,6 +291,7 @@ function setupCompareEvents() {
         uniqueFeatures: 'Multi-series overlay with accelerated Q2 revenue trajectory'
       };
       selectedSlotImages[2] = null;
+      updateCompareSelectionStatus();
     }
 
     [0, 1, 2].forEach(i => updateSlotPreview(i));

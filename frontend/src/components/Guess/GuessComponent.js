@@ -341,15 +341,16 @@ function renderQuizModalContent(modal, reportData) {
   }
 
   modal.innerHTML = `
-    <div class="relative w-full max-w-2xl p-6 rounded-2xl bg-[#090b10] border border-amber-500/30 text-slate-100 shadow-2xl space-y-5 my-8 animate-fade-in">
+    <div class="relative w-full max-w-2xl p-6 rounded-2xl bg-[#090b10] border border-amber-500/30 text-slate-100 shadow-2xl space-y-5 my-8 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="quiz-title">
       <!-- Modal Header -->
       <div class="flex items-center justify-between pb-3 border-b border-white/10">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-          <h3 class="font-serif font-bold text-lg text-slate-100">🎯 Test Your Understanding</h3>
+          <span class="material-symbols-outlined text-amber-300">quiz</span>
+          <h3 id="quiz-title" class="font-serif font-bold text-lg text-slate-100">Test your understanding</h3>
           <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">${totalQ} Grounded Questions</span>
         </div>
-        <button onclick="window.closeReportQuizModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
+        <button onclick="window.closeReportQuizModal()" aria-label="Close understanding test" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">Close</button>
       </div>
 
       <!-- Questions List -->
@@ -390,7 +391,7 @@ function renderQuizModalContent(modal, reportData) {
                     <button 
                       ${isAnswered ? 'disabled' : ''} 
                       onclick="window.selectQuizOption(${q.id}, '${opt.key}')" 
-                      class="p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer leading-relaxed ${btnStyle}">
+                      class="quiz-option p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer leading-relaxed ${btnStyle}">
                       <span class="font-mono font-bold text-xs shrink-0 px-1.5 py-0.5 rounded bg-black/40 border border-white/10">${opt.key}</span>
                       <span class="flex-1">${escapeHtml(opt.text)}</span>
                     </button>

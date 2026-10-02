@@ -90,7 +90,7 @@ export async function renderProfilePage() {
 
   // Fetch verified user profile from PostgreSQL
   try {
-    const userRes = await fetch(`${API_BASE}/api/auth/me?email=${encodeURIComponent(userSession.email)}`, {
+    const userRes = await fetch(`${API_BASE}/api/auth/me`, {
       method: 'GET',
       headers: getAuthHeaders()
     });

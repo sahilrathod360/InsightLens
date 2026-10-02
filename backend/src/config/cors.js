@@ -31,9 +31,10 @@ if (envOrigins) {
 
 export const corsOptions = {
   origin: function (origin, callback) {
-    // Allow non-browser requests with no Origin header (e.g. mobile apps, curl, server-to-server)
+    // In production, browser-facing API access must identify its trusted origin.
+    // Non-browser health checks can still use /healthz and /api/health directly.
     if (!origin) {
-      return callback(null, true);
+      return callback(null, process.env.NODE_ENV !== 'production');
     }
 
     const cleanOrigin = origin.trim().replace(/\/+$/, '');
@@ -48,7 +49,7 @@ export const corsOptions = {
     // Localhost / 127.0.0.1 development ports (only in non-production)
     const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleanOrigin);
 
-    if (isInsightLensVercel || isLocalhost) {
+    if (isInsightLensVercel || (process.env.NODE_ENV !== 'production' && isLocalhost)) {
       return callback(null, true);
     }
 

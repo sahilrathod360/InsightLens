@@ -7,9 +7,11 @@ export const errorHandler = (err, req, res, next) => {
     .replace(/AIza[0-9A-Za-z-_]{35}/g, '[GEMINI_KEY_REDACTED]')
     .replace(/sk-or-v1-[a-z0-9]+/gi, '[OPENROUTER_KEY_REDACTED]');
 
-  console.error(`[Error] [${req.method} ${req.originalUrl}]`, sanitizedLog);
+  const safePath = String(req.path || '/').replace(/[\r\n]/g, '');
+  console.error(`[Error] [${req.method} ${safePath}]`, sanitizedLog);
 
-  const statusCode = err.statusCode || err.status || 500;
+  const isCorsError = /cors error|origin.*not authorized/i.test(String(err.message || ''));
+  const statusCode = isCorsError ? 403 : (err.statusCode || err.status || 500);
   const isProduction = process.env.NODE_ENV === 'production';
 
   // Prevent database or internal server error details from leaking to clients
@@ -17,7 +19,9 @@ export const errorHandler = (err, req, res, next) => {
   const isDatabaseOrInternalError = statusCode === 500 ||
     /postgres|pg_|database|connection|syntax error at or near|relation.*does not exist/i.test(message);
 
-  if (isDatabaseOrInternalError) {
+  if (isCorsError) {
+    message = 'Request origin is not allowed.';
+  } else if (isDatabaseOrInternalError || isProduction) {
     message = 'An internal error occurred. Please try again later.';
   }
 

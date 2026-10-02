@@ -90,7 +90,9 @@ export async function getArchive(filters = {}) {
 
 export async function getArchivePage(filters = {}, page = 1, limit = 20) {
   lastArchiveError = null;
+  const session = getUserSession();
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (session?.email) params.append('email', session.email);
   const category = filters.categoryFilter || filters.category;
   if (category && category !== 'all') params.append('category', category);
   const q = filters.query || filters.q;

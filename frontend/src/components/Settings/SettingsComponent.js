@@ -62,7 +62,7 @@ function ensureSettingsDOM() {
       <form id="system-settings-form" class="space-y-6">
 
         <!-- SECTION 0: ACCOUNT SETTINGS -->
-        <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6 relative" id="account-settings-section">
+        <section class="settings-section bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6 relative" id="account-settings-section">
           <!-- Auth barrier (hidden when logged in, covers the section when logged out) -->
           <div id="account-settings-auth-barrier" class="absolute inset-0 bg-surface-container/90 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center rounded-2xl hidden">
             <span class="material-symbols-outlined text-4xl text-slate-500 mb-2">lock</span>
@@ -120,7 +120,7 @@ function ensureSettingsDOM() {
         </section>
         
         <!-- SECTION 1: AI PROVIDER & MODEL SELECTOR -->
-        <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
+        <section class="settings-section bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-6">
           <div class="border-b ghost-border pb-4 flex items-center justify-between">
             <div>
               <span class="text-[11px] font-mono text-indigo-400 font-bold uppercase tracking-wider block">AI ENGINE CONFIGURATION</span>

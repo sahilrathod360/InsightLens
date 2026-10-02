@@ -1,6 +1,6 @@
 // Real Data Dashboard Component Implementation (Backed by Aiven PostgreSQL)
 
-import { getUserSession, getSystemPreferences, setActiveReportData, navigateTo } from '../../state.js';
+import { getSystemPreferences, setActiveReportData, navigateTo } from '../../state.js';
 import { getReportsHistory, getReportById, computeRealDashboardStats, getLastHistoryError } from '../../services/history.js';
 import { formatBytes } from '../../utils/toast.js';
 import { renderResultScreen } from '../ReportViewer.js';
@@ -22,12 +22,9 @@ export async function renderRealDashboard() {
     `;
   }
 
-  const session = getUserSession();
-  const email = session ? session.email : 'guest@insightlens.edu';
-
   let backendDashboardData = null;
   try {
-    const res = await fetch(`${API_BASE}/api/dashboard?email=${encodeURIComponent(email)}`, {
+    const res = await fetch(`${API_BASE}/api/dashboard`, {
       method: 'GET',
       headers: getAuthHeaders()
     });

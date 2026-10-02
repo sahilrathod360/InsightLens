@@ -7,13 +7,14 @@ let liveAnalysisInterval = null;
 let isAnalyzingFrame = false;
 let currentFrameRegions = [];
 let currentFacingMode = 'environment';
+let isLiveVisionPaused = false;
 
 export function renderLiveVisionPage() {
   const container = document.getElementById('page-livevision');
   if (!container) return;
 
   container.innerHTML = `
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
+    <div class="live-workspace px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div class="space-y-1">
@@ -29,7 +30,7 @@ export function renderLiveVisionPage() {
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <button id="start-camera-btn" onclick="window.startLiveCameraStream()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold text-xs font-mono shadow-lg flex items-center gap-2 cursor-pointer transition-all">
             <span class="material-symbols-outlined text-[18px]">videocam</span>
             Start Camera
@@ -37,6 +38,10 @@ export function renderLiveVisionPage() {
           <button id="switch-camera-btn" onclick="window.switchLiveCameraStream()" class="hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 font-semibold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all">
             <span class="material-symbols-outlined text-[18px]">flip_camera_ios</span>
             Switch Camera
+          </button>
+          <button id="pause-camera-btn" onclick="window.toggleLiveVisionPause()" class="hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 font-semibold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-[18px]">pause</span>
+            Pause
           </button>
           <button id="stop-camera-btn" onclick="window.stopLiveCameraStream()" class="hidden px-4 py-2.5 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white font-semibold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all">
             <span class="material-symbols-outlined text-[18px]">videocam_off</span>
@@ -46,7 +51,7 @@ export function renderLiveVisionPage() {
       </div>
 
       <!-- Main Camera Viewport Area -->
-      <div class="relative w-full rounded-2xl bg-black border border-purple-500/20 overflow-hidden shadow-2xl min-h-[380px] sm:min-h-[480px] flex flex-col justify-center items-center">
+      <div class="live-camera-shell relative w-full rounded-2xl bg-black border border-purple-500/20 overflow-hidden shadow-2xl flex flex-col justify-center items-center">
         <!-- Error & Fallback Container -->
         <div id="live-camera-error-container" class="hidden p-6 max-w-md text-center space-y-4">
           <span id="live-camera-error-icon" class="material-symbols-outlined text-[48px] text-amber-400">videocam_off</span>
@@ -73,7 +78,7 @@ export function renderLiveVisionPage() {
         </div>
 
         <!-- Active Video Element & Overlay Stream Container -->
-        <div id="live-video-wrapper" class="hidden relative w-full h-full min-h-[380px] sm:min-h-[480px] flex items-center justify-center overflow-hidden">
+        <div id="live-video-wrapper" class="live-video-shell hidden relative w-full h-full flex items-center justify-center overflow-hidden">
           <video id="live-camera-feed" autoplay playsinline muted class="w-full h-full object-cover"></video>
           
           <!-- Live Real-Time Bounding Box Overlay Layer -->
@@ -105,9 +110,9 @@ export function renderLiveVisionPage() {
       <!-- Action Footer: Analyze This Scene -->
       <div id="live-scene-actions" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-950/60 border border-purple-500/30">
         <div class="space-y-1">
-          <span class="font-serif font-bold text-slate-100 text-sm">Lock Scene &amp; Generate Full Research Brief</span>
+          <span class="font-serif font-bold text-slate-100 text-sm">Scene ready for analysis</span>
           <p class="text-xs text-slate-400 font-sans">
-            Ready to perform a deep analysis? Capture the current camera frame and send it through InsightLens' complete visual intelligence pipeline.
+            Capture the current frame and send it through the full visual intelligence pipeline.
           </p>
         </div>
 
@@ -135,6 +140,7 @@ function setupLiveVisionEvents() {
     const video = document.getElementById('live-camera-feed');
     const startBtn = document.getElementById('start-camera-btn');
     const switchBtn = document.getElementById('switch-camera-btn');
+    const pauseBtn = document.getElementById('pause-camera-btn');
     const stopBtn = document.getElementById('stop-camera-btn');
 
     if (errorContainer) errorContainer.classList.add('hidden');
@@ -189,7 +195,10 @@ function setupLiveVisionEvents() {
       sceneActions?.classList.remove('hidden');
       startBtn?.classList.add('hidden');
       switchBtn?.classList.remove('hidden');
+      pauseBtn?.classList.remove('hidden');
       stopBtn?.classList.remove('hidden');
+      isLiveVisionPaused = false;
+      updatePauseButton();
 
       showToast(`Camera active (${currentFacingMode}). Real-time visual discovery engaged.`, 'success');
       startLightweightFrameLoop();
@@ -219,6 +228,24 @@ function setupLiveVisionEvents() {
     window.startLiveCameraStream(currentFacingMode);
   };
 
+  window.toggleLiveVisionPause = () => {
+    const video = document.getElementById('live-camera-feed');
+    if (!video || !liveStreamTrack) return;
+
+    isLiveVisionPaused = !isLiveVisionPaused;
+    if (isLiveVisionPaused) {
+      video.pause();
+      if (liveAnalysisInterval) {
+        clearInterval(liveAnalysisInterval);
+        liveAnalysisInterval = null;
+      }
+    } else {
+      video.play().catch(() => {});
+      startLightweightFrameLoop();
+    }
+    updatePauseButton();
+  };
+
   window.stopLiveCameraStream = () => {
     if (liveAnalysisInterval) {
       clearInterval(liveAnalysisInterval);
@@ -235,6 +262,7 @@ function setupLiveVisionEvents() {
     const sceneActions = document.getElementById('live-scene-actions');
     const startBtn = document.getElementById('start-camera-btn');
     const switchBtn = document.getElementById('switch-camera-btn');
+    const pauseBtn = document.getElementById('pause-camera-btn');
     const stopBtn = document.getElementById('stop-camera-btn');
 
     wrapper?.classList.add('hidden');
@@ -242,7 +270,9 @@ function setupLiveVisionEvents() {
     placeholder?.classList.remove('hidden');
     startBtn?.classList.remove('hidden');
     switchBtn?.classList.add('hidden');
+    pauseBtn?.classList.add('hidden');
     stopBtn?.classList.add('hidden');
+    isLiveVisionPaused = false;
 
     showToast('Camera stream stopped.', 'info');
   };
@@ -272,6 +302,13 @@ function setupLiveVisionEvents() {
       }
     }
   };
+}
+
+function updatePauseButton() {
+  const button = document.getElementById('pause-camera-btn');
+  if (!button) return;
+  button.innerHTML = `<span class="material-symbols-outlined text-[18px]">${isLiveVisionPaused ? 'play_arrow' : 'pause'}</span>${isLiveVisionPaused ? 'Resume' : 'Pause'}`;
+  button.setAttribute('aria-label', isLiveVisionPaused ? 'Resume live vision' : 'Pause live vision');
 }
 
 function showCameraError(title, desc) {

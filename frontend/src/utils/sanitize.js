@@ -22,7 +22,12 @@ export function sanitizeUrl(url) {
   if (!url || typeof url !== 'string') return '';
   const trimmed = url.trim();
 
-  // Explicitly reject dangerous schemes
+  // Allow only image data URLs used for persisted report thumbnails.
+  if (/^data:image\/(jpeg|jpg|png|webp);base64,[a-z0-9+/]+=*$/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Explicitly reject dangerous schemes and non-image data URLs.
   if (/^(javascript|vbscript|data):/i.test(trimmed)) {
     return '';
   }

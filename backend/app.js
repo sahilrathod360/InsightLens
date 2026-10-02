@@ -43,10 +43,27 @@ app.disable('x-powered-by');
 
 // Phase 3 & Phase 16: Security Headers via Helmet
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: false, // Prevent breaking frontend external scripts/CDNs
+  crossOriginResourcePolicy: { policy: 'same-site' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'none'"],
+      formAction: ["'none'"],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'none'"]
+    }
+  },
+  hsts: process.env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
   xPoweredBy: false,
-  referrerPolicy: { policy: "no-referrer-when-downgrade" }
+  referrerPolicy: { policy: 'no-referrer' },
+  permissionsPolicy: {
+    features: {
+      camera: ['self'],
+      microphone: [],
+      geolocation: []
+    }
+  }
 }));
 
 // Phase 4: Enforce Strict CORS Security
@@ -59,8 +76,8 @@ app.use(hpp());
 app.use(compression());
 
 // Phase 6 & Phase 13: 35 MB Payload Protection (Accommodates 25MB raw file Base64 expansion)
-app.use(express.json({ limit: '35mb' }));
-app.use(express.urlencoded({ extended: true, limit: '35mb' }));
+app.use(express.json({ limit: '35mb', strict: true, parameterLimit: 100 }));
+app.use(express.urlencoded({ extended: false, limit: '35mb', parameterLimit: 100 }));
 
 app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -175,16 +192,16 @@ app.use('/api/archive', requireAuth, archiveRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/history', requireAuth, historyRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
-app.use('/api/extensions', optionalAuth, extensionsRoutes);
-app.use('/api/evidence', optionalAuth, evidenceRoutes);
-app.use('/api/comparison', optionalAuth, comparisonRoutes);
-app.use('/api/consistency', optionalAuth, consistencyRoutes);
-app.use('/api/visual-qa', optionalAuth, visualQARoutes);
-app.use('/api/workspace', optionalAuth, workspaceRoutes);
-app.use('/api/live-vision', optionalAuth, liveVisionRoutes);
-app.use('/api/regions', optionalAuth, regionRoutes);
-app.use('/api/guess', optionalAuth, guessRoutes);
-app.use('/api/narration', optionalAuth, narrationRoutes);
+app.use('/api/extensions', requireAuth, extensionsRoutes);
+app.use('/api/evidence', requireAuth, evidenceRoutes);
+app.use('/api/comparison', requireAuth, comparisonRoutes);
+app.use('/api/consistency', requireAuth, consistencyRoutes);
+app.use('/api/visual-qa', requireAuth, visualQARoutes);
+app.use('/api/workspace', requireAuth, workspaceRoutes);
+app.use('/api/live-vision', requireAuth, liveVisionRoutes);
+app.use('/api/regions', requireAuth, regionRoutes);
+app.use('/api/guess', requireAuth, guessRoutes);
+app.use('/api/narration', requireAuth, narrationRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

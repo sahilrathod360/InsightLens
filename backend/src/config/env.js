@@ -45,6 +45,7 @@ if (isProduction) {
 }
 
 export const config = {
+  isProduction,
   port: resolvedPort,
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   databaseUrl: envDatabaseUrl,

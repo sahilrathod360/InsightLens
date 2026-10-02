@@ -9,19 +9,14 @@ import { config } from '../config/env.js';
 export const requireAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication required. Please provide a valid session token.',
-      data: null
-    });
-  }
+  const headerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const cookieToken = req.cookies?.insightlens_session;
+  const token = headerToken || cookieToken;
 
-  const token = authHeader.split(' ')[1];
   if (!token) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required. No session token provided in Bearer header.',
+      message: 'Authentication required. Please provide a valid session token.',
       data: null
     });
   }
@@ -62,13 +57,14 @@ export const requireAuth = (req, res, next) => {
 
 /**
  * Optional Authentication Middleware.
- * Decodes Bearer JWT if present; otherwise seamlessly falls back to guest researcher identity.
+ * Decodes a valid token when present, but never invents a shared guest identity.
  */
 export const optionalAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
+  const cookieToken = req.cookies?.insightlens_session;
 
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
+  if ((authHeader && authHeader.startsWith('Bearer ')) || cookieToken) {
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : cookieToken;
     if (token && config.isJwtConfigured && config.jwtSecret) {
       try {
         const decoded = jwt.verify(token, config.jwtSecret);
@@ -85,12 +81,6 @@ export const optionalAuth = (req, res, next) => {
     }
   }
 
-  req.user = {
-    id: 'guest',
-    email: 'guest@insightlens.edu',
-    name: 'Guest Researcher',
-    role: 'Researcher'
-  };
   next();
 };
 

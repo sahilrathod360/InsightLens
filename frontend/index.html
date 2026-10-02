@@ -269,6 +269,21 @@
             <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-purple-400">verified</span> Verified Academic Citations</span>
             <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-sky-400">verified</span> 1-Click PDF Export</span>
           </div>
+
+          <div class="product-trust-bar pt-2">
+            <div class="product-trust-item">
+              <strong>Evidence</strong>
+              <span>Ground each finding in the actual visual input.</span>
+            </div>
+            <div class="product-trust-item">
+              <strong>Structure</strong>
+              <span>Turn raw artifacts into organized research briefs.</span>
+            </div>
+            <div class="product-trust-item">
+              <strong>Clarity</strong>
+              <span>Understand what is observed, inferred, and uncertain.</span>
+            </div>
+          </div>
         </div>
 
         <!-- RIGHT (5 COLS): AI VISUAL INTELLIGENCE SCANNER MOCKUP -->
@@ -654,7 +669,7 @@
 
   <!-- EXECUTIVE RESEARCHER DASHBOARD PAGE -->
   <div id="page-dashboard" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-8">
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
+    <header class="product-page-header flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
       <div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700/50 mb-2.5">
           Executive Portal
@@ -931,7 +946,7 @@
 
         <div class="text-center pt-2">
           <button type="button" id="guest-access-btn" class="text-on-surface-variant hover:text-primary text-xs font-mono transition-colors cursor-pointer">
-            Continue as Guest Researcher &rarr;
+            Create a Researcher Account &rarr;
           </button>
         </div>
       </form>
@@ -949,6 +964,12 @@
       </div>
       <h1 class="font-headline-md text-2xl md:text-3xl text-on-surface font-serif font-bold">Visual Synthesis Workbench</h1>
       <p class="font-body-md text-on-surface-variant text-xs md:text-sm">Follow the 4-step AI pipeline below to analyze visual artifacts in real time.</p>
+      <div class="flex flex-wrap justify-center gap-2 pt-2">
+        <button id="analyze-livevision-btn" type="button" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border text-xs font-medium px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-[16px] text-pink-400">photo_camera</span>
+          Use Live Vision instead
+        </button>
+      </div>
     </header>
 
     <!-- STEP 1: UPLOAD COMPONENT -->
@@ -1925,7 +1946,7 @@
     </header>
 
     <!-- Filter & Search Controls -->
-    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-surface-container p-4 rounded-2xl border ghost-border">
+    <div class="product-filter-panel flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-surface-container p-4 rounded-2xl border ghost-border">
       <!-- Category Pills -->
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
         <button data-category="All" class="ext-cat-pill px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-mono text-xs font-medium cursor-pointer shadow-md transition-all">All</button>
@@ -1966,7 +1987,7 @@
 
   <!-- SCREEN 6: ARCHIVE PAGE -->
   <div id="page-archive" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-8">
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
+    <header class="product-page-header flex flex-col md:flex-row md:items-center justify-between gap-4 border-b ghost-border pb-6">
       <div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700/50 mb-2.5">
           Institutional Repository

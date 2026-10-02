@@ -104,6 +104,14 @@ export const register = async (req, res, next) => {
       { expiresIn: '7d' }
     );
 
+    res.cookie('insightlens_session', token, {
+      httpOnly: true,
+      secure: config.isProduction,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+
     return res.status(201).json({
       success: true,
       message: `Welcome, ${newUser.name}! Account registered successfully.`,
@@ -189,6 +197,14 @@ export const login = async (req, res, next) => {
       { expiresIn: '7d' }
     );
 
+    res.cookie('insightlens_session', token, {
+      httpOnly: true,
+      secure: config.isProduction,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+
     const safeUser = {
       id: user.id,
       email: user.email,
@@ -212,6 +228,12 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = (req, res) => {
+  res.clearCookie('insightlens_session', {
+    httpOnly: true,
+    secure: config.isProduction,
+    sameSite: 'lax',
+    path: '/'
+  });
   res.status(200).json({
     success: true,
     message: 'Signed out successfully.',
