@@ -157,10 +157,40 @@ async function runAudit() {
   console.log('✔ Live Vision Stop Camera Lifecycle: PASS\n');
 
   // --------------------------------------------------------------------------
-  // TEST 3: MOBILE RESPONSIVENESS (390x844 & 412x915)
+  // TEST 3: DESKTOP & MOBILE RESPONSIVENESS (1366x900, 1440x900, 1920x1080, 390x844, 412x915)
   // --------------------------------------------------------------------------
-  console.log('--- TEST 3: MOBILE RESPONSIVENESS & BOUNDING BOX SCALING ---');
+  console.log('--- TEST 3: DESKTOP & MOBILE RESPONSIVENESS ---');
+
+  // Verify Desktop Viewports
+  for (const [w, h, name] of [[1366, 900, 'Desktop Laptop'], [1440, 900, 'Desktop Standard'], [1920, 1080, 'Desktop Full HD']]) {
+    await page.setViewport({ width: w, height: h, isMobile: false });
+    await page.evaluate(() => window.navigateTo('landing'));
+    await new Promise(r => setTimeout(r, 400));
+
+    const desktopChecks = await page.evaluate(() => {
+      const nav = document.querySelector('nav');
+      const extBtn = document.querySelector('nav button[data-page="extensions"]');
+      const setBtn = document.querySelector('nav button[data-page="settings"]');
+      const landing = document.getElementById('page-landing');
+      const hasOverflow = document.documentElement.scrollWidth > window.innerWidth;
+      
+      return {
+        hasOverflow,
+        extIsIcon: extBtn && extBtn.querySelector('.material-symbols-outlined') && !extBtn.innerText.includes('Extensions'),
+        setIsIcon: setBtn && setBtn.querySelector('.material-symbols-outlined') && !setBtn.innerText.includes('Settings'),
+        landingScrollHeight: landing ? landing.scrollHeight : 0,
+        windowHeight: window.innerHeight
+      };
+    });
+
+    assert.equal(desktopChecks.hasOverflow, false, `No horizontal scroll allowed on ${name} (${w}x${h})`);
+    assert.ok(desktopChecks.extIsIcon, 'Extensions must be an icon button on desktop');
+    assert.ok(desktopChecks.setIsIcon, 'Settings must be an icon button on desktop');
+    assert.ok(desktopChecks.landingScrollHeight >= desktopChecks.windowHeight * 2.5, `Landing page must require substantial scrolling (${desktopChecks.landingScrollHeight}px vs window ${desktopChecks.windowHeight}px)`);
+    console.log(`✔ Desktop Viewport ${name} (${w}x${h}): PASS (0 horizontal overflow, icons verified, substantial scroll depth)`);
+  }
   
+  // Verify Mobile Viewports
   for (const [w, h, name] of [[390, 844, 'iPhone 14'], [412, 915, 'Pixel 7']]) {
     await page.setViewport({ width: w, height: h, isMobile: true, hasTouch: true });
     await new Promise(r => setTimeout(r, 300));

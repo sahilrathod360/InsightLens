@@ -16,11 +16,18 @@ export function setupLandingPageEvents() {
     landingCleanupFns.push(() => startBtn.removeEventListener('click', startHandler));
   }
 
-  const demoBtn = document.getElementById('hero-demo-btn');
-  if (demoBtn) {
-    const demoHandler = () => document.getElementById('landing-demo-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    demoBtn.addEventListener('click', demoHandler);
-    landingCleanupFns.push(() => demoBtn.removeEventListener('click', demoHandler));
+  const liveVisionBtn = document.getElementById('hero-livevision-btn');
+  if (liveVisionBtn) {
+    const liveHandler = () => navigateTo('livevision');
+    liveVisionBtn.addEventListener('click', liveHandler);
+    landingCleanupFns.push(() => liveVisionBtn.removeEventListener('click', liveHandler));
+  }
+
+  const compareBtn = document.getElementById('hero-compare-btn');
+  if (compareBtn) {
+    const compareHandler = () => navigateTo('compare');
+    compareBtn.addEventListener('click', compareHandler);
+    landingCleanupFns.push(() => compareBtn.removeEventListener('click', compareHandler));
   }
 
   document.querySelectorAll('.landing-demo-card').forEach(card => {

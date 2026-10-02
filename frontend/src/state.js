@@ -3,7 +3,7 @@
 import { DEFAULT_PREFERENCES, systemPreferences, loadPreferences } from './services/storage.js';
 import { showToast } from './utils/toast.js';
 
-export const PROTECTED_PAGES = ['dashboard', 'profile', 'archive', 'settings', 'extensions', 'compare', 'livevision', 'workspace'];
+export const PROTECTED_PAGES = ['dashboard', 'profile', 'archive', 'settings'];
 
 let activeFile = null;
 let activeReportData = null;
