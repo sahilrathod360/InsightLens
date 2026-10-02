@@ -361,10 +361,6 @@ export function updateAuthUI() {
   // Always dismiss the temporary checking badge when updating auth state
   if (checkingBadge) checkingBadge.classList.add('hidden');
 
-  const landingTitle = document.getElementById('landing-hero-title');
-  const landingSubtitle = document.getElementById('landing-hero-subtitle');
-  const landingLastLogin = document.getElementById('landing-last-login');
-
   if (userSession) {
     authNavBtn?.classList.add('hidden'); // Hide Login/Sign Up button
     
@@ -377,38 +373,12 @@ export function updateAuthUI() {
 
     welcomeBadge?.classList.remove('hidden');
     userMenuContainer?.classList.remove('hidden');
-    
-    // Update Landing Page Hero
-    if (landingTitle) {
-      const firstName = userSession.name.split(' ')[0];
-      landingTitle.innerHTML = `Welcome back, <span class="bg-gradient-to-r from-orange-400 via-amber-300 to-rose-400 bg-clip-text text-transparent italic font-serif">${escapeHtml(firstName)}</span>`;
-    }
-    if (landingSubtitle) {
-      landingSubtitle.textContent = 'Continue where you left off and analyze your next document.';
-    }
-    if (landingLastLogin) {
-      landingLastLogin.classList.remove('hidden');
-      const loginDate = new Date(userSession.loginTime || Date.now()).toLocaleString();
-      landingLastLogin.textContent = `Last Login: ${loginDate}`;
-    }
-
   } else {
     authNavBtn?.classList.remove('hidden'); // Show Login/Sign Up button
     
     welcomeBadge?.classList.add('hidden');
     userMenuContainer?.classList.add('hidden');
     document.getElementById('user-dropdown-menu')?.classList.remove('show');
-    
-    // Reset Landing Page Hero
-    if (landingTitle) {
-      landingTitle.innerHTML = `Turn Complex Visual Artifacts Into <span class="bg-gradient-to-r from-orange-400 via-amber-300 to-rose-400 bg-clip-text text-transparent italic font-serif">Structured Research Briefs.</span>`;
-    }
-    if (landingSubtitle) {
-      landingSubtitle.textContent = 'Empirical spatial tensor parsing, multimodal OCR extraction, and 11-section academic paper synthesis for domain researchers and enterprise analysts.';
-    }
-    if (landingLastLogin) {
-      landingLastLogin.classList.add('hidden');
-    }
   }
 }
 

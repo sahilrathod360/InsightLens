@@ -244,123 +244,158 @@
     </div>
   </nav>
 
-  <!-- SCREEN 1: LANDING PAGE — 6 SUBSTANTIAL VISUAL CHAPTERS -->
-  <main id="page-landing" class="page-view flex-grow w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-16 space-y-20 sm:space-y-28 relative">
+  <!-- SCREEN 1: LANDING PAGE V2 — 6 SUBSTANTIAL CINEMATIC VISUAL CHAPTERS -->
+  <main id="page-landing" class="page-view flex-grow w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-16 space-y-24 sm:space-y-32 relative">
     
-    <!-- Ambient Background Lighting -->
+    <!-- 3D Depth Canvas & Atmospheric Background -->
     <div class="landing-bg-container pointer-events-none">
+      <canvas id="landing-depth-canvas" class="landing-depth-canvas"></canvas>
       <div class="landing-bg-gradient"></div>
-      <div class="landing-orb landing-orb-1"></div>
-      <div class="landing-orb landing-orb-2"></div>
       <div class="landing-grain-overlay"></div>
     </div>
 
     <!-- ===================================================================== -->
-    <!-- CHAPTER 1: HERO VIEWPORT -->
+    <!-- CHAPTER 1: HERO VIEWPORT (EDGE-TO-EDGE INTENTIONAL COMPOSITION) -->
     <!-- ===================================================================== -->
-    <section id="landing-hero" class="pt-4 sm:pt-10 flex items-center min-h-[calc(100vh-120px)]">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
+    <section id="landing-hero" class="pt-3 sm:pt-8 flex items-center min-h-[calc(100vh-100px)]">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center w-full">
         
-        <!-- LEFT (7 COLS): HEADLINE, CTAs, VALUE BADGES -->
-        <div class="lg:col-span-7 space-y-6 text-left reveal-on-scroll">
-          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1A1333] border border-[#8B6CFF]/30 text-purple-300 text-xs font-mono font-medium shadow-sm">
-            <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
+        <!-- LEFT (6 COLS): HEADLINE, VALUE STATEMENT, CTAs, TRUST METRICS -->
+        <div class="lg:col-span-6 space-y-6 text-left reveal-on-scroll">
+          
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#141828] border border-indigo-500/30 text-indigo-300 text-xs font-mono font-medium shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
             INSIGHTLENS • UNIVERSAL VISUAL INTELLIGENCE
           </div>
 
-          <h1 id="landing-hero-title" class="font-serif text-3xl sm:text-5xl lg:text-[54px] font-bold text-slate-100 tracking-tight leading-[1.12]">
-            Understand Visual Information. <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 bg-clip-text text-transparent italic font-serif">Extract Structure. Ground Findings in Evidence.</span>
+          <h1 id="landing-hero-title" class="font-serif text-3xl sm:text-5xl lg:text-[54px] font-bold text-slate-100 tracking-tight leading-[1.08]">
+            See what the image <br class="hidden sm:inline" />
+            <span class="bg-gradient-to-r from-indigo-300 via-sky-200 to-indigo-400 bg-clip-text text-transparent font-serif italic">doesn't tell you directly.</span>
           </h1>
 
-          <p id="landing-hero-subtitle" class="text-slate-300 text-sm sm:text-base max-w-[620px] leading-relaxed font-sans">
-            A multimodal visual intelligence platform engineered to analyze photographs, technical system diagrams, flowcharts, schemas, charts, and research documents — producing structured, fact-grounded research briefs.
+          <p id="landing-hero-subtitle" class="text-slate-300 text-sm sm:text-base max-w-[560px] leading-relaxed font-sans">
+            Multimodal visual intelligence engineered to analyze natural photographs, complex system architectures, DFD flows, and technical schemas — decomposing raw pixels into topological structures and fact-grounded evidence briefs.
           </p>
 
           <!-- Primary & Secondary Action CTAs -->
-          <div class="flex flex-wrap items-center gap-3 pt-2">
-            <button id="hero-start-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm sm:text-base px-6 sm:px-7 py-3.5 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer shadow-lg shadow-indigo-900/30 btn-active-scale">
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <button id="hero-start-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm sm:text-base px-6 sm:px-7 py-3.5 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer btn-glow-primary btn-active-scale">
               <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
               Analyze a Visual
+              <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
 
-            <button id="hero-livevision-btn" class="bg-surface-container hover:bg-surface-container-high text-slate-200 border ghost-border font-medium text-sm sm:text-base px-5 sm:px-6 py-3.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer btn-active-scale">
-              <span class="material-symbols-outlined text-[19px] text-pink-400">videocam</span>
+            <button id="hero-livevision-btn" class="bg-[#141824] hover:bg-[#1d2334] text-slate-200 border border-white/10 hover:border-white/20 font-medium text-sm sm:text-base px-5 py-3.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer btn-active-scale">
+              <span class="material-symbols-outlined text-[19px] text-cyan-400">photo_camera</span>
               Live Vision
             </button>
 
-            <button id="hero-compare-btn" class="bg-surface-container hover:bg-surface-container-high text-slate-200 border ghost-border font-medium text-sm sm:text-base px-5 sm:px-6 py-3.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer btn-active-scale">
+            <button id="hero-compare-btn" class="bg-[#141824] hover:bg-[#1d2334] text-slate-200 border border-white/10 hover:border-white/20 font-medium text-sm sm:text-base px-5 py-3.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer btn-active-scale">
               <span class="material-symbols-outlined text-[19px] text-indigo-400">compare</span>
               Compare
             </button>
           </div>
 
           <!-- Grounded Trust Bar -->
-          <div class="pt-3 flex flex-wrap items-center gap-5 text-[11px] text-slate-400 font-mono border-t border-white/[0.08]">
+          <div class="pt-3 flex flex-wrap items-center gap-4 sm:gap-6 text-[11px] text-slate-400 font-mono border-t border-white/[0.08]">
             <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-emerald-400">verified</span> Direct Pixel Grounding</span>
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-purple-400">verified</span> Verified Citation Ledger</span>
-            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-sky-400">verified</span> 1-Click A4 PDF Export</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-indigo-400">fact_check</span> Verified Citation Ledger</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-sky-400">picture_as_pdf</span> 1-Click A4 PDF Export</span>
           </div>
         </div>
 
-        <!-- RIGHT (5 COLS): INTERACTIVE VISUAL INTELLIGENCE SCANNER VIEWPORT -->
-        <div class="lg:col-span-5 reveal-on-scroll delay-100">
-          <div class="relative rounded-2xl border border-purple-500/25 bg-[#0E0B1A] p-3.5 shadow-2xl overflow-hidden card-hover-lift">
-            <!-- Header bar -->
-            <div class="flex items-center justify-between px-3 py-2 border-b border-white/[0.08] bg-[#07050E] rounded-t-xl text-xs font-mono">
+        <!-- RIGHT (6 COLS): INTERACTIVE MULTI-ASSET TELEMETRY STAGE -->
+        <div class="lg:col-span-6 reveal-on-scroll delay-100">
+          <div class="relative rounded-2xl border border-indigo-500/25 bg-[#0B0F19] p-3 sm:p-4 shadow-2xl overflow-hidden">
+            
+            <!-- Top Telemetry Status Header -->
+            <div class="flex items-center justify-between px-3 py-2 border-b border-white/[0.08] bg-[#070A12] rounded-t-xl text-xs font-mono">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-red-400/80"></span>
                 <span class="w-2 h-2 rounded-full bg-amber-400/80"></span>
                 <span class="w-2 h-2 rounded-full bg-emerald-400/80"></span>
-                <span class="ml-1 text-[11px] text-slate-400">telemetry.viewport</span>
+                <span class="ml-1 text-[11px] text-slate-400 font-medium" id="hero-telemetry-status">telemetry.spectral_scanner</span>
               </div>
-              <span class="text-[10px] text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Active Analysis</span>
+              <span class="text-[10px] text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                Active Neural Inspection
+              </span>
             </div>
 
-            <!-- Viewfinder Screen Area -->
-            <div class="p-3 bg-[#07050E] rounded-b-xl space-y-3">
-              <div class="relative h-60 sm:h-68 rounded-xl overflow-hidden bg-black/60 border border-purple-500/30 group">
+            <!-- Viewport Screen Area -->
+            <div class="p-2 sm:p-3 bg-[#070A12] rounded-b-xl space-y-3">
+              <div class="relative h-64 sm:h-72 rounded-xl overflow-hidden bg-black/80 border border-indigo-500/30 group">
                 <div class="scanner-laser"></div>
-                <img id="demo-preview-img" src="/images/urban-analysis.jpg" alt="Urban Scene Analysis" class="w-full h-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105" />
+                <img id="hero-active-img" src="/images/manhattan-golden-hour.jpg" alt="Active Visual Asset" class="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105" />
                 
-                <!-- Lens Scanner Overlay -->
-                <div class="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-black/80 pointer-events-none"></div>
+                <!-- Lens Scanner Gradient Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/10 via-transparent to-black/80 pointer-events-none"></div>
+                
+                <!-- Floating Real-Time Telemetry HUD -->
                 <div class="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
-                  <div class="bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-purple-500/30 text-[10px] font-mono text-purple-300 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping"></span>
-                    <span>Structure Extraction</span>
+                  <div class="bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-indigo-500/30 text-[10px] font-mono text-indigo-300 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                    <span id="hero-active-badge">Spatial Coordinate Plane</span>
                   </div>
-                  <div class="bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-purple-500/30 text-[10px] font-mono text-purple-200">
-                    Confidence: 98.4%
+                  <div class="bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-[10px] font-mono text-slate-300" id="hero-active-res">
+                    1920 × 1080 • Multimodal
                   </div>
                 </div>
 
-                <!-- Bounding Box Annotation -->
-                <div class="absolute inset-6 border border-dashed border-pink-400/70 rounded-lg pointer-events-none flex items-end justify-between p-2">
-                  <span class="bg-purple-900/90 backdrop-blur-sm text-[9px] font-mono text-pink-200 px-1.5 py-0.5 rounded border border-pink-400/30">Target: Visual Artifact</span>
-                  <span class="bg-indigo-900/90 backdrop-blur-sm text-[9px] font-mono text-indigo-200 px-1.5 py-0.5 rounded border border-indigo-400/30">Grounded Evidence</span>
+                <!-- Live Coordinate Bounding Annotation Pin 1 -->
+                <div class="telemetry-pin top-[25%] left-[45%] bg-indigo-950/90 backdrop-blur-md px-2 py-1 rounded-lg border border-indigo-400/50 text-[9px] font-mono text-indigo-200 flex items-center gap-1 shadow-lg pointer-events-none">
+                  <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                  <span id="hero-pin-1">Apex Spire • [X: 482, Y: 128]</span>
                 </div>
 
+                <!-- Live Coordinate Bounding Annotation Pin 2 -->
+                <div class="telemetry-pin bottom-[28%] left-[20%] bg-cyan-950/90 backdrop-blur-md px-2 py-1 rounded-lg border border-cyan-400/50 text-[9px] font-mono text-cyan-200 flex items-center gap-1 shadow-lg pointer-events-none">
+                  <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  <span id="hero-pin-2">Architectural Density • Grid Matrix</span>
+                </div>
+
+                <!-- Bottom Asset Caption -->
                 <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                  <strong id="demo-active-title" class="text-slate-100 font-serif text-xs sm:text-sm font-semibold truncate">Urban Scene Analysis</strong>
-                  <span class="text-[10px] font-mono text-purple-300 uppercase tracking-wide bg-purple-500/20 px-2 py-0.5 rounded border border-purple-500/30">Research Ready</span>
+                  <strong id="hero-active-title" class="text-slate-100 font-serif text-xs sm:text-sm font-semibold truncate drop-shadow-md">Manhattan Golden Hour Skyline</strong>
+                  <span class="text-[10px] font-mono text-indigo-300 uppercase tracking-wide bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">Telemetry View</span>
                 </div>
               </div>
 
-              <!-- Quick Telemetry Chips -->
-              <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
-                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
-                  <span class="text-slate-400 block text-[9px]">Pipeline</span>
-                  <strong class="text-purple-300">5-Stage Neural</strong>
+              <!-- 5 Interactive Quick Lenses (Click to switch image live) -->
+              <div class="space-y-1.5 pt-1">
+                <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 px-1">
+                  <span>SELECT REAL SAMPLE VISUAL:</span>
+                  <span class="text-indigo-400">Interactive Telemetry Switcher</span>
                 </div>
-                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
-                  <span class="text-slate-400 block text-[9px]">Evidence</span>
-                  <strong class="text-pink-300">Tri-State Model</strong>
-                </div>
-                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
-                  <span class="text-slate-400 block text-[9px]">Output</span>
-                  <strong class="text-emerald-300">11-Section Paper</strong>
+                <div class="grid grid-cols-5 gap-2" id="hero-asset-lenses">
+                  <button class="hero-lens-thumb active relative h-12 rounded-lg overflow-hidden cursor-pointer group" data-asset="manhattan" title="Manhattan Skyline (Urban Architecture)">
+                    <img src="/images/manhattan-golden-hour.jpg" alt="Manhattan" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <span class="absolute inset-0 bg-black/30"></span>
+                    <span class="absolute bottom-0.5 left-0.5 right-0.5 text-[8px] font-mono text-white text-center truncate drop-shadow">Urban</span>
+                  </button>
+                  <button class="hero-lens-thumb relative h-12 rounded-lg overflow-hidden cursor-pointer group" data-asset="planet" title="Planet Eclipse (Deep Space Astronomy)">
+                    <img src="/images/planet-eclipse.jpg" alt="Planet Eclipse" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <span class="absolute inset-0 bg-black/30"></span>
+                    <span class="absolute bottom-0.5 left-0.5 right-0.5 text-[8px] font-mono text-white text-center truncate drop-shadow">Cosmos</span>
+                  </button>
+                  <button class="hero-lens-thumb relative h-12 rounded-lg overflow-hidden cursor-pointer group" data-asset="milkyway" title="Mountain Lake Galaxy (Reflective Astronomy)">
+                    <img src="/images/milkyway-lake-mountains.jpg" alt="Milky Way Lake" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <span class="absolute inset-0 bg-black/30"></span>
+                    <span class="absolute bottom-0.5 left-0.5 right-0.5 text-[8px] font-mono text-white text-center truncate drop-shadow">MilkyWay</span>
+                  </button>
+                  <button class="hero-lens-thumb relative h-12 rounded-lg overflow-hidden cursor-pointer group" data-asset="alpine" title="Alpine Snow & Nebula (Terrain Topography)">
+                    <img src="/images/alpine-cosmos-snow.jpg" alt="Alpine Snow Nebula" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <span class="absolute inset-0 bg-black/30"></span>
+                    <span class="absolute bottom-0.5 left-0.5 right-0.5 text-[8px] font-mono text-white text-center truncate drop-shadow">Alpine</span>
+                  </button>
+                  <button class="hero-lens-thumb relative h-12 rounded-lg overflow-hidden cursor-pointer group" data-asset="citynight" title="City Harbor Night (Photonic Traffic & Maritime)">
+                    <img src="/images/city-harbor-night.jpg" alt="City Harbor Night" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <span class="absolute inset-0 bg-black/30"></span>
+                    <span class="absolute bottom-0.5 left-0.5 right-0.5 text-[8px] font-mono text-white text-center truncate drop-shadow">Harbor</span>
+                  </button>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -369,291 +404,337 @@
     </section>
 
     <!-- ===================================================================== -->
-    <!-- CHAPTER 2: WHAT INSIGHTLENS UNDERSTANDS (UNIVERSAL RANGE) -->
+    <!-- CHAPTER 2: UNIVERSAL VISUAL SPECTRUM (5 REAL ASSETS + DOMAIN MATRIX) -->
     <!-- ===================================================================== -->
-    <section class="space-y-8 text-left reveal-on-scroll">
-      <div class="max-w-[700px] space-y-2">
-        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Universal Visual Range</div>
-        <h2 class="font-serif text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight">From Natural Imagery to Mission-Critical Engineering Schemas</h2>
-        <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-sans">
-          InsightLens understands diverse visual formats with domain-tailored neural extractors — distinguishing natural textures from technical topologies and data series.
-        </p>
+    <section class="space-y-10 text-left reveal-on-scroll">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
+        <div class="max-w-[720px] space-y-2">
+          <div class="text-xs font-mono font-semibold text-indigo-400 uppercase tracking-wider">Universal Visual Spectrum</div>
+          <h2 class="font-serif text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight">From Celestial Horizons to Mission-Critical Engineering Schemas</h2>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-sans">
+            InsightLens applies domain-tailored neural extractors to distinguish natural textures, planetary atmospheres, and urban topologies from technical node-edge graphs and quantitative charts.
+          </p>
+        </div>
+        <div class="shrink-0 font-mono text-xs text-slate-400 bg-white/[0.04] px-3 py-1.5 rounded-lg border border-white/10">
+          5 Core Visual Modalities
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-        <!-- Visual Category 1: Photographs -->
-        <div class="bg-surface-container p-5 rounded-2xl border border-white/[0.08] hover:border-purple-500/40 transition-all space-y-3 flex flex-col justify-between group">
-          <div class="space-y-2.5">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[20px]">photo_camera</span>
+      <!-- Asymmetric Visual Showcase Matrix -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+        
+        <!-- Asset 1: Manhattan Skyline (Span 7) -->
+        <div class="md:col-span-7 domain-asset-card rounded-2xl bg-[#0e111a] border border-white/[0.08] overflow-hidden p-5 flex flex-col justify-between space-y-4 cursor-pointer" onclick="window.navigateTo('desk')">
+          <div class="relative h-56 sm:h-64 rounded-xl overflow-hidden bg-black">
+            <img src="/images/manhattan-golden-hour.jpg" alt="Manhattan Skyline" class="w-full h-full object-cover transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute top-3 left-3 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-amber-500/30 text-[10px] font-mono text-amber-300">
+              Structural Geometry • Urban Density
             </div>
-            <h3 class="font-serif font-bold text-slate-100 text-base">Natural Scenes &amp; Photographs</h3>
-            <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Extracts primary subjects, background environments, spatial depth layers, lighting conditions, and contextual composition.
-            </p>
+            <div class="absolute bottom-3 left-3 right-3 text-white">
+              <span class="text-xs font-mono text-amber-300">DOMAIN: METROPOLITAN ARCHITECTURE</span>
+              <h3 class="font-serif text-lg font-bold text-slate-100">High-Density Urban Systems &amp; Facade Grids</h3>
+            </div>
           </div>
-          <span class="text-[10px] font-mono text-purple-300 pt-1 flex items-center gap-1">Photographic Vision</span>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Deconstructs structural building outlines, architectural window grids, vertical perspective convergence, and lighting solar vectors.
+          </p>
         </div>
 
-        <!-- Visual Category 2: Technical Architecture -->
-        <div class="bg-surface-container p-5 rounded-2xl border border-white/[0.08] hover:border-indigo-500/40 transition-all space-y-3 flex flex-col justify-between group">
-          <div class="space-y-2.5">
-            <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[20px]">account_tree</span>
+        <!-- Asset 2: Planet Horizon (Span 5) -->
+        <div class="md:col-span-5 domain-asset-card rounded-2xl bg-[#0e111a] border border-white/[0.08] overflow-hidden p-5 flex flex-col justify-between space-y-4 cursor-pointer" onclick="window.navigateTo('desk')">
+          <div class="relative h-56 sm:h-64 rounded-xl overflow-hidden bg-black">
+            <img src="/images/planet-eclipse.jpg" alt="Planet Eclipse" class="w-full h-full object-cover transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute top-3 left-3 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-rose-500/30 text-[10px] font-mono text-rose-300">
+              Planetary Geometry • Atmospheric Scattering
             </div>
-            <h3 class="font-serif font-bold text-slate-100 text-base">System &amp; Cloud Architectures</h3>
-            <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Identifies microservices, API gateways, load balancers, messaging queues, and directional communication vectors.
-            </p>
+            <div class="absolute bottom-3 left-3 right-3 text-white">
+              <span class="text-xs font-mono text-rose-300">DOMAIN: DEEP SPACE &amp; CELESTIAL</span>
+              <h3 class="font-serif text-lg font-bold text-slate-100">Atmospheric Curvature &amp; Eclipse Horizons</h3>
+            </div>
           </div>
-          <span class="text-[10px] font-mono text-indigo-300 pt-1 flex items-center gap-1">Structural Graph Engine</span>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Extracts planetary limb geometry, chromatic Rayleigh scattering, cloud ridge illumination, and stellar illumination angles.
+          </p>
         </div>
 
-        <!-- Visual Category 3: Data Flow Diagrams -->
-        <div class="bg-surface-container p-5 rounded-2xl border border-white/[0.08] hover:border-pink-500/40 transition-all space-y-3 flex flex-col justify-between group">
-          <div class="space-y-2.5">
-            <div class="w-9 h-9 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[20px]">schema</span>
+        <!-- Asset 3: Milky Way Mountain Lake (Span 4) -->
+        <div class="md:col-span-4 domain-asset-card rounded-2xl bg-[#0e111a] border border-white/[0.08] overflow-hidden p-5 flex flex-col justify-between space-y-4 cursor-pointer" onclick="window.navigateTo('desk')">
+          <div class="relative h-48 rounded-xl overflow-hidden bg-black">
+            <img src="/images/milkyway-lake-mountains.jpg" alt="Milky Way Lake" class="w-full h-full object-cover transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <div class="absolute bottom-2.5 left-2.5 right-2.5">
+              <span class="text-[10px] font-mono text-indigo-300">DOMAIN: ASTROPHOTOGRAPHY</span>
+              <h4 class="font-serif text-sm font-bold text-slate-100">Reflective Mountain Lake &amp; Star Field</h4>
             </div>
-            <h3 class="font-serif font-bold text-slate-100 text-base">Data Flow Diagrams (DFDs)</h3>
-            <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Parses external entities, process nodes, datastores, input/output data flows, and uncovers isolated or dead-end processes.
-            </p>
           </div>
-          <span class="text-[10px] font-mono text-pink-300 pt-1 flex items-center gap-1">DFD Flow Analyzer</span>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Separates mountain ridge silhouettes from starry night sky coordinate planes and mirror water boundary reflections.
+          </p>
         </div>
 
-        <!-- Visual Category 4: UML Schemas -->
-        <div class="bg-surface-container p-5 rounded-2xl border border-white/[0.08] hover:border-sky-500/40 transition-all space-y-3 flex flex-col justify-between group">
-          <div class="space-y-2.5">
-            <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[20px]">data_object</span>
+        <!-- Asset 4: Alpine Cosmos Snow (Span 4) -->
+        <div class="md:col-span-4 domain-asset-card rounded-2xl bg-[#0e111a] border border-white/[0.08] overflow-hidden p-5 flex flex-col justify-between space-y-4 cursor-pointer" onclick="window.navigateTo('desk')">
+          <div class="relative h-48 rounded-xl overflow-hidden bg-black">
+            <img src="/images/alpine-cosmos-snow.jpg" alt="Alpine Snow Cosmos" class="w-full h-full object-cover transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <div class="absolute bottom-2.5 left-2.5 right-2.5">
+              <span class="text-[10px] font-mono text-cyan-300">DOMAIN: TERRAIN &amp; NEBULA</span>
+              <h4 class="font-serif text-sm font-bold text-slate-100">Alpine Relief &amp; Nebula Sky</h4>
             </div>
-            <h3 class="font-serif font-bold text-slate-100 text-base">UML &amp; ER Schemas</h3>
-            <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Extracts classes, attributes, methods, inheritance relationships, database entities, foreign keys, and cardinalities.
-            </p>
           </div>
-          <span class="text-[10px] font-mono text-sky-300 pt-1 flex items-center gap-1">Schema Parser</span>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Maps snow elevation profiles, localized resort illumination trails, and deep cosmic gas cloud distributions.
+          </p>
         </div>
 
-        <!-- Visual Category 5: Flowcharts -->
-        <div class="bg-surface-container p-5 rounded-2xl border border-white/[0.08] hover:border-amber-500/40 transition-all space-y-3 flex flex-col justify-between group">
-          <div class="space-y-2.5">
-            <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[20px]">alt_route</span>
+        <!-- Asset 5: City Harbor Night (Span 4) -->
+        <div class="md:col-span-4 domain-asset-card rounded-2xl bg-[#0e111a] border border-white/[0.08] overflow-hidden p-5 flex flex-col justify-between space-y-4 cursor-pointer" onclick="window.navigateTo('desk')">
+          <div class="relative h-48 rounded-xl overflow-hidden bg-black">
+            <img src="/images/city-harbor-night.jpg" alt="City Harbor Night" class="w-full h-full object-cover transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <div class="absolute bottom-2.5 left-2.5 right-2.5">
+              <span class="text-[10px] font-mono text-emerald-300">DOMAIN: INFRASTRUCTURE &amp; MARITIME</span>
+              <h4 class="font-serif text-sm font-bold text-slate-100">Photonic Transit &amp; Harbor Vessels</h4>
             </div>
-            <h3 class="font-serif font-bold text-slate-100 text-base">Flowcharts &amp; Algorithms</h3>
-            <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Analyzes start/terminal states, decision diamonds, conditional branching pathways, loop iterations, and execution paths.
-            </p>
           </div>
-          <span class="text-[10px] font-mono text-amber-300 pt-1 flex items-center gap-1">Decision Logic Trace</span>
+          <p class="text-slate-400 text-xs leading-relaxed font-sans">
+            Analyzes curved highway transit luminosity, maritime mooring clustering, and waterfront illuminated architectural vectors.
+          </p>
         </div>
 
-        <!-- Visual Category 6: Statistical Charts & Documents -->
-        <div class="bg-surface-container p-5 rounded-2xl border border-white/[0.08] hover:border-emerald-500/40 transition-all space-y-3 flex flex-col justify-between group">
-          <div class="space-y-2.5">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[20px]">bar_chart</span>
-            </div>
-            <h3 class="font-serif font-bold text-slate-100 text-base">Charts, Graphs &amp; Documents</h3>
-            <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Reads bar/line/scatter series, axes coordinates, legend keys, data anomalies, multi-column articles, and tables.
-            </p>
+      </div>
+
+      <!-- Technical Schemas & Graph Matrix Bar -->
+      <div class="p-6 rounded-2xl bg-gradient-to-r from-[#121624] via-[#0E111A] to-[#121624] border border-white/[0.08] space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <span class="text-xs font-mono text-indigo-300 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">account_tree</span>
+            Technical Schematics &amp; Graph Understanding Engine
+          </span>
+          <span class="text-[11px] font-mono text-slate-400">Native Structural Parsing</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs font-mono">
+          <div class="bg-black/40 p-3 rounded-xl border border-white/5 space-y-1">
+            <strong class="text-slate-200 block text-[11px]">System Architecture</strong>
+            <span class="text-slate-400 text-[10px]">Microservices, gateways &amp; messaging queues</span>
           </div>
-          <span class="text-[10px] font-mono text-emerald-300 pt-1 flex items-center gap-1">Quantitative Extraction</span>
+          <div class="bg-black/40 p-3 rounded-xl border border-white/5 space-y-1">
+            <strong class="text-slate-200 block text-[11px]">Data Flow Diagrams</strong>
+            <span class="text-slate-400 text-[10px]">Processes, datastores &amp; I/O flow vectors</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-white/5 space-y-1">
+            <strong class="text-slate-200 block text-[11px]">UML &amp; ER Schemas</strong>
+            <span class="text-slate-400 text-[10px]">Classes, methods, foreign keys &amp; cardinalities</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-white/5 space-y-1">
+            <strong class="text-slate-200 block text-[11px]">Flowcharts &amp; Logic</strong>
+            <span class="text-slate-400 text-[10px]">Decision diamonds, terminals &amp; loop paths</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-white/5 space-y-1">
+            <strong class="text-slate-200 block text-[11px]">Charts &amp; Documents</strong>
+            <span class="text-slate-400 text-[10px]">Scatter/bar series, axes coordinates &amp; tables</span>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ===================================================================== -->
-    <!-- CHAPTER 3: HOW IT WORKS (5-STAGE PRODUCT PIPELINE) -->
+    <!-- CHAPTER 3: FROM PIXELS TO UNDERSTANDING (5-STAGE PRODUCT PIPELINE) -->
     <!-- ===================================================================== -->
-    <section class="space-y-8 text-left reveal-on-scroll">
-      <div class="max-w-[700px] space-y-2">
-        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">End-to-End Workflow</div>
-        <h2 class="font-serif text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight">The 5-Stage Visual Intelligence Workflow</h2>
+    <section class="space-y-10 text-left reveal-on-scroll">
+      <div class="max-w-[720px] space-y-2">
+        <div class="text-xs font-mono font-semibold text-indigo-400 uppercase tracking-wider">Decomposition Workflow</div>
+        <h2 class="font-serif text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight">How Raw Pixels Become Grounded Intelligence</h2>
         <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-sans">
-          How raw input pixels are transformed into rigorous, structured, academic-grade research papers.
+          InsightLens processes every visual through an immutable 5-stage pipeline, transforming unindexed raster bytes into structured, academically grounded research papers.
         </p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 relative">
+        
         <!-- Stage 1: SEE -->
-        <div class="bg-surface-container p-4 sm:p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between hover:border-indigo-500/40 transition-all">
-          <div class="space-y-2">
+        <div class="step-pipeline-card bg-[#0e111a] p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
             <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs border border-indigo-500/20">
               01
             </div>
-            <h4 class="font-serif font-bold text-slate-100 text-sm sm:text-base">01 SEE</h4>
+            <h4 class="font-serif font-bold text-slate-100 text-base">01 INGEST</h4>
             <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Image ingestion, raster preprocessing, format validation, and dimensional normalization.
+              Format validation, sub-pixel normalization, raster preprocessing, and aspect coordinate mapping.
             </p>
           </div>
           <span class="text-[10px] font-mono text-indigo-300">Format Ingestion</span>
         </div>
 
         <!-- Stage 2: UNDERSTAND -->
-        <div class="bg-surface-container p-4 sm:p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between hover:border-purple-500/40 transition-all">
-          <div class="space-y-2">
-            <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-mono font-bold text-xs border border-purple-500/20">
+        <div class="step-pipeline-card bg-[#0e111a] p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs border border-cyan-500/20">
               02
             </div>
-            <h4 class="font-serif font-bold text-slate-100 text-sm sm:text-base">02 UNDERSTAND</h4>
+            <h4 class="font-serif font-bold text-slate-100 text-base">02 DETECT</h4>
             <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Multimodal vision models identify visible objects, texts, nodes, spatial regions, and textures.
+              Multimodal vision models identify visible objects, texts, nodes, spatial boundaries, and textures.
             </p>
           </div>
-          <span class="text-[10px] font-mono text-purple-300">Semantic Parsing</span>
+          <span class="text-[10px] font-mono text-cyan-300">Semantic Parsing</span>
         </div>
 
         <!-- Stage 3: STRUCTURE -->
-        <div class="bg-surface-container p-4 sm:p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between hover:border-pink-500/40 transition-all">
-          <div class="space-y-2">
-            <div class="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center font-mono font-bold text-xs border border-pink-500/20">
+        <div class="step-pipeline-card bg-[#0e111a] p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-mono font-bold text-xs border border-purple-500/20">
               03
             </div>
-            <h4 class="font-serif font-bold text-slate-100 text-sm sm:text-base">03 STRUCTURE</h4>
+            <h4 class="font-serif font-bold text-slate-100 text-base">03 STRUCTURE</h4>
             <p class="text-slate-400 text-xs leading-relaxed font-sans">
               Graph hierarchy reconstruction, coordinate indexing, taxonomy mapping, and structural diffing.
             </p>
           </div>
-          <span class="text-[10px] font-mono text-pink-300">Graph Indexing</span>
+          <span class="text-[10px] font-mono text-purple-300">Graph Indexing</span>
         </div>
 
         <!-- Stage 4: EVIDENCE -->
-        <div class="bg-surface-container p-4 sm:p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between hover:border-emerald-500/40 transition-all">
-          <div class="space-y-2">
+        <div class="step-pipeline-card bg-[#0e111a] p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
             <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-mono font-bold text-xs border border-emerald-500/20">
               04
             </div>
-            <h4 class="font-serif font-bold text-slate-100 text-sm sm:text-base">04 EVIDENCE</h4>
+            <h4 class="font-serif font-bold text-slate-100 text-base">04 GROUND</h4>
             <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Fact-checking against visual evidence, source citation mapping, and tripartite status ledgering.
+              Fact-checking against visual evidence, source citation mapping, and tripartite status verification.
             </p>
           </div>
           <span class="text-[10px] font-mono text-emerald-300">Evidence Ledger</span>
         </div>
 
-        <!-- Stage 5: EXPLAIN -->
-        <div class="bg-surface-container p-4 sm:p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between hover:border-sky-500/40 transition-all">
-          <div class="space-y-2">
+        <!-- Stage 5: SYNTHESIZE -->
+        <div class="step-pipeline-card bg-[#0e111a] p-5 rounded-2xl border border-white/[0.08] space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
             <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-mono font-bold text-xs border border-sky-500/20">
               05
             </div>
-            <h4 class="font-serif font-bold text-slate-100 text-sm sm:text-base">05 EXPLAIN</h4>
+            <h4 class="font-serif font-bold text-slate-100 text-base">05 SYNTHESIZE</h4>
             <p class="text-slate-400 text-xs leading-relaxed font-sans">
-              Structured 11-section research brief generation, interactive Q&amp;A, and 1-click A4 PDF export.
+              Formal 11-section research brief synthesis, interactive Q&amp;A, and 1-click A4 PDF generation.
             </p>
           </div>
-          <span class="text-[10px] font-mono text-sky-300">Brief Synthesis</span>
+          <span class="text-[10px] font-mono text-sky-300">Research Synthesis</span>
         </div>
+
       </div>
     </section>
 
     <!-- ===================================================================== -->
-    <!-- CHAPTER 4: THREE CORE PRODUCT EXPERIENCES -->
+    <!-- CHAPTER 4: THREE CORE PURPOSE-BUILT WORKFLOWS -->
     <!-- ===================================================================== -->
-    <section class="space-y-8 text-left reveal-on-scroll">
-      <div class="max-w-[700px] space-y-2">
-        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Purpose-Built Workflows</div>
+    <section class="space-y-10 text-left reveal-on-scroll">
+      <div class="max-w-[720px] space-y-2">
+        <div class="text-xs font-mono font-semibold text-indigo-400 uppercase tracking-wider">Purpose-Built Workflows</div>
         <h2 class="font-serif text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight">Three Dedicated Ways to Inspect Visuals</h2>
         <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-sans">
-          Select the tailored workflow that matches your research, real-time camera inspection, or multi-visual comparison.
+          Whether performing in-depth academic deconstructions, edge camera discovery, or multi-visual comparison, InsightLens has a purpose-built workspace.
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
         <!-- Experience 1: Analyze Visual -->
-        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#120e24] to-[#0a0714] border border-purple-500/20 hover:border-purple-500/50 transition-all space-y-5 flex flex-col justify-between group shadow-xl">
+        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#121624] to-[#0A0D15] border border-indigo-500/20 hover:border-indigo-500/50 transition-all space-y-5 flex flex-col justify-between group shadow-xl">
           <div class="space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform">
               <span class="material-symbols-outlined text-[28px]">analytics</span>
             </div>
             <div>
-              <h3 class="font-serif font-bold text-slate-100 text-xl">Analyze Visual</h3>
+              <span class="text-[10px] font-mono text-indigo-300 uppercase tracking-wide">Deep Investigation</span>
+              <h3 class="font-serif font-bold text-slate-100 text-xl mt-0.5">Analyze Visual</h3>
               <p class="text-slate-400 text-xs font-sans leading-relaxed mt-2">
                 Deep multimodal inspection for images, diagrams, DFDs, schemas, and research docs. Generates full 11-section research papers with verified citations.
               </p>
             </div>
-            <ul class="space-y-1.5 text-xs text-slate-300 font-mono">
-              <li class="flex items-center gap-2 text-purple-300"><span class="material-symbols-outlined text-[15px]">check</span> 11-Section Paper Format</li>
-              <li class="flex items-center gap-2 text-purple-300"><span class="material-symbols-outlined text-[15px]">check</span> Interactive Visual Q&amp;A</li>
-              <li class="flex items-center gap-2 text-purple-300"><span class="material-symbols-outlined text-[15px]">check</span> 1-Click Clean A4 PDF</li>
+            <ul class="space-y-2 text-xs text-slate-300 font-mono">
+              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> 11-Section Academic Paper</li>
+              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> Interactive Visual Q&amp;A Chat</li>
+              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> 1-Click Clean A4 PDF Export</li>
             </ul>
           </div>
           <button onclick="window.navigateTo('desk')" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
             <span class="material-symbols-outlined text-[16px]">upload_file</span>
-            Analyze Visual
+            Launch Analysis
           </button>
         </div>
 
         <!-- Experience 2: Live Vision -->
-        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#120e24] to-[#0a0714] border border-pink-500/20 hover:border-pink-500/50 transition-all space-y-5 flex flex-col justify-between group shadow-xl">
+        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#121624] to-[#0A0D15] border border-cyan-500/20 hover:border-cyan-500/50 transition-all space-y-5 flex flex-col justify-between group shadow-xl">
           <div class="space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 group-hover:scale-105 transition-transform">
-              <span class="material-symbols-outlined text-[28px]">videocam</span>
+            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform">
+              <span class="material-symbols-outlined text-[28px]">photo_camera</span>
             </div>
             <div>
-              <h3 class="font-serif font-bold text-slate-100 text-xl">Live Vision</h3>
+              <span class="text-[10px] font-mono text-cyan-300 uppercase tracking-wide">Real-Time Edge Vision</span>
+              <h3 class="font-serif font-bold text-slate-100 text-xl mt-0.5">Live Vision</h3>
               <p class="text-slate-400 text-xs font-sans leading-relaxed mt-2">
-                Real-time on-device camera discovery using lightweight neural detectors. Automatically tracks objects, smooths bounding boxes, and enables instant scene capture.
+                Real-time on-device camera discovery using lightweight neural detectors. Automatically tracks objects, smooths bounding boxes, and captures instant scenes.
               </p>
             </div>
-            <ul class="space-y-1.5 text-xs text-slate-300 font-mono">
-              <li class="flex items-center gap-2 text-pink-300"><span class="material-symbols-outlined text-[15px]">check</span> On-Device Neural Detection</li>
-              <li class="flex items-center gap-2 text-pink-300"><span class="material-symbols-outlined text-[15px]">check</span> Temporal Box Smoothing</li>
-              <li class="flex items-center gap-2 text-pink-300"><span class="material-symbols-outlined text-[15px]">check</span> Instant Scene Capture</li>
+            <ul class="space-y-2 text-xs text-slate-300 font-mono">
+              <li class="flex items-center gap-2 text-cyan-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> On-Device Neural Detection</li>
+              <li class="flex items-center gap-2 text-cyan-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> Temporal Bounding Smoothing</li>
+              <li class="flex items-center gap-2 text-cyan-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> 1-Tap Instant Frame Capture</li>
             </ul>
           </div>
-          <button onclick="window.navigateTo('livevision')" class="w-full py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
-            <span class="material-symbols-outlined text-[16px]">photo_camera</span>
-            Live Vision
+          <button onclick="window.navigateTo('livevision')" class="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
+            <span class="material-symbols-outlined text-[16px]">videocam</span>
+            Launch Live Vision
           </button>
         </div>
 
         <!-- Experience 3: Compare Images -->
-        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#120e24] to-[#0a0714] border border-indigo-500/20 hover:border-indigo-500/50 transition-all space-y-5 flex flex-col justify-between group shadow-xl">
+        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#121624] to-[#0A0D15] border border-indigo-500/20 hover:border-indigo-500/50 transition-all space-y-5 flex flex-col justify-between group shadow-xl">
           <div class="space-y-4">
             <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform">
               <span class="material-symbols-outlined text-[28px]">compare</span>
             </div>
             <div>
-              <h3 class="font-serif font-bold text-slate-100 text-xl">Compare Images</h3>
+              <span class="text-[10px] font-mono text-indigo-300 uppercase tracking-wide">Comparative Intelligence</span>
+              <h3 class="font-serif font-bold text-slate-100 text-xl mt-0.5">Compare Images</h3>
               <p class="text-slate-400 text-xs font-sans leading-relaxed mt-2">
-                Side-by-side multimodal reasoning across 2–3 visual artifacts. Discovers semantic differences, shared features, architectural drifts, and structural changes.
+                Side-by-side multimodal reasoning across 2–3 visual artifacts. Discovers semantic differences, shared features, architectural drifts, and structural variations.
               </p>
             </div>
-            <ul class="space-y-1.5 text-xs text-slate-300 font-mono">
-              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check</span> Multi-Image Vision Diffing</li>
-              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check</span> Semantic Alignment Matrix</li>
-              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check</span> Topological Change Ledger</li>
+            <ul class="space-y-2 text-xs text-slate-300 font-mono">
+              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> Multi-Image Vision Diffing</li>
+              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> Semantic Alignment Matrix</li>
+              <li class="flex items-center gap-2 text-indigo-300"><span class="material-symbols-outlined text-[15px]">check_circle</span> Topological Change Ledger</li>
             </ul>
           </div>
           <button onclick="window.navigateTo('compare')" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
             <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
-            Compare Images
+            Launch Compare
           </button>
         </div>
+
       </div>
     </section>
 
     <!-- ===================================================================== -->
     <!-- CHAPTER 5: EVIDENCE, TRUST & EPISTEMIC INTEGRITY -->
     <!-- ===================================================================== -->
-    <section class="space-y-8 text-left reveal-on-scroll">
-      <div class="max-w-[700px] space-y-2">
-        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Epistemic Rigor</div>
-        <h2 class="font-serif text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight">Zero Hallucinations: Grounded Tri-State Evidence</h2>
+    <section class="space-y-10 text-left reveal-on-scroll">
+      <div class="max-w-[720px] space-y-2">
+        <div class="text-xs font-mono font-semibold text-indigo-400 uppercase tracking-wider">Epistemic Rigor</div>
+        <h2 class="font-serif text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight">The Grounded Tri-State Evidence Framework</h2>
         <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-sans">
-          Generic AI tools guess. InsightLens separates verified visual evidence from hypotheses, providing epistemic honesty for serious research.
+          InsightLens explicitly separates verifiable visual proof from contextual inference, providing researchers with epistemic transparency and rigorous grounding.
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
         <!-- Status 1: OBSERVED -->
-        <div class="bg-surface-container p-6 rounded-2xl border border-emerald-500/30 space-y-3 flex flex-col justify-between">
+        <div class="bg-[#0e111a] p-6 rounded-2xl border border-emerald-500/30 space-y-3 flex flex-col justify-between">
           <div class="space-y-3">
             <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -668,7 +749,7 @@
         </div>
 
         <!-- Status 2: INFERRED -->
-        <div class="bg-surface-container p-6 rounded-2xl border border-amber-500/30 space-y-3 flex flex-col justify-between">
+        <div class="bg-[#0e111a] p-6 rounded-2xl border border-amber-500/30 space-y-3 flex flex-col justify-between">
           <div class="space-y-3">
             <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-bold">
               <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -676,14 +757,14 @@
             </div>
             <h3 class="font-serif font-bold text-slate-100 text-lg">Contextual Deduction</h3>
             <p class="text-slate-300 text-xs leading-relaxed font-sans">
-              Logical conclusions deduced from observed visual interactions or scientific models, explicitly marked so researchers know it is an interpretation.
+              Logical conclusions deduced from observed visual interactions or technical schema flows, explicitly flagged so researchers understand it is an interpretation.
             </p>
           </div>
           <span class="text-[11px] font-mono text-amber-300">Explicit Logical Deductions</span>
         </div>
 
         <!-- Status 3: UNDETERMINABLE -->
-        <div class="bg-surface-container p-6 rounded-2xl border border-slate-700/60 space-y-3 flex flex-col justify-between">
+        <div class="bg-[#0e111a] p-6 rounded-2xl border border-slate-700/60 space-y-3 flex flex-col justify-between">
           <div class="space-y-3">
             <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-white/10 text-slate-400 text-xs font-mono font-bold">
               <span class="w-2 h-2 rounded-full bg-slate-500"></span>
@@ -691,20 +772,21 @@
             </div>
             <h3 class="font-serif font-bold text-slate-100 text-lg">Honest Boundary Limits</h3>
             <p class="text-slate-300 text-xs leading-relaxed font-sans">
-              When visual evidence is obstructed, truncated, or absent, InsightLens explicitly refuses to fabricate numbers or invent unseen entities.
+              When visual evidence is obscured, truncated, or absent, InsightLens explicitly refuses to fabricate numbers or invent unseen entities.
             </p>
           </div>
           <span class="text-[11px] font-mono text-slate-400">Anti-Hallucination Guardrail</span>
         </div>
+
       </div>
     </section>
 
     <!-- ===================================================================== -->
     <!-- CHAPTER 6: FINAL CALL TO ACTION & INSTITUTIONAL FOOTER -->
     <!-- ===================================================================== -->
-    <section class="bg-gradient-to-b from-[#15102A] to-[#0D0B1E] p-8 sm:p-14 rounded-3xl border border-purple-500/25 text-center space-y-6 shadow-2xl relative overflow-hidden reveal-on-scroll">
+    <section class="bg-gradient-to-b from-[#141828] to-[#0A0D15] p-8 sm:p-14 rounded-3xl border border-indigo-500/25 text-center space-y-6 shadow-2xl relative overflow-hidden reveal-on-scroll">
       <div class="max-w-[620px] mx-auto space-y-3">
-        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Ready to Inspect</div>
+        <div class="text-xs font-mono font-semibold text-indigo-400 uppercase tracking-wider">Ready to Inspect</div>
         <h2 class="font-serif text-3xl sm:text-5xl text-slate-100 font-bold tracking-tight">Turn Visual Information Into Verifiable Understanding.</h2>
         <p class="text-slate-300 text-xs sm:text-base font-sans leading-relaxed">
           Upload any photograph, engineering schema, flowchart, or research document to synthesize empirical briefs in seconds.
@@ -712,44 +794,17 @@
       </div>
 
       <div class="pt-2 flex flex-wrap justify-center items-center gap-4">
-        <button onclick="window.navigateTo('desk')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm sm:text-base px-8 py-4 rounded-xl inline-flex items-center gap-2.5 transition-all cursor-pointer shadow-lg shadow-indigo-900/40 btn-active-scale">
+        <button onclick="window.navigateTo('desk')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm sm:text-base px-8 py-4 rounded-xl inline-flex items-center gap-2.5 transition-all cursor-pointer btn-glow-primary btn-active-scale">
           <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
           Analyze a Visual
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
         </button>
-        <button onclick="window.navigateTo('livevision')" class="bg-surface-container hover:bg-surface-container-high text-slate-200 border ghost-border font-medium text-sm sm:text-base px-6 py-4 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer btn-active-scale">
-          <span class="material-symbols-outlined text-[19px] text-pink-400">videocam</span>
+        <button onclick="window.navigateTo('livevision')" class="bg-[#141824] hover:bg-[#1d2334] text-slate-200 border border-white/10 font-medium text-sm sm:text-base px-6 py-4 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer btn-active-scale">
+          <span class="material-symbols-outlined text-[19px] text-cyan-400">photo_camera</span>
           Launch Live Vision
         </button>
       </div>
     </section>
-
-    <!-- Institutional Research Footer -->
-    <footer class="border-t border-white/[0.08] pt-10 pb-6 text-xs text-slate-400 space-y-6">
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-6 h-6 rounded-md bg-[#1A1333] border border-[#8B6CFF]/30 flex items-center justify-center p-0.5">
-            <img src="/logo.svg" alt="InsightLens Logo" class="w-full h-full object-contain" />
-          </div>
-          <span class="font-sans font-bold text-slate-200 text-sm">InsightLens</span>
-          <span class="text-[11px] text-slate-500 font-mono ml-2">Visual Intelligence Platform</span>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-5 text-xs">
-          <button onclick="window.navigateTo('landing')" class="hover:text-white transition-colors cursor-pointer">Home</button>
-          <button onclick="window.navigateTo('desk')" class="hover:text-white transition-colors cursor-pointer">Analyze</button>
-          <button onclick="window.navigateTo('livevision')" class="hover:text-white transition-colors cursor-pointer">Live Vision</button>
-          <button onclick="window.navigateTo('compare')" class="hover:text-white transition-colors cursor-pointer">Compare</button>
-          <button onclick="window.navigateTo('archive')" class="hover:text-white transition-colors cursor-pointer">Archive</button>
-          <button onclick="window.navigateTo('extensions')" class="hover:text-white transition-colors cursor-pointer">Extensions</button>
-          <button onclick="window.navigateTo('settings')" class="hover:text-white transition-colors cursor-pointer">Settings</button>
-        </div>
-      </div>
-
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-mono border-t border-white/[0.04] pt-4">
-        <span>© 2026 InsightLens Academic &amp; Visual Intelligence. All rights reserved.</span>
-        <span>Grounded Multimodal Evidence Standard</span>
-      </div>
-    </footer>
 
   </main>
 
