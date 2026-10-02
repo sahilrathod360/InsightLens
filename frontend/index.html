@@ -115,7 +115,7 @@
         </div>
       </div>
 
-      <!-- Right Controls: Extensions Icon, Settings Icon, Theme Icon, Auth, Mobile Toggle -->
+      <!-- Right Controls: Extensions Icon, Settings Icon, Auth, Mobile Toggle -->
       <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
         <!-- Extensions Icon Button (Desktop) -->
         <button class="nav-link hidden md:flex w-8.5 h-8.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] border border-white/5 cursor-pointer items-center justify-center transition-all" data-page="extensions" title="Extensions Platform" aria-label="Extensions Platform">
@@ -125,11 +125,6 @@
         <!-- Settings Icon Button (Desktop) -->
         <button class="nav-link hidden md:flex w-8.5 h-8.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] border border-white/5 cursor-pointer items-center justify-center transition-all" data-page="settings" title="System Settings" aria-label="System Settings">
           <span class="material-symbols-outlined text-[19px]">settings</span>
-        </button>
-
-        <!-- Light/Dark Theme Toggle -->
-        <button id="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme" class="w-8.5 h-8.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] cursor-pointer flex items-center justify-center transition-colors border border-white/5">
-          <span class="material-symbols-outlined text-[18px]" id="theme-toggle-icon">light_mode</span>
         </button>
 
         <!-- Welcome [Name] & Avatar Badge -->
@@ -245,7 +240,7 @@
   </nav>
 
   <!-- SCREEN 1: LANDING PAGE V2 — 6 SUBSTANTIAL CINEMATIC VISUAL CHAPTERS -->
-  <main id="page-landing" class="page-view flex-grow w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-16 space-y-24 sm:space-y-32 relative">
+  <main id="page-landing" class="page-view flex-grow w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-2 pb-12 space-y-12 sm:space-y-16 relative">
     
     <!-- 3D Depth Canvas & Atmospheric Background -->
     <div class="landing-bg-container pointer-events-none">
@@ -254,14 +249,43 @@
       <div class="landing-grain-overlay"></div>
     </div>
 
+    <!-- Subtle Animated Marquee Ticker -->
+    <div class="landing-ticker-wrap w-full overflow-hidden py-1 border-b border-white/[0.05] select-none opacity-40">
+      <div class="landing-ticker-content flex items-center gap-8 text-[10px] font-mono tracking-widest text-slate-300 uppercase whitespace-nowrap">
+        <span>SEE DEEPER</span>
+        <span class="text-indigo-400">•</span>
+        <span>ANALYZE SMARTER</span>
+        <span class="text-indigo-400">•</span>
+        <span>UNIVERSAL VISUAL INTELLIGENCE</span>
+        <span class="text-indigo-400">•</span>
+        <span>STRUCTURAL EXTRACTION</span>
+        <span class="text-indigo-400">•</span>
+        <span>VERIFIABLE EVIDENCE</span>
+        <span class="text-indigo-400">•</span>
+        <span>EPISTEMIC RIGOR</span>
+        <span class="text-indigo-400">•</span>
+        <span>SEE DEEPER</span>
+        <span class="text-indigo-400">•</span>
+        <span>ANALYZE SMARTER</span>
+        <span class="text-indigo-400">•</span>
+        <span>UNIVERSAL VISUAL INTELLIGENCE</span>
+        <span class="text-indigo-400">•</span>
+        <span>STRUCTURAL EXTRACTION</span>
+        <span class="text-indigo-400">•</span>
+        <span>VERIFIABLE EVIDENCE</span>
+        <span class="text-indigo-400">•</span>
+        <span>EPISTEMIC RIGOR</span>
+      </div>
+    </div>
+
     <!-- ===================================================================== -->
     <!-- CHAPTER 1: HERO VIEWPORT (EDGE-TO-EDGE INTENTIONAL COMPOSITION) -->
     <!-- ===================================================================== -->
-    <section id="landing-hero" class="pt-3 sm:pt-8 flex items-center min-h-[calc(100vh-100px)]">
+    <section id="landing-hero" class="w-full relative pt-1 pb-4">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center w-full">
         
         <!-- LEFT (6 COLS): HEADLINE, VALUE STATEMENT, CTAs, TRUST METRICS -->
-        <div class="lg:col-span-6 space-y-6 text-left reveal-on-scroll">
+        <div class="lg:col-span-6 space-y-5 text-left reveal-on-scroll">
           
           <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#141828] border border-indigo-500/30 text-indigo-300 text-xs font-mono font-medium shadow-sm">
             <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
@@ -1094,19 +1118,19 @@
     </div>
   </div>
 
-  <!-- SCREEN 3: FUTURISTIC AI RESEARCH DESK WORKBENCH -->
-  <div id="page-desk" class="page-view hidden flex-grow w-full max-w-[1000px] mx-auto px-6 md:px-8 py-10 space-y-8">
+  <!-- SCREEN 3: STREAMLINED AI RESEARCH DESK WORKBENCH -->
+  <div id="page-desk" class="page-view hidden flex-grow w-full max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 space-y-6">
     
     <!-- HEADER WORKBENCH STATUS -->
     <header class="text-center max-w-[640px] mx-auto space-y-2">
-      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] font-medium mb-1">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] font-medium mb-0.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         Gemini AI Vision Workbench Active
       </div>
-      <h1 class="font-headline-md text-2xl md:text-3xl text-on-surface font-serif font-bold">Visual Synthesis Workbench</h1>
-      <p class="font-body-md text-on-surface-variant text-xs md:text-sm">Follow the 4-step AI pipeline below to analyze visual artifacts in real time.</p>
-      <div class="flex flex-wrap justify-center gap-2 pt-2">
-        <button id="analyze-livevision-btn" type="button" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border text-xs font-medium px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 transition-all cursor-pointer">
+      <h1 class="font-headline-md text-2xl md:text-3xl text-on-surface font-serif font-bold">Multimodal Visual Analysis</h1>
+      <p class="font-body-md text-on-surface-variant text-xs md:text-sm">Upload any image, architecture diagram, flowchart, or research document for instant neural extraction.</p>
+      <div class="flex flex-wrap justify-center gap-2 pt-1">
+        <button id="analyze-livevision-btn" type="button" class="bg-surface-container-lowest hover:bg-surface-variant text-on-surface border ghost-border text-xs font-medium px-3.5 py-1.5 rounded-xl inline-flex items-center gap-1.5 transition-all cursor-pointer">
           <span class="material-symbols-outlined text-[16px] text-pink-400">photo_camera</span>
           Use Live Vision instead
         </button>
@@ -1114,26 +1138,26 @@
     </header>
 
     <!-- STEP 1: UPLOAD COMPONENT -->
-    <section class="bg-surface-container p-6 md:p-8 rounded-2xl ghost-border space-y-5 relative overflow-hidden">
+    <section class="bg-surface-container p-5 md:p-7 rounded-2xl ghost-border space-y-4 relative overflow-hidden">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold flex items-center justify-center font-mono">1</span>
           <h2 class="font-headline-md text-base text-on-surface font-bold">Upload Image Source</h2>
         </div>
-        <span class="text-[11px] font-mono text-on-surface-variant">Max 25MB • PNG, JPG, WEBP, SVG</span>
+        <span class="text-[11px] font-mono text-on-surface-variant">Max 25MB • PNG, JPG, WEBP</span>
       </div>
 
-      <div id="drop-zone" tabindex="0" role="region" aria-label="Image drop zone" class="bg-surface-container-lowest p-8 md:p-10 rounded-2xl border border-dashed border-white/20 hover:border-indigo-400/50 transition-all cursor-pointer text-center relative group">
-        <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml" class="hidden" />
+      <div id="drop-zone" tabindex="0" role="region" aria-label="Image drop zone" class="bg-surface-container-lowest p-7 md:p-9 rounded-2xl border border-dashed border-white/20 hover:border-indigo-400/50 transition-all cursor-pointer text-center relative group">
+        <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp, image/jpg" class="hidden" />
         
-        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform shadow-md">
-          <span class="material-symbols-outlined text-[28px]">cloud_upload</span>
+        <div class="w-13 h-13 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform shadow-md">
+          <span class="material-symbols-outlined text-[26px]">cloud_upload</span>
         </div>
 
         <p class="text-base font-semibold text-on-surface mb-1">Drag and drop your visual artifact here</p>
-        <p class="text-xs text-on-surface-variant mb-5">Or browse local computer files to begin instant neural extraction</p>
+        <p class="text-xs text-on-surface-variant mb-4">Or browse local computer files to begin instant neural extraction</p>
 
-        <button type="button" id="browse-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-6 py-3 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer shadow-md">
+        <button type="button" id="browse-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-6 py-2.5 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer shadow-md">
           <span class="material-symbols-outlined text-[18px]">folder_open</span>
           Select File
         </button>
@@ -1141,97 +1165,46 @@
     </section>
 
     <!-- STEP 2: SAMPLE ARTIFACT QUICK PREVIEW -->
-    <section class="bg-surface-container p-6 rounded-2xl ghost-border space-y-4">
+    <section class="bg-surface-container p-5 rounded-2xl ghost-border space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="w-7 h-7 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-400 text-xs font-bold flex items-center justify-center font-mono">2</span>
-          <h2 class="font-headline-md text-base text-on-surface font-bold">Or Select a Trial Artifact</h2>
+          <h2 class="font-headline-md text-base text-on-surface font-bold">Or Select a Sample Artifact</h2>
         </div>
         <span class="text-[11px] text-on-surface-variant font-mono">Instant One-Click Load</span>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
         <div class="sample-chip bg-surface-container-lowest p-3 rounded-xl border ghost-border hover:border-purple-400/50 cursor-pointer transition-all flex items-center gap-3" data-sample="urban">
-          <img src="/images/urban-analysis.jpg" alt="Urban Scene Analysis" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+          <img src="/images/urban-analysis.jpg" alt="Urban Scene Analysis" class="w-11 h-11 rounded-lg object-cover flex-shrink-0 border border-white/10" />
           <div class="overflow-hidden">
             <span class="text-[10px] font-mono text-purple-400 block font-bold">Urban / Scene</span>
-            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Urban Scene Analysis</span>
+            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Urban Scene</span>
           </div>
         </div>
 
         <div class="sample-chip bg-surface-container-lowest p-3 rounded-xl border ghost-border hover:border-pink-400/50 cursor-pointer transition-all flex items-center gap-3" data-sample="mountain">
-          <img src="/images/mountain-analysis.jpg" alt="Mountain Landscape" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+          <img src="/images/mountain-analysis.jpg" alt="Mountain Landscape" class="w-11 h-11 rounded-lg object-cover flex-shrink-0 border border-white/10" />
           <div class="overflow-hidden">
             <span class="text-[10px] font-mono text-pink-400 block font-bold">Landscape</span>
-            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Mountain Landscape</span>
+            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Mountain Relief</span>
           </div>
         </div>
 
         <div class="sample-chip bg-surface-container-lowest p-3 rounded-xl border ghost-border hover:border-amber-400/50 cursor-pointer transition-all flex items-center gap-3" data-sample="milkyway">
-          <img src="/images/milky-way-analysis.jpg" alt="Milky Way Observation" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+          <img src="/images/milky-way-analysis.jpg" alt="Milky Way Observation" class="w-11 h-11 rounded-lg object-cover flex-shrink-0 border border-white/10" />
           <div class="overflow-hidden">
             <span class="text-[10px] font-mono text-amber-400 block font-bold">Astronomy</span>
-            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Milky Way Observation</span>
+            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Milky Way Lake</span>
           </div>
         </div>
 
         <div class="sample-chip bg-surface-container-lowest p-3 rounded-xl border ghost-border hover:border-sky-400/50 cursor-pointer transition-all flex items-center gap-3" data-sample="comet">
-          <img src="/images/comet-analysis.jpg" alt="Comet Observation" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 border border-white/10" />
+          <img src="/images/comet-analysis.jpg" alt="Comet Observation" class="w-11 h-11 rounded-lg object-cover flex-shrink-0 border border-white/10" />
           <div class="overflow-hidden">
             <span class="text-[10px] font-mono text-sky-400 block font-bold">Deep Space</span>
-            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Comet Observation</span>
+            <span class="text-xs text-on-surface truncate block font-serif font-semibold">Comet Spectrum</span>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- STEP 3 & STEP 4: PARAMETERS & SYNTHESIS CONTROL -->
-    <section class="bg-surface-container p-6 rounded-2xl ghost-border grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-      <div class="md:col-span-8 space-y-4">
-        <div class="flex items-center gap-3">
-          <span class="w-7 h-7 rounded-full bg-sky-500/20 border border-sky-500/30 text-sky-400 text-xs font-bold flex items-center justify-center font-mono">3</span>
-          <h2 class="font-headline-md text-base text-on-surface font-bold">Synthesis Options &amp; Parameters</h2>
-        </div>
-
-        <!-- Optional Subject Context Input -->
-        <div class="space-y-1.5">
-          <label for="input-subject-context" class="block text-on-surface-variant font-medium text-[11px] flex items-center justify-between">
-            <span>Subject Name / Context <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></span>
-            <span class="text-[10px] font-mono text-purple-400">e.g. Virat Kohli, Eiffel Tower</span>
-          </label>
-          <div class="relative">
-            <input type="text" id="input-subject-context" placeholder="Enter subject name or context (e.g. Virat Kohli)..." class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
-          </div>
-          <p class="text-[10px] text-slate-400 font-mono">User-supplied premise anchored to visual evidence (not facial recognition).</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div class="space-y-1.5">
-            <label for="select-length" class="block text-on-surface-variant font-medium text-[11px]">Research Depth</label>
-            <select id="select-length" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
-              <option value="long" selected>Comprehensive (3-4 Detailed Sections)</option>
-              <option value="short">Short Brief (1-2 Concise Sections)</option>
-            </select>
-          </div>
-
-          <div class="space-y-1.5">
-            <label for="select-style" class="block text-on-surface-variant font-medium text-[11px]">Writing Style &amp; Tone</label>
-            <select id="select-style" class="w-full bg-surface-container-lowest border ghost-border text-on-surface rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none cursor-pointer">
-              <option value="classic" selected>Classic Academic &amp; Formal</option>
-              <option value="creative">Creative &amp; Narrative Insight</option>
-              <option value="minimal">Minimalist Technical &amp; Data Bullets</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="md:col-span-4 space-y-2.5">
-        <div class="flex items-center gap-3">
-          <span class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center font-mono">4</span>
-          <span class="font-headline-md text-base text-on-surface font-bold">Synthesize</span>
-        </div>
-        <div class="p-3.5 bg-surface-container-lowest rounded-xl border ghost-border text-[11px] text-on-surface-variant text-center font-mono">
-          Drop an image above or click a trial artifact to execute analysis.
         </div>
       </div>
     </section>

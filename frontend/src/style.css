@@ -1163,6 +1163,27 @@ footer {
   transform: translateY(-1px);
 }
 
+/* Animated Marquee / Ticker */
+.landing-ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+.landing-ticker-content {
+  display: inline-flex;
+  animation: tickerScroll 42s linear infinite;
+  will-change: transform;
+}
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-ticker-content {
+    animation: none !important;
+  }
+}
+
 /* Parallax Layer */
 .parallax-layer {
   transition: transform 0.1s linear;
