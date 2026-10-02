@@ -450,32 +450,45 @@ function renderDetailedComparisonResults(mount, resultData) {
       </div>
 
       <!-- 6. FINAL COMPARISON REPORT -->
-      <div class="p-6 rounded-2xl bg-slate-950/90 border border-indigo-500/30 space-y-4">
+      <div class="p-6 rounded-2xl bg-slate-950/90 border border-indigo-500/30 space-y-5">
         <div class="flex items-center justify-between border-b border-white/10 pb-3">
           <h2 class="font-serif font-bold text-xl text-slate-100 flex items-center gap-2">
             <span class="material-symbols-outlined text-indigo-400 text-[24px]">description</span>
             COMPARISON REPORT
           </h2>
-          <span class="px-2.5 py-0.5 rounded text-[10px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-bold">Multimodal Brief</span>
+          <span class="px-2.5 py-0.5 rounded text-[10px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-bold">10-Section Comparative Analysis</span>
         </div>
 
-        <div class="space-y-3 text-xs sm:text-sm text-slate-200 font-sans leading-relaxed">
-          <p>
-            <strong>What do these images have in common?</strong> ${escapeHtml(summaryReport.common || 'Common visual characteristics extracted via Multimodal Vision AI.')}
-          </p>
-          <p>
-            <strong>How are they different?</strong> ${escapeHtml(summaryReport.different || 'Key variations detected across inputs.')}
-          </p>
-          <p>
-            <strong>What is unique about each?</strong> ${escapeHtml(summaryReport.unique || 'Unique visual characteristics extracted.')}
-          </p>
-          <p>
-            <strong>What conclusions can safely be made?</strong> ${escapeHtml(summaryReport.conclusion || 'The visual evidence strictly confirms that each input artifact possesses distinct structural traits and domain classifications.')}
-          </p>
-          <p class="text-slate-400 text-xs font-mono pt-1">
-            <strong>What cannot be determined?</strong> Fictional capabilities, unobserved external lore, and hypothetical outcomes are strictly UNDETERMINABLE from visual evidence alone.
-          </p>
-        </div>
+        ${Array.isArray(resultData.sections) && resultData.sections.length > 0 ? `
+          <div class="space-y-4 divide-y divide-white/5">
+            ${resultData.sections.map(sec => `
+              <div class="pt-3 first:pt-0 space-y-1.5">
+                <h4 class="font-serif font-bold text-indigo-300 text-sm">${escapeHtml(sec.heading)}</h4>
+                <div class="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+                  ${escapeHtml(sec.content).replace(/\n/g, '<br/>')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="space-y-3 text-xs sm:text-sm text-slate-200 font-sans leading-relaxed">
+            <p>
+              <strong>What do these images have in common?</strong> ${escapeHtml(summaryReport.common || 'Common visual characteristics extracted via Multimodal Vision AI.')}
+            </p>
+            <p>
+              <strong>How are they different?</strong> ${escapeHtml(summaryReport.different || 'Key variations detected across inputs.')}
+            </p>
+            <p>
+              <strong>What is unique about each?</strong> ${escapeHtml(summaryReport.unique || 'Unique visual characteristics extracted.')}
+            </p>
+            <p>
+              <strong>What conclusions can safely be made?</strong> ${escapeHtml(summaryReport.conclusion || 'The visual evidence strictly confirms that each input artifact possesses distinct structural traits and domain classifications.')}
+            </p>
+            <p class="text-slate-400 text-xs font-mono pt-1">
+              <strong>What cannot be determined?</strong> Fictional capabilities, unobserved external lore, and hypothetical outcomes are strictly UNDETERMINABLE from visual evidence alone.
+            </p>
+          </div>
+        `}
       </div>
     </div>
   `;

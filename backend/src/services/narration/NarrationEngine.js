@@ -2,21 +2,26 @@ import { generateCustomId } from '../../utils/idUtils.js';
 
 export class NarrationEngine {
   /**
-   * Transforms structured findings, claims, and evidence into an ordered sequence of narration steps.
+   * Transforms structured findings, claims, and evidence into an ordered sequence of 4-8 documentary narration steps.
    * Each step carries the exact spoken observation and the linked evidence region ID for synchronized UI highlighting.
-   * @param {Object} reportData { title, visualType, claims, findings, evidence }
+   * @param {Object} reportData { title, subject, category, visualType, claims, findings, observations, evidence, executiveInsight, summary }
    */
   generateNarrationSequence(reportData = {}) {
-    const { title = 'Visual Analysis', visualType = 'DIAGRAM', claims = [], findings = [], evidence = [] } = reportData;
+    const subject = reportData.subject || reportData.title || 'the visual artifact';
+    const category = reportData.category || reportData.domainClassification || reportData.visualType || 'Visual Analysis';
+    const claims = Array.isArray(reportData.claims) ? reportData.claims : [];
+    const findings = Array.isArray(reportData.findings) ? reportData.findings : (Array.isArray(reportData.structuredFindings) ? reportData.structuredFindings : []);
+    const observations = Array.isArray(reportData.observations) ? reportData.observations : [];
+    const evidence = Array.isArray(reportData.evidence) ? reportData.evidence : [];
 
     const steps = [];
     let order = 1;
 
-    // Introduction Step
+    // Step 1: Introduction Step
     steps.push({
       stepId: `NAR-${order}`,
       order: order++,
-      text: `Beginning evidence-grounded walkthrough for ${title}. Visual classified as ${visualType}.`,
+      text: `Beginning evidence-grounded walkthrough for ${subject}. Visual classified as ${category}.`,
       status: 'OBSERVED',
       claimId: null,
       evidenceId: null,
@@ -24,15 +29,15 @@ export class NarrationEngine {
       coordinates: { x: 0.05, y: 0.05, width: 0.9, height: 0.15, normalized: true }
     });
 
-    // Evidence & Claims Steps
+    // Evidence & Claims Steps (Mapped directly so steps[1] corresponds to first evidence item if present)
     const itemsToNarrate = evidence.length > 0 ? evidence : (claims.length > 0 ? claims : findings);
 
     itemsToNarrate.forEach((item, idx) => {
-      const isEvidence = Boolean(item.coordinates && item.label);
       const label = item.label || item.region || `Finding ${idx + 1}`;
       const status = item.status || 'OBSERVED';
-      const explanation = item.explanation || item.claimText || item.claim || item.text || item.description || `Observed ${label}`;
+      const explanation = item.explanation || item.claimText || item.claim || item.statement || item.text || item.description || `Observed ${label}`;
       const coords = item.coordinates || { x: 0.1 + (idx % 3) * 0.25, y: 0.2 + Math.floor(idx / 3) * 0.2, width: 0.2, height: 0.15, normalized: true };
+      const eId = item.id || `EVI-${idx + 1}`;
 
       let spokenText = '';
       if (status === 'OBSERVED') {
@@ -49,7 +54,7 @@ export class NarrationEngine {
         text: spokenText,
         status,
         claimId: item.claimId || `CLM-${idx + 1}`,
-        evidenceId: item.id || `EVI-${idx + 1}`,
+        evidenceId: eId,
         region: label,
         coordinates: coords
       });
@@ -70,7 +75,7 @@ export class NarrationEngine {
     return {
       narrationId: generateCustomId('NAR'),
       totalSteps: steps.length,
-      estimatedDurationSec: Math.round(steps.length * 3.5),
+      estimatedDurationSec: Math.round(steps.length * 4.5),
       steps,
       timestamp: new Date().toISOString()
     };

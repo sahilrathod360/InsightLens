@@ -35,41 +35,56 @@ export function openReportQuizModal(reportData) {
 function generateValidatedMCQsFromReport(data) {
   if (!data) return [];
 
-  const subject = data.subject || data.title || data.fullData?.subject || data.full_data?.subject;
+  const subject = data.subject || data.title || data.fullData?.subject || data.full_data?.subject || 'Visual Subject';
+  const category = data.category || data.domainClassification || data.visualType || data.fullData?.category || 'Visual Intelligence';
   const claims = data.claims || data.fullData?.claims || data.full_data?.claims || [];
-  const findings = data.findings || data.keyFindings || data.fullData?.findings || data.full_data?.keyFindings || [];
+  const findings = data.findings || data.keyFindings || data.structuredFindings || data.fullData?.findings || data.full_data?.keyFindings || [];
+  const observations = data.observations || data.fullData?.observations || [];
+  const keyFacts = data.keyFacts || data.fullData?.keyFacts || [];
   const nodes = data.diagramStructure?.nodes || data.fullData?.diagramStructure?.nodes || data.full_data?.diagramStructure?.nodes || [];
   const chartData = data.chartStructure || data.fullData?.chartStructure;
-  const summary = data.summary || data.fullData?.summary;
-
-  if (!subject && claims.length === 0 && findings.length === 0 && nodes.length === 0 && !summary) {
-    return [];
-  }
+  const summary = data.summary || data.executiveInsight?.summary || data.executiveSummary || data.fullData?.summary;
 
   const candidateQuestions = [];
   let qId = 1;
 
-  // 1. Finding Observation Question
-  if (findings.length > 0) {
-    const f1 = typeof findings[0] === 'string' ? findings[0] : (findings[0].title || findings[0].text || findings[0].claim);
-    if (f1 && f1.length > 5) {
+  // 1. Primary Subject & Domain Classification Question
+  if (subject && subject !== 'Visual Subject') {
+    candidateQuestions.push({
+      id: qId++,
+      sourceClaimId: `TAXONOMY-01`,
+      question: `What is the primary subject and domain classification established for this visual artifact?`,
+      options: [
+        { key: 'A', text: `${subject} (${category})`, isCorrect: true, explanation: `Correct. Multimodal vision classified the primary subject as "${subject}" in the "${category}" domain.` },
+        { key: 'B', text: `Generic Unidentified Artifact (Miscellaneous)`, isCorrect: false, explanation: 'Incorrect. The subject has been identified and categorized.' },
+        { key: 'C', text: `Unclassified Synthetic Noise Pattern`, isCorrect: false, explanation: 'Incorrect. Optical features confirm authentic domain classification.' },
+        { key: 'D', text: `Static Calibration Target`, isCorrect: false, explanation: 'Incorrect. The image contains verified domain entities.' }
+      ]
+    });
+  }
+
+  // 2. Finding / Observation Question
+  if (findings.length > 0 || observations.length > 0) {
+    const fItem = findings[0] || observations[0];
+    const fText = typeof fItem === 'string' ? fItem : (fItem.statement || fItem.title || fItem.text || fItem.claim);
+    if (fText && fText.length > 5) {
       candidateQuestions.push({
         id: qId++,
-        sourceClaimId: findings[0].sourceClaimId || `CLAIM-${qId}`,
-        question: `Based on the visual evidence of ${subject || 'the visual artifact'}, which finding was explicitly observed?`,
+        sourceClaimId: fItem.sourceClaimId || fItem.id || `OBS-01`,
+        question: `Based on the visual evidence for ${subject}, which finding was directly observed?`,
         options: [
-          { key: 'A', text: f1, isCorrect: true, explanation: `Correct. Grounded visual evidence explicitly observed: "${f1}".` },
-          { key: 'B', text: `Unrelated visual entity not present in ${subject || 'the image'}`, isCorrect: false, explanation: 'Incorrect. This was not detected in the visual evidence.' },
-          { key: 'C', text: `Contradicted layout assumption`, isCorrect: false, explanation: 'Incorrect. No visual contradiction was observed.' },
-          { key: 'D', text: `Unverified background noise`, isCorrect: false, explanation: 'Incorrect. The observed finding is structured and verified.' }
+          { key: 'A', text: fText.length > 80 ? fText.slice(0, 80) + '...' : fText, isCorrect: true, explanation: `Correct. Grounded visual observation explicitly verified: "${fText}".` },
+          { key: 'B', text: `Contradictory visual artifact structure`, isCorrect: false, explanation: 'Incorrect. No contradiction was found.' },
+          { key: 'C', text: `Unobserved hypothetical element`, isCorrect: false, explanation: 'Incorrect. Only observed features are validated.' },
+          { key: 'D', text: `Speculative background anomaly`, isCorrect: false, explanation: 'Incorrect. This finding is structured and verified.' }
         ]
       });
     }
   }
 
-  // 2. Claim Evidence Verification Question
+  // 3. Claim Evidence Status Question
   if (claims.length > 0) {
-    const c1 = typeof claims[0] === 'string' ? claims[0] : (claims[0].text || claims[0].claim || '');
+    const c1 = typeof claims[0] === 'string' ? claims[0] : (claims[0].statement || claims[0].text || claims[0].claim || '');
     const c1Status = (claims[0].status || 'OBSERVED').toUpperCase();
     const c1Id = claims[0].id || claims[0].claimId || `CLAIM-01`;
 
@@ -80,7 +95,7 @@ function generateValidatedMCQsFromReport(data) {
         question: `What is the verified evidence status for claim [${c1Id}]: "${c1.slice(0, 60)}${c1.length > 60 ? '...' : ''}"?`,
         options: [
           { key: 'A', text: `Status: ${c1Status}`, isCorrect: true, explanation: `Correct. Claim ${c1Id} is classified as ${c1Status} based on strict visual evidence.` },
-          { key: 'B', text: `Status: ${c1Status === 'OBSERVED' ? 'CONTRADICTED' : 'OBSERVED'}`, isCorrect: false, explanation: `Incorrect. Grounded report evidence confirms status is ${c1Status}.` },
+          { key: 'B', text: `Status: ${c1Status === 'OBSERVED' ? 'UNDETERMINABLE' : 'OBSERVED'}`, isCorrect: false, explanation: `Incorrect. Evidence ledger confirms status is ${c1Status}.` },
           { key: 'C', text: 'Status: UNCHECKED', isCorrect: false, explanation: 'Incorrect. Claim verification was completed during extraction.' },
           { key: 'D', text: 'Status: REJECTED', isCorrect: false, explanation: 'Incorrect. The claim was not rejected.' }
         ]
@@ -88,62 +103,55 @@ function generateValidatedMCQsFromReport(data) {
     }
   }
 
-  // 3. Topology / Structure Question
-  if (nodes.length >= 2) {
-    const n1 = nodes[0].label || 'Primary Component';
-    const n2 = nodes[1].label || 'Secondary Component';
-    const n3 = nodes[2]?.label || 'External Boundary';
-
+  // 4. Key Fact or Secondary Finding Question
+  if (keyFacts.length > 0) {
+    const kf = keyFacts[0];
     candidateQuestions.push({
       id: qId++,
-      sourceClaimId: `TOPOLOGY-01`,
-      question: `In the visual structural topology of ${subject || 'the image'}, which node connects to "${n1}"?`,
+      sourceClaimId: `FACT-01`,
+      question: `Regarding ${subject}, what was verified for "${kf.label || 'Key Attribute'}"?`,
       options: [
-        { key: 'A', text: n2, isCorrect: true, explanation: `Correct. Topological graph links "${n1}" to "${n2}".` },
-        { key: 'B', text: n3, isCorrect: false, explanation: `Incorrect. "${n3}" is downstream or disconnected.` },
-        { key: 'C', text: 'Unobserved External System', isCorrect: false, explanation: 'Incorrect. No connection to unobserved external system exists.' },
-        { key: 'D', text: 'Isolated Orphan Node', isCorrect: false, explanation: 'Incorrect. The component is connected in the graph.' }
+        { key: 'A', text: `${kf.detail}`, isCorrect: true, explanation: `Correct. Verified domain fact: "${kf.label}: ${kf.detail}".` },
+        { key: 'B', text: 'Data unavailable or not recorded', isCorrect: false, explanation: 'Incorrect. This attribute was confirmed in the research ledger.' },
+        { key: 'C', text: 'Hypothetical estimate', isCorrect: false, explanation: 'Incorrect. The fact is verified.' },
+        { key: 'D', text: 'Contradicted by external archive', isCorrect: false, explanation: 'Incorrect. Source records support this detail.' }
       ]
     });
-  }
-
-  // 4. Second Claim or Finding Question
-  if (claims.length >= 2) {
-    const c2 = typeof claims[1] === 'string' ? claims[1] : (claims[1].text || claims[1].claim || '');
+  } else if (claims.length >= 2) {
+    const c2 = typeof claims[1] === 'string' ? claims[1] : (claims[1].statement || claims[1].text || claims[1].claim || '');
     const c2Id = claims[1].id || claims[1].claimId || `CLAIM-02`;
-
     if (c2 && c2.length > 5) {
       candidateQuestions.push({
         id: qId++,
         sourceClaimId: c2Id,
-        question: `According to evidence claim [${c2Id}], which statement regarding ${subject || 'the subject'} is correct?`,
+        question: `According to evidence claim [${c2Id}], which statement regarding ${subject} is correct?`,
         options: [
-          { key: 'A', text: c2, isCorrect: true, explanation: `Correct. Grounded evidence [${c2Id}] explicitly asserts: "${c2}".` },
-          { key: 'B', text: `Inverted statement: Opposite of ${c2.slice(0, 30)}...`, isCorrect: false, explanation: 'Incorrect. This directly contradicts report evidence.' },
-          { key: 'C', text: `Speculative hypothesis not grounded in the image`, isCorrect: false, explanation: 'Incorrect. Analysis requires grounded evidence.' },
-          { key: 'D', text: `Unrelated domain assertion`, isCorrect: false, explanation: 'Incorrect. Assertion is unrelated to report.' }
-        ]
-      });
-    }
-  } else if (findings.length >= 2) {
-    const f2 = typeof findings[1] === 'string' ? findings[1] : (findings[1].title || findings[1].text);
-    if (f2 && f2.length > 5) {
-      candidateQuestions.push({
-        id: qId++,
-        sourceClaimId: `FINDING-02`,
-        question: `Which key finding regarding ${subject || 'the image'} was documented in the analysis?`,
-        options: [
-          { key: 'A', text: f2, isCorrect: true, explanation: `Correct. Grounded report finding: "${f2}".` },
-          { key: 'B', text: 'Visual artifact distorted beyond recognition', isCorrect: false, explanation: 'Incorrect. The artifact was successfully extracted.' },
-          { key: 'C', text: 'Unverified random noise pattern', isCorrect: false, explanation: 'Incorrect. Structural features were confirmed.' },
-          { key: 'D', text: 'Conflicting light source direction', isCorrect: false, explanation: 'Incorrect. Not listed in findings.' }
+          { key: 'A', text: c2.length > 80 ? c2.slice(0, 80) + '...' : c2, isCorrect: true, explanation: `Correct. Grounded evidence [${c2Id}] explicitly asserts: "${c2}".` },
+          { key: 'B', text: `Inverted statement: Opposite of ${c2.slice(0, 30)}...`, isCorrect: false, explanation: 'Incorrect. Contradicts report evidence.' },
+          { key: 'C', text: `Speculative claim not present in the visual`, isCorrect: false, explanation: 'Incorrect. Analysis requires grounded evidence.' },
+          { key: 'D', text: `Unrelated domain assertion`, isCorrect: false, explanation: 'Incorrect. Assertion is unrelated.' }
         ]
       });
     }
   }
 
-  // 5. Summary / Chart Question
-  if (chartData && chartData.series && chartData.series.length > 0) {
+  // 5. Structure / Summary Question
+  if (nodes.length >= 2) {
+    const n1 = nodes[0].label || 'Primary Component';
+    const n2 = nodes[1].label || 'Secondary Component';
+    const n3 = nodes[2]?.label || 'External Boundary';
+    candidateQuestions.push({
+      id: qId++,
+      sourceClaimId: `TOPOLOGY-01`,
+      question: `In the visual structural topology of ${subject}, which component connects with "${n1}"?`,
+      options: [
+        { key: 'A', text: n2, isCorrect: true, explanation: `Correct. Topological graph links "${n1}" to "${n2}".` },
+        { key: 'B', text: n3, isCorrect: false, explanation: `Incorrect. "${n3}" is downstream or disconnected.` },
+        { key: 'C', text: 'Unobserved External System', isCorrect: false, explanation: 'Incorrect. No connection exists.' },
+        { key: 'D', text: 'Isolated Orphan Node', isCorrect: false, explanation: 'Incorrect. The component is connected.' }
+      ]
+    });
+  } else if (chartData && chartData.series && chartData.series.length > 0) {
     const sName = chartData.series[0].name || 'Primary Metric';
     candidateQuestions.push({
       id: qId++,
@@ -153,16 +161,16 @@ function generateValidatedMCQsFromReport(data) {
         { key: 'A', text: `Extracted quantitative metric: ${sName}`, isCorrect: true, explanation: `Correct. Chart series data measures ${sName}.` },
         { key: 'B', text: 'Qualitative color swatch', isCorrect: false, explanation: 'Incorrect. Represents numerical chart data.' },
         { key: 'C', text: 'Uncalibrated measurement axis', isCorrect: false, explanation: 'Incorrect. Metric is calibrated.' },
-        { key: 'D', text: 'Randomly generated sequence', isCorrect: false, explanation: 'Incorrect. Extracted from actual visual chart.' }
+        { key: 'D', text: 'Randomly generated sequence', isCorrect: false, explanation: 'Incorrect. Extracted from chart.' }
       ]
     });
-  } else if (summary && summary.length > 20) {
+  } else if (summary && summary.length > 15) {
     candidateQuestions.push({
       id: qId++,
       sourceClaimId: `SUMMARY-01`,
-      question: `What is the core visual insight summarized for ${subject || 'this report'}?`,
+      question: `What is the core visual research insight summarized for ${subject}?`,
       options: [
-        { key: 'A', text: summary.slice(0, 90) + (summary.length > 90 ? '...' : ''), isCorrect: true, explanation: `Correct. Grounded report summary: "${summary.slice(0, 100)}..."` },
+        { key: 'A', text: summary.length > 85 ? summary.slice(0, 85) + '...' : summary, isCorrect: true, explanation: `Correct. Executive research summary confirms this finding.` },
         { key: 'B', text: 'The visual artifact contains no extractable features or structure', isCorrect: false, explanation: 'Incorrect. Full structural model was generated.' },
         { key: 'C', text: 'The analysis is inconclusive due to low resolution', isCorrect: false, explanation: 'Incorrect. Analysis was successfully concluded.' },
         { key: 'D', text: 'Standard placeholder description', isCorrect: false, explanation: 'Incorrect. Summary is specific to the uploaded visual.' }
@@ -170,7 +178,6 @@ function generateValidatedMCQsFromReport(data) {
     });
   }
 
-  // Strict validation filter: Only questions with valid options & evidence references
   return candidateQuestions.filter(q => q.question && q.options && q.options.length === 4 && q.options.some(o => o.isCorrect));
 }
 

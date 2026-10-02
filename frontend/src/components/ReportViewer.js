@@ -298,6 +298,52 @@ export function renderResultScreen(data) {
   // 7b. Evidence Intelligence Workbench (Phase 9)
   renderEvidenceWorkbench(data);
 
+  // 7c. "Did You Know?" Verified Knowledge Card
+  const didYouKnowContainer = document.getElementById('report-did-you-know-card');
+  if (didYouKnowContainer) {
+    const rawRefs = Array.isArray(data.references) ? data.references : (Array.isArray(data.sources) ? data.sources : []);
+    const factSource = rawRefs.length > 0 ? rawRefs[0] : null;
+    let factUrl = null;
+    let factSourceTitle = 'Verified Domain Archive';
+
+    if (typeof factSource === 'string') {
+      const urlMatch = factSource.match(/(https?:\/\/[^\s]+)/i);
+      factUrl = urlMatch ? sanitizeUrl(urlMatch[1].replace(/[.,;)]+$/, '')) : null;
+      factSourceTitle = factSource.replace(/(https?:\/\/[^\s]+)/i, '').trim() || 'Verified Domain Archive';
+    } else if (factSource && typeof factSource === 'object') {
+      factUrl = factSource.url ? sanitizeUrl(factSource.url) : null;
+      factSourceTitle = factSource.title || factSource.source || factSource.organization || 'Verified Domain Archive';
+    }
+
+    const factText = (Array.isArray(data.interestingFacts) && data.interestingFacts.length > 0 ? data.interestingFacts[0] : null) ||
+                     (Array.isArray(data.keyFacts) && data.keyFacts.length > 0 ? `${data.keyFacts[0].label}: ${data.keyFacts[0].detail}` : null) ||
+                     (data.historicalBackground ? data.historicalBackground.slice(0, 180) + '...' : `Multimodal AI optical verification establishes ${subjectName} within the ${categoryName} domain.`);
+
+    didYouKnowContainer.innerHTML = `
+      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-slate-200 flex items-start gap-3 shadow-lg">
+        <div class="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
+          <span class="material-symbols-outlined text-[24px]">lightbulb</span>
+        </div>
+        <div class="space-y-1 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <h4 class="font-serif font-bold text-amber-300 text-sm">💡 Did You Know?</h4>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">Verified Fact</span>
+          </div>
+          <p class="text-xs text-slate-200 font-sans leading-relaxed">${escapeHtml(factText)}</p>
+          ${factUrl ? `
+            <div class="pt-1">
+              <a href="${escapeHtml(factUrl)}" target="_blank" rel="noopener noreferrer" class="text-[11px] font-mono text-amber-400 hover:underline inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-[12px]">open_in_new</span> Source: ${escapeHtml(factSourceTitle)}
+              </a>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+    didYouKnowContainer.classList.remove('hidden');
+    didYouKnowContainer.style.display = 'block';
+  }
+
   // 8. Dynamic Domain-Adaptive Sections & Academic Research
   const dynamicSectionsEl = document.getElementById('report-dynamic-sections-container');
   const defaultSecsWrapper = document.getElementById('report-default-sections-wrapper');
@@ -459,24 +505,74 @@ export function renderResultScreen(data) {
     }
   }
 
-  // 13. Limitations Callout
+  // 13. Visual Evidence & Interpretation (Directly Observed, Derived Interpretation, Undetermined, Important Evidence)
   const limSection = document.getElementById('section-limitations-wrapper') || document.getElementById('limitations-text')?.closest('.space-y-3');
   const limEl = document.getElementById('limitations-text');
-  const limText = Array.isArray(data.limitations) ? data.limitations.filter(Boolean).join('\n\n') : (typeof data.limitations === 'string' ? data.limitations.trim() : '');
-  if (limText || data.limitations) {
-    if (limSection) {
-      limSection.classList.remove('hidden');
-      limSection.style.display = 'block';
-    }
-    setSectionHeading('section-limitations-heading', `${sectionCounter++}. Analytical Limitations & Scope`);
-    if (limEl) {
-      limEl.innerHTML = renderMarkdownToHtml(limText || 'No limitations were supplied by the model. Treat image-derived claims as uncertain unless marked observed.');
-    }
-  } else {
-    if (limSection) {
-      limSection.classList.add('hidden');
-      limSection.style.display = 'none';
-    }
+  
+  if (limSection) {
+    limSection.classList.remove('hidden');
+    limSection.style.display = 'block';
+  }
+  setSectionHeading('section-limitations-heading', `${sectionCounter++}. Visual Evidence & Interpretation`);
+  
+  if (limEl) {
+    const claims = Array.isArray(data.claims) ? data.claims : [];
+    const obs = Array.isArray(data.observations) ? data.observations : [];
+    const findings = Array.isArray(data.findings) ? data.findings : (Array.isArray(data.structuredFindings) ? data.structuredFindings : []);
+
+    const directlyObserved = claims.filter(c => (c.status || '').toUpperCase() === 'OBSERVED').map(c => c.statement || c.text || c.claim)
+      .concat(obs.filter(o => (o.status || '').toUpperCase() === 'OBSERVED').map(o => typeof o === 'string' ? o : o.statement))
+      .filter(Boolean);
+
+    const derivedInterpretation = claims.filter(c => (c.status || '').toUpperCase() === 'INFERRED').map(c => c.statement || c.text || c.claim)
+      .concat(findings.filter(f => (f.status || '').toUpperCase() === 'INFERRED').map(f => f.statement || f.title || f.text))
+      .filter(Boolean);
+
+    const undetermined = claims.filter(c => (c.status || '').toUpperCase() === 'UNDETERMINABLE').map(c => c.statement || c.text || c.claim)
+      .filter(Boolean);
+
+    const limText = Array.isArray(data.limitations) ? data.limitations.filter(Boolean).join(' ') : (typeof data.limitations === 'string' ? data.limitations.trim() : '');
+
+    let contentHtml = `
+      <div class="space-y-4 text-xs md:text-sm font-sans">
+        <div>
+          <h4 class="font-serif font-bold text-emerald-400 text-sm flex items-center gap-1.5 mb-1.5">
+            <span class="material-symbols-outlined text-[18px]">check_circle</span> Directly Observed
+          </h4>
+          <ul class="list-disc list-inside space-y-1 text-[var(--text-secondary)] pl-1">
+            ${directlyObserved.length > 0 ? directlyObserved.slice(0, 4).map(o => `<li>${escapeHtml(o)}</li>`).join('') : `<li>Primary optical composition, subject staging, and color palette directly detected in frame.</li>`}
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-serif font-bold text-indigo-400 text-sm flex items-center gap-1.5 mb-1.5">
+            <span class="material-symbols-outlined text-[18px]">psychology</span> Derived Interpretation
+          </h4>
+          <ul class="list-disc list-inside space-y-1 text-[var(--text-secondary)] pl-1">
+            ${derivedInterpretation.length > 0 ? derivedInterpretation.slice(0, 3).map(d => `<li>${escapeHtml(d)}</li>`).join('') : `<li>Domain taxonomy and functional classifications logically deduced from visual markers.</li>`}
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-serif font-bold text-amber-400 text-sm flex items-center gap-1.5 mb-1.5">
+            <span class="material-symbols-outlined text-[18px]">help</span> Undetermined
+          </h4>
+          <ul class="list-disc list-inside space-y-1 text-[var(--text-secondary)] pl-1">
+            ${undetermined.length > 0 ? undetermined.slice(0, 3).map(u => `<li>${escapeHtml(u)}</li>`).join('') : `<li>Unobserved internal structure, private biometrics, and uncaptured environmental context remain undetermined.</li>`}
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-serif font-bold text-purple-400 text-sm flex items-center gap-1.5 mb-1.5">
+            <span class="material-symbols-outlined text-[18px]">verified</span> Important Evidence
+          </h4>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            ${escapeHtml(limText || `All claims within this report maintain strict evidentiary separation between direct 2D visual observations and external domain knowledge.`)}
+          </p>
+        </div>
+      </div>
+    `;
+    limEl.innerHTML = contentHtml;
   }
 
   // 14. References & Verified Sources

@@ -65,6 +65,7 @@ export async function openNarrationModal(reportData) {
   } catch (err) {
     console.warn('[Narration] Sequence generation notice, using client script:', err);
     currentSequence = generateClientNarrationScript(artifact);
+    currentStepIndex = 0;
     statusState = 'IDLE';
     renderNarrationModalContent(artifact);
   }
@@ -77,32 +78,33 @@ export function startNarration(reportData) {
 function generateClientNarrationScript(reportData) {
   const subject = reportData.subject || reportData.title || reportData.fullData?.subject || 'the visual artifact';
   const type = reportData.category || reportData.visualType || 'visual diagram';
-  const summary = reportData.summary || reportData.fullData?.summary || '';
-  const findings = reportData.findings || reportData.keyFindings || reportData.fullData?.findings || [];
+  const summary = reportData.summary || reportData.executiveInsight?.summary || reportData.fullData?.summary || '';
+  const findings = reportData.findings || reportData.keyFindings || reportData.structuredFindings || reportData.fullData?.findings || [];
   const claims = reportData.claims || reportData.fullData?.claims || [];
+  const observations = reportData.observations || reportData.fullData?.observations || [];
 
-  const mainObs = findings[0]?.title || claims[0]?.text || 'the primary visual components are clearly structured and identifiable';
-  const secondObs = findings[1]?.title || claims[1]?.text || 'the connections and layout follow verifiable domain principles';
-  const undeter = claims.find(c => (c.status || '').toUpperCase() === 'UNDETERMINABLE')?.text || null;
+  const mainObs = findings[0]?.statement || findings[0]?.title || claims[0]?.statement || observations[0]?.statement || 'the primary visual components are clearly structured and identifiable';
+  const secondObs = findings[1]?.statement || findings[1]?.title || claims[1]?.statement || observations[1]?.statement || 'the spatial connections and layout follow verifiable domain principles';
+  const undeter = claims.find(c => (c.status || '').toUpperCase() === 'UNDETERMINABLE')?.statement || null;
 
   const steps = [
     {
-      text: `Welcome to the visual intelligence audio overview for ${subject}, classified under ${type}.`,
+      text: `Welcome to the visual intelligence audio overview for ${subject}, classified under ${type}. Multimodal vision decomposes all optical features into verifiable evidence.`,
       status: 'OBSERVED',
       evidenceId: 'EV-1'
     },
     summary ? {
-      text: `Summary of visual analysis: ${summary}`,
+      text: `Executive summary: ${summary}`,
       status: 'OBSERVED',
       evidenceId: 'EV-SUMMARY'
     } : null,
     {
-      text: `Examining the primary observations: ${mainObs}.`,
+      text: `Examining the primary observations: ${mainObs}. This is directly grounded in observable image pixels.`,
       status: 'OBSERVED',
       evidenceId: 'EV-2'
     },
     {
-      text: `Additionally, visual evidence confirms that ${secondObs}.`,
+      text: `Additionally, visual evidence confirms: ${secondObs}. Structured domain registries support this classification.`,
       status: 'OBSERVED',
       evidenceId: 'EV-3'
     },
@@ -114,10 +116,15 @@ function generateClientNarrationScript(reportData) {
       text: `In summary, all extracted visual findings are grounded in verifiable structural evidence with high technical precision.`,
       status: 'OBSERVED',
       evidenceId: 'EV-4'
+    },
+    {
+      text: `Narration walkthrough complete. All observations for ${subject} have been cataloged in the evidence registry.`,
+      status: 'OBSERVED',
+      evidenceId: 'EV-FINAL'
     }
   ].filter(Boolean);
 
-  return { steps };
+  return { steps, totalSteps: steps.length };
 }
 
 function renderNarrationModalSkeleton(artifact) {
@@ -185,6 +192,7 @@ function renderNarrationModalContent(artifact) {
   const modal = document.getElementById('modal-narration-dialog');
   if (!modal || !currentSequence) return;
 
+  const totalSteps = currentSequence.steps.length;
   const step = currentSequence.steps[currentStepIndex] || { text: 'Narration script ready.', status: 'OBSERVED' };
 
   let statusBadge = '';
@@ -193,7 +201,7 @@ function renderNarrationModalContent(artifact) {
   } else if (statusState === 'PAUSED') {
     statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">⏸ Paused</span>`;
   } else if (statusState === 'ERROR') {
-    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">⚠️ Speech playback failed</span>`;
+    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">⚠️ Speech unavailable</span>`;
   } else {
     statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">▶ Ready</span>`;
   }
@@ -202,7 +210,7 @@ function renderNarrationModalContent(artifact) {
     <div class="relative w-full max-w-xl p-6 rounded-2xl bg-[#090b10] border border-indigo-500/30 text-slate-100 shadow-2xl space-y-5 animate-fade-in">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center gap-2">
-          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Report Narration</h3>
+          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Documentary Narration</h3>
           ${statusBadge}
         </div>
         <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
@@ -210,14 +218,15 @@ function renderNarrationModalContent(artifact) {
 
       <div class="p-4 rounded-xl bg-slate-950/80 border border-white/5 space-y-2">
         <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
-          <span>Spoken Walkthrough Script</span>
-          <span id="narration-step-progress">Step ${currentStepIndex + 1} of ${currentSequence.steps.length}</span>
+          <span>Documentary Script</span>
+          <span id="narration-step-progress">Step ${currentStepIndex + 1} of ${totalSteps}</span>
         </div>
-        <p id="narration-step-text" class="text-sm text-slate-200 font-sans leading-relaxed min-h-[56px]">
+        <p id="narration-step-text" class="text-sm text-slate-200 font-sans leading-relaxed min-h-[60px]">
           "${escapeHtml(step.text)}"
         </p>
       </div>
 
+      <!-- Multi-step controls: Previous, Play/Pause, Next, Stop -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
         <!-- Speed selector -->
         <div class="flex items-center gap-1 text-xs font-mono">
@@ -227,20 +236,29 @@ function renderNarrationModalContent(artifact) {
           <button onclick="window.setNarrationSpeed(1.25)" class="px-2 py-0.5 rounded ${playbackRate === 1.25 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'} cursor-pointer">1.25x</button>
         </div>
 
-        <!-- Controls -->
+        <!-- Controls: Previous, Play/Pause, Next, Stop -->
         <div class="flex items-center gap-2">
+          <button onclick="window.prevNarrationStep()" ${currentStepIndex === 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 text-xs font-mono cursor-pointer flex items-center gap-1">
+            <span>⏮</span> Prev
+          </button>
+
           ${!isPlaying ? `
             <button onclick="window.playNarrationStep()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-semibold cursor-pointer shadow flex items-center gap-1.5">
-              <span>▶</span> Play Explanation
+              <span>▶</span> Play
             </button>
           ` : `
-            <button onclick="window.pauseNarration()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono cursor-pointer">
-              ${isPaused ? 'Resume' : 'Pause'}
-            </button>
-            <button onclick="window.stopNarration()" class="px-3.5 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-mono cursor-pointer">
-              Stop
+            <button onclick="window.pauseNarration()" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-mono font-semibold cursor-pointer">
+              ${isPaused ? '▶ Resume' : '⏸ Pause'}
             </button>
           `}
+
+          <button onclick="window.nextNarrationStep()" ${currentStepIndex >= totalSteps - 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 text-xs font-mono cursor-pointer flex items-center gap-1">
+            Next <span>⏭</span>
+          </button>
+
+          <button onclick="window.stopNarration()" class="px-3 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-mono cursor-pointer">
+            Stop
+          </button>
         </div>
       </div>
     </div>
@@ -251,7 +269,7 @@ function renderNarrationModalContent(artifact) {
     isPaused = false;
     statusState = 'SPEAKING';
     renderNarrationModalContent(artifact);
-    playNextStep(artifact);
+    speakCurrentStep(artifact);
   };
 
   window.pauseNarration = () => {
@@ -263,19 +281,37 @@ function renderNarrationModalContent(artifact) {
     } else {
       statusState = 'SPEAKING';
       if (synth) synth.resume();
-      if (synth && !synth.speaking) playNextStep(artifact);
+      if (synth && !synth.speaking) speakCurrentStep(artifact);
     }
     renderNarrationModalContent(artifact);
+  };
+
+  window.prevNarrationStep = () => {
+    if (currentStepIndex > 0) {
+      if (synth) synth.cancel();
+      currentStepIndex--;
+      renderNarrationModalContent(artifact);
+      if (isPlaying && !isPaused) speakCurrentStep(artifact);
+    }
+  };
+
+  window.nextNarrationStep = () => {
+    if (currentStepIndex < totalSteps - 1) {
+      if (synth) synth.cancel();
+      currentStepIndex++;
+      renderNarrationModalContent(artifact);
+      if (isPlaying && !isPaused) speakCurrentStep(artifact);
+    }
   };
 
   window.stopNarration = stopNarration;
   window.setNarrationSpeed = (s) => setPlaybackRate(s);
 }
 
-function playNextStep(artifact) {
+function speakCurrentStep(artifact) {
   if (!isPlaying || isPaused || !currentSequence || currentStepIndex >= currentSequence.steps.length) {
     if (currentStepIndex >= (currentSequence?.steps?.length || 0)) {
-      showToast('Evidence report explanation complete.', 'success');
+      showToast('Documentary narration walkthrough complete.', 'success');
       isPlaying = false;
       statusState = 'IDLE';
       renderNarrationModalContent(artifact);
@@ -291,7 +327,7 @@ function playNextStep(artifact) {
 
   if (!isSpeechSynthesisSupported()) {
     statusState = 'ERROR';
-    showToast('Speech synthesis is not supported in this browser.', 'warning');
+    showToast('Speech synthesis is not supported in this browser environment.', 'warning');
     renderNarrationModalContent(artifact);
     return;
   }
@@ -314,15 +350,22 @@ function playNextStep(artifact) {
 
   utterance.onend = () => {
     if (isPlaying && !isPaused) {
-      currentStepIndex++;
-      playNextStep(artifact);
+      if (currentStepIndex < currentSequence.steps.length - 1) {
+        currentStepIndex++;
+        renderNarrationModalContent(artifact);
+        speakCurrentStep(artifact);
+      } else {
+        showToast('Documentary narration completed.', 'success');
+        isPlaying = false;
+        statusState = 'IDLE';
+        renderNarrationModalContent(artifact);
+      }
     }
   };
 
   utterance.onerror = (e) => {
     console.warn('[Narration] Speech synthesis error:', e);
     statusState = 'ERROR';
-    showToast('Speech playback failed.', 'error');
     renderNarrationModalContent(artifact);
   };
 

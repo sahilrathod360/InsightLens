@@ -3,21 +3,36 @@ import { AnalysisStrategyFactory } from '../services/classification/AnalysisStra
 export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA') {
   const strategyGuide = AnalysisStrategyFactory.buildPromptInstructions();
 
-  const userContextBlock = subjectContext && subjectContext.trim() ? `
+  // Helper to detect generic filenames, numbers, or dummy strings
+  const isGenericOrFilename = (text) => {
+    if (!text || typeof text !== 'string') return true;
+    const t = text.trim();
+    if (!t) return true;
+    if (/^\d+$/.test(t)) return true; // pure numbers like 1000190324
+    if (/^(image|img|photo|screenshot|picture|asset|file)[\s_-]*\d*$/i.test(t)) return true;
+    if (/\.(jpe?g|png|webp|gif|svg|bmp|tiff)$/i.test(t)) return true; // filename with extension
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(t)) return true; // UUID
+    return false;
+  };
+
+  const validContext = subjectContext && !isGenericOrFilename(subjectContext) ? subjectContext.trim() : '';
+
+  const userContextBlock = validContext ? `
 USER-PROVIDED SUBJECT CONTEXT:
-The user has explicitly specified that the subject of this visual is: "${subjectContext.trim()}".
-- Treat "${subjectContext.trim()}" as the primary research subject.
-- Set the JSON "subject" to "${subjectContext.trim()}".
-- Set the JSON "title" to: "${subjectContext.trim()} — [Comprehensive Role / Career / Topic Subtitle]".
-- Conduct deep, authoritative, long-form research on "${subjectContext.trim()}" across all relevant domain dimensions.
+The user has explicitly specified that the subject of this visual is: "${validContext}".
+- Treat "${validContext}" as the primary research subject.
+- Set the JSON "subject" to "${validContext}".
+- Set the JSON "title" to: "${validContext} — [Comprehensive Role / Career / Topic Subtitle]".
+- Conduct deep, authoritative, long-form research on "${validContext}" across all relevant domain dimensions.
 - IMPORTANT IDENTITY SAFETY: The user-supplied subject context is external research context, NOT biometric visual proof. Do NOT claim the person's face or morphology biometrically proves this identity. Visual observations must describe only visible attire, staging, and equipment.
 ` : `
 AUTONOMOUS SUBJECT IDENTIFICATION (NO USER-PROVIDED CONTEXT):
-- Analyze all visible optical evidence in the image: prominent public entities, distinctive uniforms/insignia, readable inscriptions, architectural landmarks, equipment, charts, diagrams, or documents.
-- If the subject is a widely recognizable public figure, public institution, iconic landmark, or commercial entity, resolve the subject accurately based on visual and contextual evidence.
+- Analyze all visible optical evidence in the image: prominent public entities, characters, superhero costumes, distinctive uniforms/insignia, readable inscriptions, architectural landmarks, equipment, charts, diagrams, or documents.
+- If the subject is a widely recognizable character, superhero, public figure, public institution, iconic landmark, or commercial entity (e.g., Spider-Man, Superman, Batman, AB de Villiers), resolve the exact subject name accurately based on visual and contextual evidence.
 - STRICT IDENTITY SAFETY: DO NOT claim facial recognition, biometric measurement, facial geometry/morphology, photographic database matching, or that facial features uniquely identify any individual.
 - If the subject is an unidentifiable private individual or general scene, DO NOT fabricate or guess private names. Instead, set the subject and title to an accurate, domain-descriptive visual topic (e.g., "Visual Analysis — Professional Cricket Match Play", "Visual Analysis — Urban Architecture", "Visual Analysis — Financial Trend Chart").
-- NEVER use generic image filenames (e.g., "images (2)", "IMG_1234", "photo.jpg", "screenshot.png") or camera metadata as the subject or title.
+- NEVER use generic image filenames (e.g., "1000190324", "images (2)", "IMG_1234", "photo.jpg", "screenshot.png") or camera metadata as the subject or title.
+- Choose domain-accurate visual categories (e.g., "Superhero Character Art", "Technical Diagram (DFD)", "Data Visualization", "Urban Photography", "Automotive Engineering"), NEVER defaulting generically to "Cinema".
 `;
 
   return `You are InsightLens Universal Visual Research Engine.

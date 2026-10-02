@@ -265,7 +265,7 @@ export async function renderArchivePage() {
           const data = rpt.fullData || {};
           const procTime = rpt.processingTimeMs ? (rpt.processingTimeMs / 1000).toFixed(1) + 's' : '~2.0s';
           const conf = rpt.evidenceStatus || 'Uncertain';
-          const rawImg = rpt.thumbnailDataUrl || rpt.imageDataUrl || rpt.fullImage || data.thumbnailDataUrl || data.imageDataUrl || data.fullImage || null;
+          const rawImg = rpt.thumbnailDataUrl || rpt.imageDataUrl || rpt.fullImage || rpt.thumbnail_data_url || rpt.image_data_url || data.thumbnailDataUrl || data.imageDataUrl || data.thumbnail_data_url || data.image_data_url || data.fullImage || null;
           const safeImg = rawImg ? sanitizeUrl(rawImg) : null;
 
           return `
