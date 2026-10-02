@@ -3,11 +3,73 @@ import { showToast } from '../utils/toast.js';
 import { escapeHtml } from '../utils/sanitize.js';
 
 let liveStreamTrack = null;
-let liveAnalysisInterval = null;
-let isAnalyzingFrame = false;
-let currentFrameRegions = [];
+let detectionLoopTimer = null;
+let isDetecting = false;
+let detectorModel = null;
+let isModelLoading = false;
+let currentFrameDetections = [];
+let smoothedDetections = [];
 let currentFacingMode = 'environment';
 let isLiveVisionPaused = false;
+let lastServerSyncTime = 0;
+
+/**
+ * Loads the client-side lightweight COCO-SSD object detector lazily.
+ */
+async function getOrLoadDetector() {
+  if (detectorModel) return detectorModel;
+  if (isModelLoading) {
+    while (isModelLoading) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return detectorModel;
+  }
+
+  isModelLoading = true;
+  try {
+    const statusEl = document.getElementById('live-detector-status');
+    if (statusEl) statusEl.innerText = 'Loading AI Object Detector...';
+    
+    await import('@tensorflow/tfjs');
+    const cocoSsd = await import('@tensorflow-models/coco-ssd');
+    
+    detectorModel = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
+    console.log('[LiveVision] COCO-SSD lightweight model loaded successfully');
+    if (statusEl) statusEl.innerText = 'OBJECT DETECTION ACTIVE';
+  } catch (err) {
+    console.warn('[LiveVision] Local COCO-SSD load failed, will rely on backend vision:', err.message);
+  } finally {
+    isModelLoading = false;
+  }
+  return detectorModel;
+}
+
+function formatClassLabel(rawClass) {
+  if (!rawClass) return 'Object';
+  const mapping = {
+    'tv': 'TV',
+    'tvmonitor': 'TV / Monitor',
+    'cell phone': 'Phone',
+    'laptop': 'Laptop',
+    'couch': 'Sofa',
+    'dining table': 'Table',
+    'potted plant': 'Plant',
+    'sports ball': 'Ball',
+    'wine glass': 'Wine Glass',
+    'hair drier': 'Hair Dryer',
+    'teddy bear': 'Teddy Bear',
+    'refrigerator': 'Fridge',
+    'microwave': 'Microwave',
+    'traffic light': 'Traffic Light',
+    'fire hydrant': 'Fire Hydrant',
+    'stop sign': 'Stop Sign',
+    'parking meter': 'Parking Meter'
+  };
+
+  const key = rawClass.toLowerCase().trim();
+  if (mapping[key]) return mapping[key];
+  return rawClass.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
 
 export function renderLiveVisionPage() {
   const container = document.getElementById('page-livevision');
@@ -20,13 +82,13 @@ export function renderLiveVisionPage() {
         <div class="space-y-1">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-mono">
             <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
-            Real-Time Visual Discovery • Live Stream Camera
+            Real-Time Visual Object Detection • Live Camera
           </div>
           <h1 class="font-serif font-bold text-3xl text-slate-100 tracking-tight">
             Live Vision Discovery
           </h1>
           <p class="text-xs text-slate-400 font-sans">
-            Point your camera at the real world and watch InsightLens discover, annotate, and evaluate visual evidence in real time.
+            Point your camera at the real world to continuously detect objects (TV, Person, Bed, Table, Laptop, Phone) with live bounding boxes.
           </p>
         </div>
 
@@ -51,7 +113,7 @@ export function renderLiveVisionPage() {
       </div>
 
       <!-- Main Camera Viewport Area -->
-      <div class="live-camera-shell relative w-full rounded-2xl bg-black border border-purple-500/20 overflow-hidden shadow-2xl flex flex-col justify-center items-center">
+      <div class="live-camera-shell relative w-full rounded-2xl bg-black border border-purple-500/20 overflow-hidden shadow-2xl flex flex-col justify-center items-center min-h-[420px] sm:min-h-[520px]">
         <!-- Error & Fallback Container -->
         <div id="live-camera-error-container" class="hidden p-6 max-w-md text-center space-y-4">
           <span id="live-camera-error-icon" class="material-symbols-outlined text-[48px] text-amber-400">videocam_off</span>
@@ -72,7 +134,7 @@ export function renderLiveVisionPage() {
           <div>
             <h3 class="font-serif font-bold text-slate-100 text-base">Camera Is Offline</h3>
             <p class="text-xs text-slate-400 font-sans max-w-sm mx-auto mt-1">
-              Click <strong>Start Camera</strong> to launch your laptop webcam or mobile camera for real-time visual discovery.
+              Click <strong>Start Camera</strong> to activate your camera for real-time visual object detection and bounding box discovery.
             </p>
           </div>
         </div>
@@ -86,22 +148,32 @@ export function renderLiveVisionPage() {
             <!-- Bounding boxes rendered dynamically -->
           </div>
 
-          <!-- Scanner Laser Effect -->
+          <!-- Subtle Scan Laser Bar -->
           <div class="scanner-laser pointer-events-none"></div>
 
           <!-- Top Status Bar Overlay -->
           <div class="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-20">
             <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-xs font-mono text-emerald-400">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              LIVE DISCOVERY ACTIVE
+              <span id="live-detector-status">OBJECT DETECTION ACTIVE</span>
             </div>
-            <div id="live-frame-latency" class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-mono text-slate-300">
-              Latency: --ms
+            <div class="flex items-center gap-2">
+              <div id="live-detected-count" class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-mono text-indigo-300">
+                Objects: 0
+              </div>
+              <div id="live-frame-latency" class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-mono text-slate-300">
+                Latency: --ms
+              </div>
             </div>
           </div>
 
+          <!-- Empty Detection Prompt -->
+          <div id="live-no-detection-msg" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/80 border border-white/10 text-[11px] font-mono text-slate-400 pointer-events-none z-20">
+            Scanning scene... (No objects currently detected)
+          </div>
+
           <!-- Floating Clickable Region Popover Mount -->
-          <div id="live-region-popover" class="hidden absolute z-30 max-w-xs p-3.5 rounded-xl bg-slate-950/90 border border-purple-500/30 text-xs shadow-2xl backdrop-blur-md">
+          <div id="live-region-popover" class="hidden absolute z-30 max-w-xs p-3.5 rounded-xl bg-slate-950/95 border border-purple-500/40 text-xs shadow-2xl backdrop-blur-md">
             <!-- Rendered on region click -->
           </div>
         </div>
@@ -110,9 +182,9 @@ export function renderLiveVisionPage() {
       <!-- Action Footer: Analyze This Scene -->
       <div id="live-scene-actions" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-950/60 border border-purple-500/30">
         <div class="space-y-1">
-          <span class="font-serif font-bold text-slate-100 text-sm">Scene ready for analysis</span>
+          <span class="font-serif font-bold text-slate-100 text-sm">Scene ready for full report</span>
           <p class="text-xs text-slate-400 font-sans">
-            Capture the current frame and send it through the full visual intelligence pipeline.
+            Capture the current frame and send it through the full visual intelligence pipeline for in-depth analysis.
           </p>
         </div>
 
@@ -125,6 +197,8 @@ export function renderLiveVisionPage() {
   `;
 
   setupLiveVisionEvents();
+  // Pre-load detector in background
+  getOrLoadDetector().catch(() => {});
 }
 
 function setupLiveVisionEvents() {
@@ -145,7 +219,6 @@ function setupLiveVisionEvents() {
 
     if (errorContainer) errorContainer.classList.add('hidden');
 
-    // 1. Check Browser Media Devices & Secure Context Support
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showCameraError(
         'Browser Unsupported',
@@ -164,7 +237,6 @@ function setupLiveVisionEvents() {
 
     showToast('Initializing camera stream...', 'info');
 
-    // Detect mobile vs desktop camera options with facingMode toggle
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const videoConstraints = isMobile
       ? { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } }
@@ -200,8 +272,8 @@ function setupLiveVisionEvents() {
       isLiveVisionPaused = false;
       updatePauseButton();
 
-      showToast(`Camera active (${currentFacingMode}). Real-time visual discovery engaged.`, 'success');
-      startLightweightFrameLoop();
+      showToast(`Camera active (${currentFacingMode}). Real-time object detection engaged.`, 'success');
+      startRealtimeDetectionLoop();
     } catch (err) {
       console.error('[LiveVision] getUserMedia Error:', err);
       let errorTitle = 'Camera Access Failed';
@@ -209,7 +281,7 @@ function setupLiveVisionEvents() {
 
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         errorTitle = 'Camera Permission Denied';
-        errorDesc = 'InsightLens needs camera permission to discover visual scenes. Please click the camera icon in your browser address bar and select "Allow".';
+        errorDesc = 'InsightLens needs camera permission to detect visual objects. Please click the camera icon in your browser address bar and select "Allow".';
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
         errorTitle = 'No Camera Found';
         errorDesc = 'No camera device was detected on your system. Please connect a webcam and try again.';
@@ -235,21 +307,21 @@ function setupLiveVisionEvents() {
     isLiveVisionPaused = !isLiveVisionPaused;
     if (isLiveVisionPaused) {
       video.pause();
-      if (liveAnalysisInterval) {
-        clearInterval(liveAnalysisInterval);
-        liveAnalysisInterval = null;
+      if (detectionLoopTimer) {
+        clearTimeout(detectionLoopTimer);
+        detectionLoopTimer = null;
       }
     } else {
       video.play().catch(() => {});
-      startLightweightFrameLoop();
+      startRealtimeDetectionLoop();
     }
     updatePauseButton();
   };
 
   window.stopLiveCameraStream = () => {
-    if (liveAnalysisInterval) {
-      clearInterval(liveAnalysisInterval);
-      liveAnalysisInterval = null;
+    if (detectionLoopTimer) {
+      clearTimeout(detectionLoopTimer);
+      detectionLoopTimer = null;
     }
 
     if (liveStreamTrack) {
@@ -264,6 +336,11 @@ function setupLiveVisionEvents() {
     const switchBtn = document.getElementById('switch-camera-btn');
     const pauseBtn = document.getElementById('pause-camera-btn');
     const stopBtn = document.getElementById('stop-camera-btn');
+    const layer = document.getElementById('live-bounding-box-layer');
+
+    if (layer) layer.innerHTML = '';
+    currentFrameDetections = [];
+    smoothedDetections = [];
 
     wrapper?.classList.add('hidden');
     sceneActions?.classList.add('hidden');
@@ -325,42 +402,159 @@ function showCameraError(title, desc) {
   container?.classList.remove('hidden');
 }
 
-function startLightweightFrameLoop() {
-  if (liveAnalysisInterval) clearInterval(liveAnalysisInterval);
+/**
+ * Continuous real-time detection loop with throttled interval (300ms cadence).
+ */
+function startRealtimeDetectionLoop() {
+  if (detectionLoopTimer) clearTimeout(detectionLoopTimer);
 
-  liveAnalysisInterval = setInterval(async () => {
-    if (isAnalyzingFrame) return;
+  const runDetectionTick = async () => {
+    if (isLiveVisionPaused || !liveStreamTrack) return;
 
     const video = document.getElementById('live-camera-feed');
-    if (!video || !video.videoWidth || video.paused) return;
-
-    isAnalyzingFrame = true;
-    const startTime = performance.now();
-
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 640;
-      canvas.height = 360;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const thumbUrl = canvas.toDataURL('image/jpeg', 0.6);
-
-      const data = await sendLiveVisionFrame({ imageFrame: thumbUrl });
-      const latency = Math.round(performance.now() - startTime);
-
-      const latEl = document.getElementById('live-frame-latency');
-      if (latEl) latEl.innerText = `Latency: ${latency}ms`;
-
-      if (data && data.regions) {
-        currentFrameRegions = data.regions;
-        renderLiveBoundingBoxes(data.regions);
-      }
-    } catch (err) {
-      console.warn('[LiveVision] Frame analysis notice:', err.message);
-    } finally {
-      isAnalyzingFrame = false;
+    if (!video || !video.videoWidth || video.paused) {
+      detectionLoopTimer = setTimeout(runDetectionTick, 200);
+      return;
     }
-  }, 2500);
+
+    if (!isDetecting) {
+      isDetecting = true;
+      const startTime = performance.now();
+
+      try {
+        const model = await getOrLoadDetector();
+        let rawDetections = [];
+
+        if (model) {
+          // Real-time object detection directly on HTML5 video element
+          const predictions = await model.detect(video, 12, 0.40);
+          const vWidth = video.videoWidth || 1280;
+          const vHeight = video.videoHeight || 720;
+
+          rawDetections = predictions.map((pred, idx) => {
+            const [bx, by, bw, bh] = pred.bbox;
+            const normX = Math.max(0, Math.min(1, bx / vWidth));
+            const normY = Math.max(0, Math.min(1, by / vHeight));
+            const normW = Math.max(0.02, Math.min(1 - normX, bw / vWidth));
+            const normH = Math.max(0.02, Math.min(1 - normY, bh / vHeight));
+            const label = formatClassLabel(pred.class);
+            const score = Math.round((pred.score || 0.85) * 100);
+
+            return {
+              id: `DET-${idx + 1}`,
+              label,
+              confidence: score,
+              status: 'OBSERVED',
+              coordinates: {
+                x: normX,
+                y: normY,
+                width: normW,
+                height: normH,
+                normalized: true
+              },
+              observation: `Detected ${label} (${score}% confidence) in active visual field.`
+            };
+          });
+        }
+
+        const latency = Math.round(performance.now() - startTime);
+
+        const latEl = document.getElementById('live-frame-latency');
+        if (latEl) latEl.innerText = `Latency: ${latency}ms`;
+
+        const countEl = document.getElementById('live-detected-count');
+        if (countEl) countEl.innerText = `Objects: ${rawDetections.length}`;
+
+        const emptyMsg = document.getElementById('live-no-detection-msg');
+        if (emptyMsg) {
+          if (rawDetections.length === 0) {
+            emptyMsg.classList.remove('hidden');
+          } else {
+            emptyMsg.classList.add('hidden');
+          }
+        }
+
+        // Apply temporal smoothing to eliminate bounding box jitter
+        const smoothed = applyTemporalSmoothing(rawDetections);
+        currentFrameDetections = smoothed;
+        renderLiveBoundingBoxes(smoothed);
+
+        // Periodically sync telemetry frame with backend (every 4 seconds)
+        const now = Date.now();
+        if (now - lastServerSyncTime > 4000 && video.videoWidth > 0) {
+          lastServerSyncTime = now;
+          syncBackendFrameTelemetry(video, smoothed).catch(() => {});
+        }
+      } catch (err) {
+        console.warn('[LiveVision] Object detection tick notice:', err.message);
+      } finally {
+        isDetecting = false;
+      }
+    }
+
+    // Schedule next detection frame (300ms cadence)
+    if (!isLiveVisionPaused && liveStreamTrack) {
+      detectionLoopTimer = setTimeout(runDetectionTick, 300);
+    }
+  };
+
+  detectionLoopTimer = setTimeout(runDetectionTick, 100);
+}
+
+/**
+ * Smooths bounding boxes between consecutive frames to prevent jitter.
+ */
+function applyTemporalSmoothing(newDetections) {
+  const ALPHA = 0.65;
+  const now = Date.now();
+
+  const smoothed = newDetections.map(det => {
+    const prev = smoothedDetections.find(p => 
+      p.label === det.label &&
+      Math.abs(p.coordinates.x - det.coordinates.x) < 0.15 &&
+      Math.abs(p.coordinates.y - det.coordinates.y) < 0.15
+    );
+
+    if (prev) {
+      return {
+        ...det,
+        coordinates: {
+          x: prev.coordinates.x * (1 - ALPHA) + det.coordinates.x * ALPHA,
+          y: prev.coordinates.y * (1 - ALPHA) + det.coordinates.y * ALPHA,
+          width: prev.coordinates.width * (1 - ALPHA) + det.coordinates.width * ALPHA,
+          height: prev.coordinates.height * (1 - ALPHA) + det.coordinates.height * ALPHA,
+          normalized: true
+        },
+        lastSeen: now
+      };
+    }
+
+    return {
+      ...det,
+      lastSeen: now
+    };
+  });
+
+  smoothedDetections = smoothed;
+  return smoothed;
+}
+
+async function syncBackendFrameTelemetry(video, detections) {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 480;
+    canvas.height = 270;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const thumbUrl = canvas.toDataURL('image/jpeg', 0.5);
+
+    await sendLiveVisionFrame({
+      imageDataUrl: thumbUrl,
+      detections
+    });
+  } catch (e) {
+    // Non-fatal telemetry sync
+  }
 }
 
 function getVideoDisplayRect(video) {
@@ -396,7 +590,7 @@ function getVideoDisplayRect(video) {
   return { left: offsetLeft, top: offsetTop, width: renderWidth, height: renderHeight };
 }
 
-function renderLiveBoundingBoxes(regions = []) {
+function renderLiveBoundingBoxes(detections = []) {
   const layer = document.getElementById('live-bounding-box-layer');
   const video = document.getElementById('live-camera-feed');
   if (!layer || !video) return;
@@ -404,15 +598,15 @@ function renderLiveBoundingBoxes(regions = []) {
   const rect = getVideoDisplayRect(video);
   const useAbsoluteRect = rect.width > 0 && rect.height > 0;
 
-  layer.innerHTML = regions.map((r, idx) => {
-    const coords = r.coordinates || { x: 0.1 + idx * 0.25, y: 0.2, width: 0.22, height: 0.35 };
+  layer.innerHTML = detections.map((r, idx) => {
+    const coords = r.coordinates || { x: 0.1 + idx * 0.2, y: 0.2, width: 0.25, height: 0.35 };
     
     let styleStr = '';
     if (useAbsoluteRect) {
-      const boxLeft = rect.left + coords.x * rect.width;
-      const boxTop = rect.top + coords.y * rect.height;
-      const boxWidth = coords.width * rect.width;
-      const boxHeight = coords.height * rect.height;
+      const boxLeft = Math.round(rect.left + coords.x * rect.width);
+      const boxTop = Math.round(rect.top + coords.y * rect.height);
+      const boxWidth = Math.round(coords.width * rect.width);
+      const boxHeight = Math.round(coords.height * rect.height);
       styleStr = `left: ${boxLeft}px; top: ${boxTop}px; width: ${boxWidth}px; height: ${boxHeight}px;`;
     } else {
       const left = (coords.x * 100).toFixed(1);
@@ -426,17 +620,18 @@ function renderLiveBoundingBoxes(regions = []) {
       <div 
         onclick="window.showLiveRegionDetails(${idx})"
         style="${styleStr}"
-        class="absolute border-2 border-purple-400 bg-purple-500/10 hover:bg-purple-500/20 transition-all cursor-pointer rounded-lg group shadow-lg flex items-start p-1"
+        class="absolute border-2 border-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all cursor-pointer rounded-lg group shadow-xl flex items-start p-1 pointer-events-auto"
       >
-        <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white font-mono font-bold text-[10px] tracking-wider uppercase shadow">
-          ${escapeHtml(r.label || `Region ${idx + 1}`)}
-        </span>
+        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-600/90 text-white font-mono font-bold text-[10px] tracking-wider uppercase shadow backdrop-blur-sm">
+          <span>${escapeHtml(r.label || `Object ${idx + 1}`)}</span>
+          <span class="text-[9px] text-emerald-200 font-normal opacity-90">${r.confidence}%</span>
+        </div>
       </div>
     `;
   }).join('');
 
   window.showLiveRegionDetails = (index) => {
-    const r = currentFrameRegions[index];
+    const r = currentFrameDetections[index];
     if (!r) return;
 
     const popover = document.getElementById('live-region-popover');
@@ -450,14 +645,18 @@ function renderLiveBoundingBoxes(regions = []) {
     popover.innerHTML = `
       <div class="space-y-2 text-left">
         <div class="flex items-center justify-between border-b border-white/10 pb-1.5">
-          <span class="font-serif font-bold text-slate-100">${escapeHtml(r.label || 'Region Observation')}</span>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            ${escapeHtml(r.status || 'OBSERVED')}
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span class="font-serif font-bold text-slate-100 text-sm">${escapeHtml(r.label || 'Detected Object')}</span>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
+            ${r.confidence}% CONFIDENCE
           </span>
         </div>
-        <div class="text-[11px] text-slate-300 font-sans">${escapeHtml(r.observation || r.type || 'Detected visual element')}</div>
-        <div class="flex justify-end pt-1">
-          <button onclick="document.getElementById('live-region-popover').classList.add('hidden')" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white text-[10px] font-mono cursor-pointer">
+        <div class="text-[11px] text-slate-300 font-sans">${escapeHtml(r.observation || `Visual detection of ${r.label} in camera frame.`)}</div>
+        <div class="flex items-center justify-between pt-1 border-t border-white/5 text-[10px] font-mono text-slate-400">
+          <span>Status: <strong class="text-emerald-400">${escapeHtml(r.status || 'OBSERVED')}</strong></span>
+          <button onclick="document.getElementById('live-region-popover').classList.add('hidden')" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white text-[10px] font-mono cursor-pointer border border-white/10">
             Close
           </button>
         </div>
@@ -465,4 +664,3 @@ function renderLiveBoundingBoxes(regions = []) {
     `;
   };
 }
-

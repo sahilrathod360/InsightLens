@@ -91,9 +91,10 @@ let currentActiveTheme = 'default';
 let currentActiveTypography = 'academic';
 let currentActiveLayout = 'research-desk';
 
-export function applyTheme(themeSlug, persist = true) {
+export function applyTheme(themeSlug, persist = false) {
   const root = document.documentElement;
   const theme = THEME_DEFINITIONS[themeSlug];
+  const prevTheme = currentActiveTheme;
 
   if (!theme) {
     // Reset to default theme
@@ -101,6 +102,9 @@ export function applyTheme(themeSlug, persist = true) {
     currentActiveTheme = 'default';
     if (persist) {
       updateActiveState({ theme: 'midnight-research' }).catch(() => {});
+      if (prevTheme !== 'default') {
+        showToast('Reset to Default Theme', 'info');
+      }
     }
     return;
   }
@@ -129,12 +133,15 @@ export function applyTheme(themeSlug, persist = true) {
     updateActiveState({ theme: themeSlug }).catch(err => {
       console.warn('[ThemeRuntime] Failed to persist theme to PostgreSQL:', err.message);
     });
-    showToast(`Applied Theme: ${themeSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+    if (prevTheme !== themeSlug) {
+      showToast(`Applied Theme: ${themeSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+    }
   }
 }
 
-export function applyTypography(typoSlug, persist = true) {
+export function applyTypography(typoSlug, persist = false) {
   const root = document.documentElement;
+  const prevTypo = currentActiveTypography;
   root.setAttribute('data-typography', typoSlug);
   currentActiveTypography = typoSlug;
 
@@ -146,12 +153,15 @@ export function applyTypography(typoSlug, persist = true) {
     updateActiveState({ typography: typoSlug }).catch(err => {
       console.warn('[ThemeRuntime] Failed to persist typography to PostgreSQL:', err.message);
     });
-    showToast(`Typography Pack updated: ${typoSlug.toUpperCase()}`, 'info');
+    if (prevTypo !== typoSlug) {
+      showToast(`Typography Pack updated: ${typoSlug.toUpperCase()}`, 'info');
+    }
   }
 }
 
-export function applyLayoutMode(layoutSlug, persist = true) {
+export function applyLayoutMode(layoutSlug, persist = false) {
   const root = document.documentElement;
+  const prevLayout = currentActiveLayout;
   root.setAttribute('data-layout', layoutSlug);
   currentActiveLayout = layoutSlug;
 
@@ -163,60 +173,82 @@ export function applyLayoutMode(layoutSlug, persist = true) {
     updateActiveState({ layout: layoutSlug }).catch(err => {
       console.warn('[ThemeRuntime] Failed to persist layout to PostgreSQL:', err.message);
     });
-    showToast(`UI Layout updated: ${layoutSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+    if (prevLayout !== layoutSlug) {
+      showToast(`UI Layout updated: ${layoutSlug.replace(/-/g, ' ').toUpperCase()}`, 'info');
+    }
   }
 }
 
-export function togglePresentationMode(enable, persist = true) {
+export function togglePresentationMode(enable, persist = false) {
   const root = document.documentElement;
+  const wasEnabled = root.getAttribute('data-presentation-mode') === 'true';
   if (enable) {
     root.setAttribute('data-presentation-mode', 'true');
-    showToast('Entered Presentation & Review Mode', 'info');
+    if (persist && !wasEnabled) {
+      showToast('Entered Presentation & Review Mode', 'info');
+    }
   } else {
     root.removeAttribute('data-presentation-mode');
-    showToast('Exited Presentation Mode', 'info');
+    if (persist && wasEnabled) {
+      showToast('Exited Presentation Mode', 'info');
+    }
   }
   if (persist) {
     syncActiveModes();
   }
 }
 
-export function toggleFocusMode(enable, persist = true) {
+export function toggleFocusMode(enable, persist = false) {
   const root = document.documentElement;
+  const wasEnabled = root.getAttribute('data-focus-mode') === 'true';
   if (enable) {
     root.setAttribute('data-focus-mode', 'true');
-    showToast('Entered Focus Mode (Zen Workspace)', 'info');
+    if (persist && !wasEnabled) {
+      showToast('Entered Focus Mode (Zen Workspace)', 'info');
+    }
   } else {
     root.removeAttribute('data-focus-mode');
-    showToast('Exited Focus Mode', 'info');
+    if (persist && wasEnabled) {
+      showToast('Exited Focus Mode', 'info');
+    }
   }
   if (persist) {
     syncActiveModes();
   }
 }
 
-export function toggleDeveloperMode(enable, persist = true) {
+export function toggleDeveloperMode(enable, persist = false) {
   const root = document.documentElement;
+  const wasEnabled = root.getAttribute('data-developer-mode') === 'true';
   if (enable) {
     root.setAttribute('data-developer-mode', 'true');
-    showToast('Developer & Telemetry Mode Enabled', 'info');
+    if (persist && !wasEnabled) {
+      showToast('Developer & Telemetry Mode Enabled', 'info');
+    }
   } else {
     root.removeAttribute('data-developer-mode');
-    showToast('Developer Mode Disabled', 'info');
+    if (persist && wasEnabled) {
+      showToast('Developer Mode Disabled', 'info');
+    }
   }
   if (persist) {
     syncActiveModes();
   }
 }
 
-export function toggleAcademicMode(enable, persist = true) {
+export function toggleAcademicMode(enable, persist = false) {
   const root = document.documentElement;
+  const wasEnabled = root.getAttribute('data-academic-mode') === 'true';
   if (enable) {
     root.setAttribute('data-academic-mode', 'true');
-    showToast('Academic Mode Activated', 'info');
+    if (persist && !wasEnabled) {
+      showToast('Academic Mode Activated', 'info');
+    }
   } else {
     root.removeAttribute('data-academic-mode');
-    showToast('Academic Mode Deactivated', 'info');
+    if (persist && wasEnabled) {
+      showToast('Academic Mode Deactivated', 'info');
+    }
   }
   if (persist) {
     syncActiveModes();

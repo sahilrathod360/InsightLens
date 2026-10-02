@@ -103,18 +103,40 @@ export async function initPersistentSession(updateAuthUI) {
     return null;
   }
 
-  // Ensure lightweight checking state is displayed while validating token
-  if (authNavBtn) authNavBtn.classList.add('hidden');
-  if (checkingBadge) checkingBadge.classList.remove('hidden');
+  // 1. FAST PATH: Synchronously restore cached session immediately (T0 -> T1 < 1ms)
+  let hadCachedSession = false;
+  try {
+    const cachedSessionStr = localStorage.getItem('insightlens_session');
+    if (cachedSessionStr) {
+      const cachedSession = JSON.parse(cachedSessionStr);
+      if (cachedSession && cachedSession.name) {
+        setUserSession(cachedSession);
+        hadCachedSession = true;
+        if (typeof updateAuthUI === 'function') updateAuthUI();
+      }
+    }
+  } catch (e) {}
 
+  // If no cached session yet, show lightweight checking badge while fetching
+  if (!hadCachedSession) {
+    if (authNavBtn) authNavBtn.classList.add('hidden');
+    if (checkingBadge) checkingBadge.classList.remove('hidden');
+  }
+
+  // 2. ASYNCHRONOUS BACKGROUND VALIDATION with 6-second timeout ceiling
   activeAuthPromise = (async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
       const res = await fetch(`${API_BASE}/api/auth/me`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const json = await res.json();
@@ -135,21 +157,21 @@ export async function initPersistentSession(updateAuthUI) {
         }
       }
 
-      // Token is invalid, expired, or user not found in PostgreSQL
-      console.warn('[Auth] Session token verification failed. Clearing session.');
-      setAuthToken(null);
-      localStorage.removeItem('insightlens_session');
-      setUserSession(null);
-      if (typeof updateAuthUI === 'function') updateAuthUI();
-      return null;
+      // Definitive authorization failure (expired or revoked token)
+      if (res.status === 401 || res.status === 403) {
+        console.warn('[Auth] Session token invalid/expired (401/403). Clearing session.');
+        setAuthToken(null);
+        localStorage.removeItem('insightlens_session');
+        setUserSession(null);
+        if (typeof updateAuthUI === 'function') updateAuthUI();
+        return null;
+      }
+
+      return getUserSession();
     } catch (err) {
-      console.error('[Auth] Network error during session restoration:', err);
-      // On network failure or offline, do not claim authenticated without verification
-      setAuthToken(null);
-      localStorage.removeItem('insightlens_session');
-      setUserSession(null);
-      if (typeof updateAuthUI === 'function') updateAuthUI();
-      return null;
+      // Network timeout or transient offline - retain cached session
+      console.warn('[Auth] Background auth check notice:', err.message);
+      return getUserSession();
     } finally {
       if (checkingBadge) checkingBadge.classList.add('hidden');
       activeAuthPromise = null;
