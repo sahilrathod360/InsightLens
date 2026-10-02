@@ -4,7 +4,13 @@ import { sendSuccess, sendError, APIError } from '../utils/apiUtils.js';
 class ComparisonController {
   async compareVisuals(req, res, next) {
     try {
-      const sources = req.body.sources || [req.body.sourceA, req.body.sourceB, req.body.sourceC].filter(Boolean);
+      const sources = req.body.sources || [
+        req.body.sourceA,
+        req.body.sourceB,
+        req.body.sourceC,
+        req.body.before,
+        req.body.after
+      ].filter(Boolean);
       const intent = req.body.intent || req.body.analysisIntent || 'Comparison';
 
       if (!sources || !Array.isArray(sources) || sources.length < 2) {
