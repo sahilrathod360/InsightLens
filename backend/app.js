@@ -192,7 +192,7 @@ app.use('/api/archive', requireAuth, archiveRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/history', requireAuth, historyRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
-app.use('/api/extensions', requireAuth, extensionsRoutes);
+app.use('/api/extensions', optionalAuth, extensionsRoutes);
 app.use('/api/evidence', requireAuth, evidenceRoutes);
 app.use('/api/comparison', requireAuth, comparisonRoutes);
 app.use('/api/consistency', requireAuth, consistencyRoutes);

@@ -11,6 +11,9 @@
 
 import puppeteer from 'puppeteer';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { extractZipEntries } from './zipUtils.js';
 
 const FRONTEND_URL = 'https://insight-lens.vercel.app';
@@ -27,7 +30,16 @@ async function runAcceptanceAudit() {
   // STEP 0: VERIFY DEPLOYMENT IDENTITY & HEALTH
   // --------------------------------------------------------------------------
   console.log('--- AUDIT 0: LIVE DEPLOYMENT IDENTITY & HEALTH ---');
-  const healthRes = await fetch(`${BACKEND_URL}/api/health`);
+  let healthRes = null;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      healthRes = await fetch(`${BACKEND_URL}/api/health`);
+      if (healthRes.ok) break;
+    } catch (e) {
+      if (attempt === 5) throw e;
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
   assert.equal(healthRes.status, 200, 'Health check must return HTTP 200');
   const healthJson = await healthRes.json();
   console.log(`Backend Status:      ${healthJson.status}`);
@@ -37,8 +49,10 @@ async function runAcceptanceAudit() {
   assert.equal(healthJson.database, 'connected', 'Database must be connected in production');
   console.log('✔ Live Backend Health & Identity Verified\n');
 
+  const tempProfileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_prod_audit_'));
   const browser = await puppeteer.launch({
     headless: 'new',
+    userDataDir: tempProfileDir,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -51,7 +65,9 @@ async function runAcceptanceAudit() {
   await page.setViewport({ width: 1440, height: 900 });
 
   const networkErrors = [];
+  page.on('console', msg => console.log('PAGE CONSOLE:', msg.type(), msg.text()));
   page.on('pageerror', err => {
+    console.error('PAGE ERROR FULL STACK:', err.stack || err.message);
     if (err.message.includes('<!DOCTYPE') || err.message.includes('is not valid JSON')) {
       networkErrors.push(`Browser unhandled JSON parse error: ${err.message}`);
     }
