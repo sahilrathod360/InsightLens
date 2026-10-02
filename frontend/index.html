@@ -92,81 +92,73 @@
 </head>
 <body class="bg-background text-on-surface font-body-md text-[17px] leading-[1.47] antialiased min-h-screen flex flex-col selection:bg-orange-500/30 selection:text-white transition-colors duration-200">
 
-  <!-- Top Navigation Bar (High-Contrast Minimal Header) -->
-  <nav class="bg-[#07080B]/90 backdrop-blur-xl border-b border-white/[0.08] sticky top-0 z-50 py-3 px-6 sm:px-8 w-full transition-all">
-    <div class="max-w-[1240px] mx-auto h-full flex items-center justify-between">
+  <!-- Top Navigation Bar (Futuristic Glassmorphic Style) -->
+  <nav class="bg-background/85 backdrop-blur-xl border-b border-white/[0.08] sticky top-0 z-50 py-2.5 px-6 sm:px-8 w-full transition-all">
+    <div class="max-w-[1200px] mx-auto h-full flex items-center justify-between">
       
-      <!-- Left: Bespoke InsightLens Brand -->
-      <div class="flex items-center gap-10">
-        <a class="text-base font-semibold text-white tracking-tight cursor-pointer flex items-center gap-2.5 transition-opacity" id="nav-brand">
-          <div class="w-8 h-8 rounded-lg bg-indigo-950/60 border border-indigo-500/30 flex items-center justify-center p-1.5 shadow-sm">
-            <img src="/logo.svg" alt="InsightLens" class="w-full h-full object-contain" />
+      <!-- Left: Sleek Logo & Inline Desktop Nav -->
+      <div class="flex items-center gap-8">
+        <a class="text-[17px] font-semibold text-slate-100 hover:text-white tracking-apple cursor-pointer flex items-center gap-2.5 transition-opacity" id="nav-brand">
+          <div class="w-8 h-8 rounded-lg bg-[#1A1333] border border-[#8B6CFF]/30 flex items-center justify-center p-1 shadow-md shadow-purple-900/30">
+            <img src="/logo.svg" alt="InsightLens Logo" class="w-full h-full object-contain" />
           </div>
-          <span class="font-sans font-bold tracking-tight text-[17px] text-white">InsightLens</span>
+          <span class="font-sans font-bold tracking-apple text-[17px] bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">InsightLens</span>
         </a>
         
-        <!-- Desktop Core Navigation Links -->
-        <div class="hidden md:flex items-center gap-1 text-xs text-slate-400" id="nav-links">
-          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer transition-all font-medium" data-page="landing">Home</button>
-          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer transition-all font-medium" data-page="desk">Analyze</button>
-          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer transition-all font-medium" data-page="livevision">Live Vision</button>
-          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer transition-all font-medium" data-page="compare">Compare</button>
-          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] cursor-pointer transition-all font-medium" data-page="archive">Archive</button>
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-1.5 text-xs text-slate-400" id="nav-links">
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="landing">Home</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="desk">Analyze</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="compare">Compare</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="archive">Archive</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="extensions">Extensions</button>
+          <button class="nav-link px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] cursor-pointer transition-all font-medium" data-page="settings">Settings</button>
         </div>
+
+        <!-- Mobile Hamburger Toggle -->
+        <button id="mobile-menu-toggle-btn" aria-label="Toggle Navigation Menu" aria-expanded="false" class="md:hidden text-slate-400 hover:text-slate-100 p-1.5 rounded-lg hover:bg-white/[0.08] cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-[22px]">menu</span>
+        </button>
       </div>
 
-      <!-- Mobile Top Bar Hamburger Toggle -->
-      <button id="mobile-menu-toggle-btn" aria-label="Toggle Navigation Menu" aria-expanded="false" class="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/[0.08] cursor-pointer transition-colors">
-        <span class="material-symbols-outlined text-[22px]">menu</span>
-      </button>
-
-      <!-- Mobile Navigation Drawer Dropdown (Fallback / Full utilities) -->
-      <div id="mobile-nav-drawer" class="dropdown-transition md:hidden absolute top-full left-0 right-0 bg-[#0A0C13]/98 backdrop-blur-2xl border-b border-white/10 p-4 flex flex-col gap-2 shadow-2xl z-50">
+      <!-- Mobile Navigation Drawer Dropdown -->
+      <div id="mobile-nav-drawer" class="dropdown-transition md:hidden absolute top-full left-0 right-0 bg-[#0e111a]/95 backdrop-blur-2xl border-b border-white/10 p-4 flex flex-col gap-1.5 shadow-2xl z-50">
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="landing">Home</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="desk">Analyze</button>
-        <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="livevision">Live Vision</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="compare">Compare</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="archive">Archive</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="extensions">Extensions</button>
         <button class="nav-link text-left py-2 px-3.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] rounded-lg font-medium" data-page="settings">Settings</button>
       </div>
       
-      <!-- Right Controls: Extensions, Theme, Sign In, Profile -->
-      <div class="flex items-center gap-2">
-        <button class="hidden md:inline-flex nav-link px-3 py-1.5 rounded-lg text-slate-400 hover:text-white text-xs font-medium cursor-pointer transition-colors" data-page="extensions">
-          Extensions
-        </button>
-        <button class="hidden md:inline-flex nav-link px-3 py-1.5 rounded-lg text-slate-400 hover:text-white text-xs font-medium cursor-pointer transition-colors" data-page="settings">
-          Settings
+      <!-- Right Controls: Profile, Theme, Sign In, More -->
+      <div class="flex items-center gap-2.5">
+        <!-- Light/Dark Mode Toggle -->
+        <button id="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme" class="w-8.5 h-8.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] cursor-pointer flex items-center justify-center transition-colors border border-white/5">
+          <span class="material-symbols-outlined text-[18px]" id="theme-toggle-icon">light_mode</span>
         </button>
 
-        <div class="h-4 w-px bg-white/10 hidden md:block mx-1"></div>
-
-        <!-- Light/Dark Theme Toggle -->
-        <button id="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] cursor-pointer flex items-center justify-center transition-colors">
-          <span class="material-symbols-outlined text-[17px]" id="theme-toggle-icon">light_mode</span>
-        </button>
-
-        <!-- Welcome Badge -->
-        <div id="user-welcome-badge" class="hidden flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] px-3 py-1.5 rounded-lg text-xs text-slate-200 border border-white/10 cursor-pointer transition-all">
-          <div id="nav-user-avatar" class="w-5 h-5 rounded-full bg-indigo-600 text-white font-semibold text-[10px] flex items-center justify-center">
+        <!-- Welcome [Name] & Avatar Badge -->
+        <div id="user-welcome-badge" class="hidden flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.1] px-3 py-1.5 rounded-lg text-xs text-slate-200 border border-white/10 cursor-pointer transition-all">
+          <div id="nav-user-avatar" class="w-5.5 h-5.5 rounded-full bg-gradient-to-tr from-orange-500 to-rose-500 text-white font-semibold text-[10px] flex items-center justify-center shadow-sm">
             SR
           </div>
-          <span class="hidden sm:inline font-medium text-slate-200"><strong id="header-user-name" class="font-medium text-white max-w-[110px] truncate inline-block align-bottom">Researcher</strong></span>
+          <span class="hidden sm:inline font-medium text-slate-300"><strong id="header-user-name" class="font-medium text-slate-100 max-w-[110px] truncate inline-block align-bottom">Dr. Sahil</strong></span>
         </div>
 
-        <!-- Checking Session Indicator -->
-        <div id="auth-checking-badge" class="hidden flex items-center gap-1.5 text-xs text-slate-400 bg-white/[0.04] px-3 py-1.5 rounded-lg border border-white/5 font-medium select-none">
+        <!-- Lightweight Auth Initializing State (Visible only while validating existing session) -->
+        <div id="auth-checking-badge" class="hidden flex items-center gap-1.5 text-xs text-slate-300 bg-white/[0.06] hover:bg-white/[0.1] px-3.5 py-1.5 rounded-lg border border-white/10 font-medium select-none transition-all">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-          <span class="text-[11px]">Connecting...</span>
+          <span class="text-[12px] text-slate-300">Checking session...</span>
         </div>
 
-        <!-- Sign In CTA -->
-        <button id="auth-nav-btn" class="text-xs text-white bg-white/[0.08] hover:bg-white/[0.14] px-3.5 py-1.5 rounded-lg border border-white/10 transition-all font-medium flex items-center gap-1.5 cursor-pointer">
-          <span class="material-symbols-outlined text-[15px]">account_circle</span>
+        <!-- Auth Action Button -->
+        <button id="auth-nav-btn" class="text-xs text-slate-200 hover:text-white bg-white/[0.08] hover:bg-white/[0.14] px-3.5 py-1.5 rounded-lg border border-white/10 transition-all font-medium flex items-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">account_circle</span>
           <span id="auth-btn-label">Sign In</span>
         </button>
         <script>
+          // Instant pre-render check to ensure navbar has an immediate, stable visual state
           try {
             if (localStorage.getItem('insightlens_token')) {
               document.getElementById('auth-nav-btn')?.classList.add('hidden');
@@ -175,15 +167,15 @@
           } catch(e) {}
         </script>
 
-        <!-- Profile / Three-Dot Menu -->
+        <!-- Three-Dot Menu (Logged-In Users Only) -->
         <div class="relative hidden" id="user-menu-container">
-          <button id="three-dot-menu-btn" title="Researcher Options" aria-label="Researcher Options" aria-haspopup="true" aria-expanded="false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] border border-white/5 cursor-pointer flex items-center justify-center transition-colors">
+          <button id="three-dot-menu-btn" title="Researcher Options" aria-label="Researcher Options" aria-haspopup="true" aria-expanded="false" class="w-8.5 h-8.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] border border-white/5 cursor-pointer flex items-center justify-center transition-colors">
             <span class="material-symbols-outlined text-[18px]">more_vert</span>
           </button>
           
-          <div id="user-dropdown-menu" class="dropdown-transition absolute right-0 mt-2 w-56 bg-[#0E1118] border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 text-xs backdrop-blur-2xl">
+          <div id="user-dropdown-menu" class="dropdown-transition absolute right-0 mt-2 w-56 bg-[#0e111a] border border-white/10 rounded-xl shadow-2xl z-50 py-1.5 text-xs backdrop-blur-2xl">
             <button id="menu-profile-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
-              <span class="material-symbols-outlined text-[16px] text-indigo-400">person</span>
+              <span class="material-symbols-outlined text-[16px] text-orange-400">person</span>
               Researcher Profile
             </button>
             <button id="menu-dashboard-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
@@ -191,7 +183,7 @@
               Researcher Dashboard
             </button>
             <button id="menu-knowledge-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
-              <span class="material-symbols-outlined text-[16px] text-emerald-400">psychology</span>
+              <span class="material-symbols-outlined text-[16px] text-indigo-400">psychology</span>
               Knowledge Intelligence
             </button>
             <button id="menu-extensions-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-slate-200 flex items-center gap-2.5 cursor-pointer">
@@ -202,15 +194,15 @@
               <span class="material-symbols-outlined text-[16px] text-slate-400">settings</span>
               System Settings
             </button>
-            <button id="menu-logout-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-rose-400 flex items-center gap-2.5 cursor-pointer">
+            <button id="menu-logout-btn" class="w-full text-left px-3.5 py-2 hover:bg-white/[0.08] text-red-400 flex items-center gap-2.5 cursor-pointer">
               <span class="material-symbols-outlined text-[16px]">logout</span>
               Sign Out
             </button>
           </div>
         </div>
 
-        <!-- Export PDF Nav Button -->
-        <button id="export-nav-btn" class="hidden bg-white hover:bg-slate-100 text-slate-950 text-xs font-semibold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
+        <!-- Export Button in Nav -->
+        <button id="export-nav-btn" class="hidden bg-slate-100 hover:bg-white text-slate-950 text-xs font-semibold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
           <span class="material-symbols-outlined text-[16px]">download</span>
           Export PDF
         </button>
@@ -218,320 +210,462 @@
     </div>
   </nav>
 
-  <!-- SCREEN 1: BRAND NEW REBUILT LANDING PAGE -->
-  <main id="page-landing" class="page-view flex-grow w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-20 space-y-20 relative">
+  <!-- SCREEN 1: BRAND NEW LANDING PAGE (PREMIUM AI VISUAL INTELLIGENCE DESIGN) -->
+  <main id="page-landing" class="page-view flex-grow w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-12 space-y-16 md:space-y-20 relative">
     
-    <!-- 1. EDITORIAL HERO & INTERACTIVE TRANSFORMATION SHOWCASE -->
-    <section id="landing-hero" class="pt-2 sm:pt-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+    <!-- Ambient Glow Background -->
+    <div class="landing-bg-container pointer-events-none">
+      <div class="landing-bg-gradient"></div>
+      <div class="landing-orb landing-orb-1"></div>
+      <div class="landing-orb landing-orb-2"></div>
+      <div class="landing-grain-overlay"></div>
+    </div>
+
+    <!-- 1. IMMERSIVE HERO SECTION -->
+    <section id="landing-hero" class="pt-4 sm:pt-8 flex items-center">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
         
-        <!-- LEFT (6 COLS): POWERFUL EDITORIAL STATEMENT -->
-        <div class="lg:col-span-6 space-y-6 text-left reveal-on-scroll">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] text-slate-300 text-xs font-mono">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Multimodal Visual Intelligence
+        <!-- LEFT (7 COLS): HEADLINE & VALUE PROP -->
+        <div class="lg:col-span-7 space-y-5 text-left reveal-on-scroll">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1A1333] border border-[#8B6CFF]/30 text-purple-300 text-xs font-mono font-medium shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
+            InsightLens • Understand. Verify. Explain.
           </div>
 
-          <h1 id="landing-hero-title" class="font-serif text-4xl sm:text-5xl lg:text-[54px] font-bold text-white tracking-tight leading-[1.08]">
-            Precision Vision. <br/>
-            <span class="text-slate-300 italic font-serif">Grounded in Evidence.</span>
+          <h1 id="landing-hero-title" class="font-serif text-3xl sm:text-5xl lg:text-[52px] font-bold text-slate-100 tracking-tight leading-[1.12]">
+            Turn Visual Information Into <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 bg-clip-text text-transparent italic font-serif">Structured &amp; Explainable Knowledge.</span>
           </h1>
 
-          <p id="landing-hero-subtitle" class="text-slate-300 text-base sm:text-lg leading-relaxed font-sans max-w-[540px]">
-            InsightLens transforms photographs, technical diagrams, flowcharts, schemas, and complex imagery into rigorous, citation-backed research briefs.
+          <p id="landing-hero-subtitle" class="text-slate-300 text-sm sm:text-base max-w-[580px] leading-relaxed font-sans">
+            AI-assisted visual intelligence designed to analyze diverse visual inputs — photographs, technical diagrams, flowcharts, schemas, charts, and documents — generating evidence-supported, structured research briefs.
           </p>
 
-          <!-- Core Actions Hierarchy: 1 Dominant Primary + 2 Clean Secondary -->
-          <div class="flex flex-wrap items-center gap-3 pt-2">
-            <button id="hero-start-btn" class="btn-primary">
+          <!-- VISUAL TYPE SUPPORT CHIPS -->
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-mono">Photographs</span>
+            <span class="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-mono">Diagrams &amp; DFD</span>
+            <span class="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-mono">UML &amp; ER Schemas</span>
+            <span class="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-mono">Flowcharts</span>
+            <span class="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-mono">Charts &amp; Graphs</span>
+            <span class="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-mono">Screenshots &amp; Docs</span>
+          </div>
+          
+          <div id="landing-last-login" class="hidden text-xs font-mono text-slate-500 mt-1"></div>
+
+          <div class="flex flex-wrap items-center gap-3.5 pt-1">
+            <button id="hero-start-btn" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-semibold text-sm sm:text-base px-6 sm:px-7 py-3.5 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer shadow-lg shadow-purple-900/30 btn-active-scale">
               <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
-              Analyze a Visual
+              Start Analyzing
             </button>
 
-            <button id="hero-live-btn" class="btn-secondary">
-              <span class="material-symbols-outlined text-[18px] text-cyan-400">videocam</span>
-              Live Vision
-            </button>
-
-            <button id="hero-compare-btn" class="btn-secondary">
-              <span class="material-symbols-outlined text-[18px] text-indigo-400">compare</span>
-              Compare Images
+            <button id="hero-demo-btn" class="bg-surface-container hover:bg-surface-container-high text-slate-200 border ghost-border font-medium text-sm sm:text-base px-5 sm:px-6 py-3.5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer btn-active-scale">
+              <span class="material-symbols-outlined text-[18px] text-purple-400">explore</span>
+              Explore Interactive Demo
             </button>
           </div>
 
-          <!-- Trust & Evidence Pillars -->
-          <div class="pt-4 grid grid-cols-3 gap-4 border-t border-white/[0.08]">
-            <div>
-              <div class="text-xs font-mono font-bold text-white uppercase tracking-wider">01. Observe</div>
-              <div class="text-[12px] text-slate-400 mt-0.5 leading-snug">Empirical visual extraction without hallucinations</div>
+          <div class="pt-2 flex flex-wrap items-center gap-5 text-[11px] text-slate-400 font-mono">
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-emerald-400">verified</span> Grounded Vision Analysis</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-purple-400">verified</span> Verified Academic Citations</span>
+            <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px] text-sky-400">verified</span> 1-Click PDF Export</span>
+          </div>
+
+          <div class="product-trust-bar pt-2">
+            <div class="product-trust-item">
+              <strong>Evidence</strong>
+              <span>Ground each finding in the actual visual input.</span>
             </div>
-            <div>
-              <div class="text-xs font-mono font-bold text-white uppercase tracking-wider">02. Ground</div>
-              <div class="text-[12px] text-slate-400 mt-0.5 leading-snug">Spatial coordinates &amp; verified citations</div>
+            <div class="product-trust-item">
+              <strong>Structure</strong>
+              <span>Turn raw artifacts into organized research briefs.</span>
             </div>
-            <div>
-              <div class="text-xs font-mono font-bold text-white uppercase tracking-wider">03. Synthesize</div>
-              <div class="text-[12px] text-slate-400 mt-0.5 leading-snug">11-section publication-ready briefs</div>
+            <div class="product-trust-item">
+              <strong>Clarity</strong>
+              <span>Understand what is observed, inferred, and uncertain.</span>
             </div>
           </div>
         </div>
 
-        <!-- RIGHT (6 COLS): INTERACTIVE 4-STAGE TRANSFORMATION VIEWPORT -->
-        <div class="lg:col-span-6 reveal-on-scroll delay-100">
-          <div class="rounded-2xl border border-white/[0.1] bg-[#0A0C13] overflow-hidden shadow-2xl">
-            
-            <!-- Stage Tabs Header -->
-            <div class="flex items-center border-b border-white/[0.08] bg-[#07080B] text-xs font-mono overflow-x-auto">
-              <button class="hero-transform-tab active px-3.5 py-2.5 border-b-2 border-indigo-500 text-white font-medium bg-white/[0.06] flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all" data-stage="1">
-                <span>01</span> Source Visual
-              </button>
-              <button class="hero-transform-tab px-3.5 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all" data-stage="2">
-                <span>02</span> Neural Extraction
-              </button>
-              <button class="hero-transform-tab px-3.5 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all" data-stage="3">
-                <span>03</span> Grounded Evidence
-              </button>
-              <button class="hero-transform-tab px-3.5 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all" data-stage="4">
-                <span>04</span> Research Brief
-              </button>
+        <!-- RIGHT (5 COLS): AI VISUAL INTELLIGENCE SCANNER MOCKUP -->
+        <div class="lg:col-span-5 reveal-on-scroll delay-100">
+          <div class="relative rounded-2xl border border-purple-500/20 bg-[#0E0B1A] p-3.5 shadow-2xl overflow-hidden card-hover-lift">
+            <!-- Header bar -->
+            <div class="flex items-center justify-between px-3 py-2 border-b border-white/[0.08] bg-[#07050E] rounded-t-xl text-xs font-mono">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-400/80"></span>
+                <span class="w-2 h-2 rounded-full bg-amber-400/80"></span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400/80"></span>
+                <span class="ml-1 text-[11px] text-slate-400">insightlens.pipeline</span>
+              </div>
+              <span class="text-[10px] text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Universal Intelligence</span>
             </div>
 
-            <!-- Viewport Stage Area -->
-            <div class="relative h-72 sm:h-80 bg-black/80 overflow-hidden">
-              
-              <!-- STAGE 1: RAW VISUAL -->
-              <div class="hero-stage-view w-full h-full relative" data-stage="1">
-                <img src="/images/urban-analysis.jpg" alt="Source Visual" class="w-full h-full object-cover" />
-                <div class="absolute bottom-3 left-3 bg-[#07080B]/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-xs font-mono text-slate-300">
-                  Raw Input: <span class="text-white font-semibold">Urban Architectural Scene</span>
-                </div>
-              </div>
-
-              <!-- STAGE 2: NEURAL EXTRACTION -->
-              <div class="hero-stage-view hidden w-full h-full relative" data-stage="2">
-                <img src="/images/urban-analysis.jpg" alt="Extracted Regions" class="w-full h-full object-cover brightness-75" />
-                <div class="absolute inset-0 bg-indigo-950/20"></div>
-                <!-- Interactive Bounding Overlays -->
-                <div class="absolute top-[20%] left-[15%] w-[35%] h-[45%] border-2 border-indigo-400/80 rounded-md bg-indigo-500/10 flex items-start p-1.5">
-                  <span class="badge-observed">Skyscrapers [Observed]</span>
-                </div>
-                <div class="absolute top-[60%] left-[55%] w-[40%] h-[30%] border-2 border-cyan-400/80 rounded-md bg-cyan-500/10 flex items-start p-1.5">
-                  <span class="badge-inferred">Water Reflection [Inferred]</span>
-                </div>
-                <div class="absolute bottom-3 left-3 bg-[#07080B]/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-xs font-mono text-indigo-300">
-                  Extracted: <span class="text-white font-semibold">14 Structural Nodes &bull; Spatial Regions Identified</span>
-                </div>
-              </div>
-
-              <!-- STAGE 3: GROUNDED EVIDENCE -->
-              <div class="hero-stage-view hidden w-full h-full relative bg-[#0A0C13] p-5 flex flex-col justify-between" data-stage="3">
-                <div class="space-y-3">
-                  <div class="flex items-center justify-between border-b border-white/[0.08] pb-2">
-                    <span class="text-xs font-mono text-slate-400 uppercase">Evidence Ledger</span>
-                    <span class="badge-observed">100% Verified</span>
+            <!-- Viewfinder Screen Area -->
+            <div class="p-3 bg-[#07050E] rounded-b-xl space-y-3">
+              <div class="relative h-56 sm:h-64 rounded-xl overflow-hidden bg-black/60 border border-purple-500/30 group">
+                <div class="scanner-laser"></div>
+                <img id="demo-preview-img" src="/images/urban-analysis.jpg" alt="Urban Scene Analysis" class="w-full h-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105" />
+                
+                <!-- Lens Scanner Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-black/80 pointer-events-none"></div>
+                <div class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
+                  <div class="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-purple-500/30 text-[10px] font-mono text-purple-300 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping"></span>
+                    <span>Structure Extraction</span>
                   </div>
-                  <div class="space-y-2 text-xs font-mono">
-                    <div class="p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-between">
-                      <span class="text-slate-200">Reflective Water Reservoir</span>
-                      <span class="badge-observed">Coordinates [x:12, y:65]</span>
-                    </div>
-                    <div class="p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-between">
-                      <span class="text-slate-200">High-Density Architectural Core</span>
-                      <span class="badge-observed">Coordinates [x:35, y:20]</span>
-                    </div>
-                    <div class="p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-between">
-                      <span class="text-slate-200">Nocturnal Illumination Gradients</span>
-                      <span class="badge-inferred">Evidence-Supported</span>
-                    </div>
+                  <div class="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md border border-purple-500/30 text-[10px] font-mono text-purple-200">
+                    Taxonomy &amp; Evidence
                   </div>
                 </div>
-                <div class="text-[11px] font-mono text-slate-400">
-                  Every claim is mapped directly to verified visual tensor coordinates.
+
+                <!-- Bounding Box Annotation -->
+                <div class="absolute inset-8 border border-dashed border-pink-400/60 rounded-lg pointer-events-none flex items-end justify-between p-2">
+                  <span class="bg-purple-900/80 backdrop-blur-sm text-[9px] font-mono text-pink-200 px-1.5 py-0.5 rounded border border-pink-400/30">Target: Visual Artifact</span>
+                  <span class="bg-indigo-900/80 backdrop-blur-sm text-[9px] font-mono text-indigo-200 px-1.5 py-0.5 rounded border border-indigo-400/30">Grounded Evidence</span>
+                </div>
+
+                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <strong id="demo-active-title" class="text-slate-100 font-serif text-xs sm:text-sm font-semibold truncate">Urban Scene Analysis</strong>
+                  <span class="text-[10px] font-mono text-purple-300 uppercase tracking-wide bg-purple-500/20 px-2 py-0.5 rounded border border-purple-500/30">Research Ready</span>
                 </div>
               </div>
 
-              <!-- STAGE 4: STRUCTURED BRIEF -->
-              <div class="hero-stage-view hidden w-full h-full relative bg-[#07080B] p-5 flex flex-col justify-between font-sans overflow-y-auto" data-stage="4">
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-mono text-emerald-400 font-semibold uppercase tracking-wider">Research Brief &bull; RPT-8834</span>
-                    <span class="text-[11px] font-mono text-slate-400">11 Sections Formatted</span>
-                  </div>
-                  <h3 class="font-serif font-bold text-white text-base">Empirical Analysis of Urban Waterfront Structure</h3>
-                  <p class="text-xs text-slate-300 leading-relaxed line-clamp-3">
-                    Multi-tier examination identifying structural clustering, reflection telemetry, illumination temperature gradients, and environmental context.
-                  </p>
+              <!-- Quick Chips -->
+              <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
+                  <span class="text-slate-400 block text-[9px]">Pipeline</span>
+                  <strong class="text-purple-300">Multi-Stage</strong>
                 </div>
-                <div class="pt-3 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono text-slate-400">
-                  <span>Export: PDF &bull; Markdown &bull; JSON</span>
-                  <button onclick="window.navigateTo('desk')" class="text-white hover:text-indigo-300 flex items-center gap-1 font-semibold cursor-pointer">
-                    Open in Desk &rarr;
-                  </button>
+                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
+                  <span class="text-slate-400 block text-[9px]">Sources</span>
+                  <strong class="text-pink-300">Reachable Citations</strong>
+                </div>
+                <div class="bg-[#120E22] p-2 rounded-lg border border-white/[0.06]">
+                  <span class="text-slate-400 block text-[9px]">Output</span>
+                  <strong class="text-emerald-300">Structured Brief</strong>
                 </div>
               </div>
-
             </div>
-
-            <!-- Bottom Live Telemetry Footer -->
-            <div class="px-4 py-3 bg-[#07080B] border-t border-white/[0.08] flex items-center justify-between text-xs font-mono text-slate-400">
-              <span class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                <span>Gemini Multimodal Vision Engine</span>
-              </span>
-              <span class="text-slate-300">Deterministic Evidence Grounding</span>
-            </div>
-
           </div>
         </div>
 
       </div>
     </section>
 
-    <!-- 2. REAL VISUAL DATASETS (DIRECT 1-CLICK DISCOVERY) -->
+    <!-- 1.5 THREE MAJOR CORE PRODUCT ENTRY EXPERIENCES -->
     <section class="space-y-6 text-left">
-      <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 border-b border-white/[0.08] pb-4">
-        <div>
-          <div class="text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider">Research Datasets</div>
-          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">Explore Real Visual Analyses</h2>
+      <div class="text-center max-w-[650px] mx-auto space-y-1.5 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Product Experiences</div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">Select Your Visual Intelligence Workflow</h2>
+        <p class="text-slate-400 text-xs sm:text-sm font-sans">Three distinct, purpose-built ways to transform visual information into verifiable knowledge.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Card 1: Analyze Visual -->
+        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#120e24] to-[#0a0714] border border-purple-500/20 hover:border-purple-500/50 transition-all space-y-4 flex flex-col justify-between group shadow-xl hover:shadow-purple-900/20">
+          <div class="space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[28px]">analytics</span>
+            </div>
+            <h3 class="font-serif font-bold text-slate-100 text-xl">Analyze Visual</h3>
+            <p class="text-slate-400 text-xs font-sans leading-relaxed">
+              Upload images, documents, diagrams, flowcharts, schemas and screenshots to generate structured, evidence-backed research briefs.
+            </p>
+          </div>
+          <button onclick="window.navigateTo('desk')" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
+            <span class="material-symbols-outlined text-[16px]">upload_file</span>
+            Analyze Visual
+          </button>
         </div>
-        <button onclick="window.navigateTo('desk')" class="text-xs font-mono text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer">
-          Open Empty Canvas <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+
+        <!-- Card 2: Live Vision -->
+        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#120e24] to-[#0a0714] border border-pink-500/20 hover:border-pink-500/50 transition-all space-y-4 flex flex-col justify-between group shadow-xl hover:shadow-pink-900/20">
+          <div class="space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[28px]">videocam</span>
+            </div>
+            <h3 class="font-serif font-bold text-slate-100 text-xl">Live Vision</h3>
+            <p class="text-slate-400 text-xs font-sans leading-relaxed">
+              Point your camera at the real world and watch InsightLens discover, annotate, and evaluate visual evidence in real time.
+            </p>
+          </div>
+          <button onclick="window.navigateTo('livevision')" class="w-full py-3 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-semibold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
+            <span class="material-symbols-outlined text-[16px]">photo_camera</span>
+            Live Vision
+          </button>
+        </div>
+
+        <!-- Card 3: Compare Images -->
+        <div class="p-6 rounded-2xl bg-gradient-to-b from-[#120e24] to-[#0a0714] border border-indigo-500/20 hover:border-indigo-500/50 transition-all space-y-4 flex flex-col justify-between group shadow-xl hover:shadow-indigo-900/20">
+          <div class="space-y-3">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[28px]">compare</span>
+            </div>
+            <h3 class="font-serif font-bold text-slate-100 text-xl">Compare Images</h3>
+            <p class="text-slate-400 text-xs font-sans leading-relaxed">
+              Compare 2–3 images side-by-side and discover meaningful similarities, differences, shared features, and topological relationships.
+            </p>
+          </div>
+          <button onclick="window.navigateTo('compare')" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs font-mono flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
+            <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+            Compare Images
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SEVEN-STAGE INTENDED WORKFLOW PIPELINE -->
+    <section class="space-y-6 text-left">
+      <div class="text-center max-w-[650px] mx-auto space-y-1.5 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Universal Visual Pipeline</div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">How InsightLens Analyzes Visuals</h2>
+        <p class="text-slate-400 text-xs sm:text-sm">An integrated 7-stage workflow from raw visual input to structured, verified knowledge.</p>
+      </div>
+
+      <!-- 7-STAGE PIPELINE CARDS -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 relative">
+        <!-- Stage 1 -->
+        <div class="bg-surface-container p-3.5 rounded-xl border border-white/[0.08] space-y-2 card-hover-lift flex flex-col justify-between">
+          <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs border border-indigo-500/20">
+            01
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Upload</h4>
+            <p class="text-slate-400 text-[11px] leading-snug mt-1">Image ingestion &amp; format validation</p>
+          </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="bg-surface-container p-3.5 rounded-xl border border-white/[0.08] space-y-2 card-hover-lift flex flex-col justify-between">
+          <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-mono font-bold text-xs border border-purple-500/20">
+            02
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Detect</h4>
+            <p class="text-slate-400 text-[11px] leading-snug mt-1">Visual type &amp; region identification</p>
+          </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="bg-surface-container p-3.5 rounded-xl border border-white/[0.08] space-y-2 card-hover-lift flex flex-col justify-between">
+          <div class="w-7 h-7 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center font-mono font-bold text-xs border border-pink-500/20">
+            03
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Understand</h4>
+            <p class="text-slate-400 text-[11px] leading-snug mt-1">Extract elements, text &amp; structures</p>
+          </div>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="bg-surface-container p-3.5 rounded-xl border border-white/[0.08] space-y-2 card-hover-lift flex flex-col justify-between">
+          <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-mono font-bold text-xs border border-amber-500/20">
+            04
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Analyze</h4>
+            <p class="text-slate-400 text-[11px] leading-snug mt-1">Multimodal neural reasoning</p>
+          </div>
+        </div>
+
+        <!-- Stage 5 -->
+        <div class="bg-surface-container p-3.5 rounded-xl border border-white/[0.08] space-y-2 card-hover-lift flex flex-col justify-between">
+          <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-mono font-bold text-xs border border-emerald-500/20">
+            05
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Verify</h4>
+            <p class="text-slate-400 text-[11px] leading-snug mt-1">Citation check &amp; fact validation</p>
+          </div>
+        </div>
+
+        <!-- Stage 6 -->
+        <div class="bg-surface-container p-3.5 rounded-xl border border-white/[0.08] space-y-2 card-hover-lift flex flex-col justify-between">
+          <div class="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-mono font-bold text-xs border border-sky-500/20">
+            06
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Explain</h4>
+            <p class="text-slate-400 text-[11px] leading-snug mt-1">Observations vs. inferences</p>
+          </div>
+        </div>
+
+        <!-- Stage 7 -->
+        <div class="bg-surface-container p-3.5 rounded-xl border border-white/[0.08] space-y-2 card-hover-lift flex flex-col justify-between">
+          <div class="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center font-mono font-bold text-xs border border-violet-500/20">
+            07
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-slate-100 text-xs sm:text-sm">Report</h4>
+            <p class="text-slate-400 text-[11px] leading-snug mt-1">Structured brief &amp; PDF export</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. BEFORE VS. AFTER COMPARISON SHOWCASE -->
+    <section id="landing-demo-section" class="space-y-6 text-left">
+      <div class="max-w-[580px] space-y-1.5 reveal-on-scroll">
+        <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Transformation Impact</div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">Unstructured Pixels → Academic Precision</h2>
+        <p class="text-slate-400 text-xs sm:text-sm">See how InsightLens synthesizes unstructured visual photographs into rigorous research papers.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 hover-3d-wrapper">
+        <!-- BEFORE CARD -->
+        <div class="bg-surface-container p-5 sm:p-6 rounded-2xl border border-white/[0.08] space-y-3.5 relative overflow-hidden hover-3d-lift reveal-on-scroll delay-100">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+            <span class="px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-400 font-mono text-[10px] font-bold border border-red-500/20">BEFORE: RAW UNSTRUCTURED IMAGE</span>
+            <span class="text-[11px] font-mono text-slate-500">Unindexed Raster</span>
+          </div>
+
+          <div class="h-44 sm:h-48 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+            <img src="/images/mountain-analysis.jpg" alt="Raw Mountain Landscape" class="w-full h-full object-cover opacity-80 grayscale" />
+          </div>
+
+          <ul class="space-y-1.5 text-xs text-slate-400 font-mono">
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[15px]">close</span> Unformatted raw photograph pixels</li>
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[15px]">close</span> Unindexed spatial layers and terrain depth</li>
+            <li class="flex items-center gap-2 text-red-400/90"><span class="material-symbols-outlined text-[15px]">close</span> Zero synthesized research context or taxonomy</li>
+          </ul>
+        </div>
+
+        <!-- AFTER CARD -->
+        <div class="bg-[#0D0B1E] p-5 sm:p-6 rounded-2xl border border-purple-500/30 space-y-3.5 relative overflow-hidden shadow-xl hover-3d-lift reveal-on-scroll delay-200">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold border border-emerald-500/20">AFTER: INSIGHTLENS SYNTHESIS</span>
+            <span class="text-[11px] font-mono text-purple-300 font-bold">11-Section Paper Format</span>
+          </div>
+
+          <div class="p-3.5 bg-surface-container rounded-xl border border-white/[0.08] space-y-2 font-sans text-xs">
+            <div class="flex items-center justify-between font-mono text-[10px] text-slate-400">
+              <span>Artifact Category: <strong class="text-slate-200">Landscape Terrain</strong></span>
+              <span class="text-emerald-400 font-bold">Analysis Verified</span>
+            </div>
+            <h4 class="font-serif font-bold text-slate-100 text-sm">Empirical Analysis of Mountain Landscape</h4>
+            <p class="text-slate-300 text-[11px] leading-relaxed line-clamp-2">
+              Multimodal evaluation extracting geological strata, ridge elevation gradients, atmospheric light scattering, and domain taxonomy.
+            </p>
+          </div>
+
+          <ul class="space-y-1.5 text-xs text-slate-300 font-mono">
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[15px]">check_circle</span> 11 structured sections with Table of Contents</li>
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[15px]">check_circle</span> Extracted visual features &amp; spatial bounding regions</li>
+            <li class="flex items-center gap-2 text-emerald-400"><span class="material-symbols-outlined text-[15px]">check_circle</span> Exportable to standalone A4 PDF, Markdown &amp; JSON</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. SAMPLE RESEARCH DATASET SHOWCASE -->
+    <section class="space-y-6 text-left">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3.5">
+        <div>
+          <div class="text-xs font-mono font-semibold text-purple-400 uppercase tracking-wider">Real Image Datasets</div>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">Explore Real Visual Analysis Examples</h2>
+        </div>
+        <button onclick="navigateTo('desk')" class="text-xs font-mono text-purple-400 hover:text-pink-400 flex items-center gap-1 cursor-pointer">
+          Open Research Desk <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
         </button>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Sample 1: Urban Scene -->
-        <div class="landing-sample-card group bg-[#0E1118] hover:bg-[#151822] rounded-xl border border-white/[0.08] hover:border-indigo-500/40 p-3 space-y-3 cursor-pointer transition-all flex flex-col justify-between" data-sample-type="urban">
+        <!-- CARD 1: URBAN -->
+        <div class="landing-demo-card active bg-surface-container rounded-2xl border border-purple-500/40 p-3.5 space-y-2.5 cursor-pointer card-hover-lift flex flex-col justify-between" data-sample-type="urban">
           <div class="space-y-2.5">
-            <div class="h-36 rounded-lg overflow-hidden bg-black">
-              <img src="/images/urban-analysis.jpg" alt="Urban Analysis" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div class="h-36 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+              <img src="/images/urban-analysis.jpg" alt="Urban Scene Analysis" class="w-full h-full object-cover" />
             </div>
-            <div>
-              <span class="text-[10px] font-mono text-indigo-400 font-semibold uppercase">Architecture &bull; Urban</span>
-              <h4 class="font-serif font-bold text-white text-sm mt-0.5">Urban Waterfront Scene</h4>
-              <p class="text-slate-400 text-xs mt-1 leading-snug line-clamp-2">Structures, illumination gradients, and water reflection telemetry.</p>
+            <div class="space-y-1">
+              <span class="text-[9px] font-mono text-purple-400 font-bold uppercase">URBAN / ENVIRONMENTAL ANALYSIS</span>
+              <h4 class="font-serif font-bold text-slate-100 text-sm">Urban Scene Analysis</h4>
+              <p class="text-slate-400 text-[11px] leading-relaxed line-clamp-2">
+                Analyze buildings, structures, lighting, spatial relationships and environmental features.
+              </p>
             </div>
           </div>
-          <div class="pt-2 border-t border-white/[0.06] text-xs font-mono text-slate-300 flex items-center justify-between">
-            <span>Analyze Dataset</span>
-            <span class="material-symbols-outlined text-[15px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </div>
+          <span class="text-[10px] font-mono text-purple-300 flex items-center gap-1 pt-1">
+            Try Analysis <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
+          </span>
         </div>
 
-        <!-- Sample 2: Mountain Landscape -->
-        <div class="landing-sample-card group bg-[#0E1118] hover:bg-[#151822] rounded-xl border border-white/[0.08] hover:border-indigo-500/40 p-3 space-y-3 cursor-pointer transition-all flex flex-col justify-between" data-sample-type="mountain">
+        <!-- CARD 2: MOUNTAIN -->
+        <div class="landing-demo-card bg-surface-container rounded-2xl border border-white/[0.08] p-3.5 space-y-2.5 cursor-pointer card-hover-lift flex flex-col justify-between" data-sample-type="mountain">
           <div class="space-y-2.5">
-            <div class="h-36 rounded-lg overflow-hidden bg-black">
-              <img src="/images/mountain-analysis.jpg" alt="Mountain Landscape" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div class="h-36 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+              <img src="/images/mountain-analysis.jpg" alt="Mountain Landscape" class="w-full h-full object-cover" />
             </div>
-            <div>
-              <span class="text-[10px] font-mono text-emerald-400 font-semibold uppercase">Terrain &bull; Geology</span>
-              <h4 class="font-serif font-bold text-white text-sm mt-0.5">Mountain Landscape</h4>
-              <p class="text-slate-400 text-xs mt-1 leading-snug line-clamp-2">Geological strata, ridge lines, elevation gradients, and atmospheric lighting.</p>
+            <div class="space-y-1">
+              <span class="text-[9px] font-mono text-pink-400 font-bold uppercase">LANDSCAPE ANALYSIS</span>
+              <h4 class="font-serif font-bold text-slate-100 text-sm">Mountain Landscape</h4>
+              <p class="text-slate-400 text-[11px] leading-relaxed line-clamp-2">
+                Extract terrain, composition, lighting, depth and environmental visual features.
+              </p>
             </div>
           </div>
-          <div class="pt-2 border-t border-white/[0.06] text-xs font-mono text-slate-300 flex items-center justify-between">
-            <span>Analyze Dataset</span>
-            <span class="material-symbols-outlined text-[15px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </div>
+          <span class="text-[10px] font-mono text-pink-300 flex items-center gap-1 pt-1">
+            Try Analysis <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
+          </span>
         </div>
 
-        <!-- Sample 3: Milky Way -->
-        <div class="landing-sample-card group bg-[#0E1118] hover:bg-[#151822] rounded-xl border border-white/[0.08] hover:border-indigo-500/40 p-3 space-y-3 cursor-pointer transition-all flex flex-col justify-between" data-sample-type="milkyway">
+        <!-- CARD 3: MILKY WAY -->
+        <div class="landing-demo-card bg-surface-container rounded-2xl border border-white/[0.08] p-3.5 space-y-2.5 cursor-pointer card-hover-lift flex flex-col justify-between" data-sample-type="milkyway">
           <div class="space-y-2.5">
-            <div class="h-36 rounded-lg overflow-hidden bg-black">
-              <img src="/images/milky-way-analysis.jpg" alt="Milky Way Observation" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div class="h-36 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+              <img src="/images/milky-way-analysis.jpg" alt="Milky Way Observation" class="w-full h-full object-cover" />
             </div>
-            <div>
-              <span class="text-[10px] font-mono text-cyan-400 font-semibold uppercase">Astrophysics &bull; Deep Space</span>
-              <h4 class="font-serif font-bold text-white text-sm mt-0.5">Milky Way Imaging</h4>
-              <p class="text-slate-400 text-xs mt-1 leading-snug line-clamp-2">Celestial structures, galactic center illumination, and star field distribution.</p>
+            <div class="space-y-1">
+              <span class="text-[9px] font-mono text-amber-400 font-bold uppercase">ASTRONOMICAL IMAGING</span>
+              <h4 class="font-serif font-bold text-slate-100 text-sm">Milky Way Observation</h4>
+              <p class="text-slate-400 text-[11px] leading-relaxed line-clamp-2">
+                Analyze celestial structures, illumination patterns and large-scale visual composition.
+              </p>
             </div>
           </div>
-          <div class="pt-2 border-t border-white/[0.06] text-xs font-mono text-slate-300 flex items-center justify-between">
-            <span>Analyze Dataset</span>
-            <span class="material-symbols-outlined text-[15px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </div>
+          <span class="text-[10px] font-mono text-amber-300 flex items-center gap-1 pt-1">
+            Try Analysis <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
+          </span>
         </div>
 
-        <!-- Sample 4: Comet Observation -->
-        <div class="landing-sample-card group bg-[#0E1118] hover:bg-[#151822] rounded-xl border border-white/[0.08] hover:border-indigo-500/40 p-3 space-y-3 cursor-pointer transition-all flex flex-col justify-between" data-sample-type="comet">
+        <!-- CARD 4: COMET -->
+        <div class="landing-demo-card bg-surface-container rounded-2xl border border-white/[0.08] p-3.5 space-y-2.5 cursor-pointer card-hover-lift flex flex-col justify-between" data-sample-type="comet">
           <div class="space-y-2.5">
-            <div class="h-36 rounded-lg overflow-hidden bg-black">
-              <img src="/images/comet-analysis.jpg" alt="Comet Observation" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div class="h-36 rounded-xl overflow-hidden bg-black/40 border border-white/[0.06]">
+              <img src="/images/comet-analysis.jpg" alt="Comet Observation" class="w-full h-full object-cover" />
             </div>
-            <div>
-              <span class="text-[10px] font-mono text-amber-400 font-semibold uppercase">Astronomy &bull; Trajectory</span>
-              <h4 class="font-serif font-bold text-white text-sm mt-0.5">Comet Deep Field</h4>
-              <p class="text-slate-400 text-xs mt-1 leading-snug line-clamp-2">Coma luminosity, ion tail vectors, and spatial celestial coordinates.</p>
+            <div class="space-y-1">
+              <span class="text-[9px] font-mono text-sky-400 font-bold uppercase">ASTRONOMICAL ANALYSIS</span>
+              <h4 class="font-serif font-bold text-slate-100 text-sm">Comet Observation</h4>
+              <p class="text-slate-400 text-[11px] leading-relaxed line-clamp-2">
+                Identify prominent objects, spatial relationships and visual characteristics within astronomical imagery.
+              </p>
             </div>
           </div>
-          <div class="pt-2 border-t border-white/[0.06] text-xs font-mono text-slate-300 flex items-center justify-between">
-            <span>Analyze Dataset</span>
-            <span class="material-symbols-outlined text-[15px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </div>
+          <span class="text-[10px] font-mono text-sky-300 flex items-center gap-1 pt-1">
+            Try Analysis <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
+          </span>
         </div>
       </div>
     </section>
 
-    <!-- 3. THREE CORE PRODUCT CAPABILITIES -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left border-t border-white/[0.08] pt-12">
-      <div class="space-y-3">
-        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-[22px]">analytics</span>
-        </div>
-        <h3 class="font-serif font-bold text-white text-xl">Visual Synthesis</h3>
-        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed font-sans">
-          Upload any photograph, diagram, flowchart, or schema to extract empirical visual features, spatial bounding tags, and verified research briefs.
+    <!-- 5. CALL TO ACTION BANNER -->
+    <section class="bg-gradient-to-b from-[#15102A] to-[#0D0B1E] p-6 sm:p-10 rounded-3xl border border-purple-500/25 text-center space-y-4 shadow-2xl relative overflow-hidden">
+      <div class="max-w-[540px] mx-auto space-y-2">
+        <h2 class="font-serif text-2xl sm:text-3xl text-slate-100 font-bold tracking-tight">Accelerate Your Visual Research</h2>
+        <p class="text-slate-300 text-xs sm:text-sm font-sans leading-relaxed">
+          Upload any image and experience empirical multimodal visual understanding and automated academic brief generation in seconds.
         </p>
       </div>
 
-      <div class="space-y-3">
-        <div class="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-[22px]">videocam</span>
-        </div>
-        <h3 class="font-serif font-bold text-white text-xl">Live Edge Vision</h3>
-        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed font-sans">
-          Real-time on-device object detection and camera stream intelligence powered by client-side neural inference with zero network lag.
-        </p>
-      </div>
-
-      <div class="space-y-3">
-        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-[22px]">compare</span>
-        </div>
-        <h3 class="font-serif font-bold text-white text-xl">Multimodal Comparison</h3>
-        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed font-sans">
-          Side-by-side comparative matrix evaluating shared topology, directional contradictions, and distinct semantic features across multiple visuals.
-        </p>
+      <div class="pt-1 flex justify-center">
+        <button onclick="navigateTo('desk')" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-semibold text-sm sm:text-base px-7 py-3.5 rounded-xl inline-flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-purple-900/40 btn-active-scale">
+          <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+          Open Research Desk
+        </button>
       </div>
     </section>
 
   </main>
-
-  <!-- Mobile Thumb-Friendly Bottom Navigation Bar -->
-  <nav id="mobile-bottom-bar" class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#07080B]/95 backdrop-blur-2xl border-t border-white/[0.08] px-3 py-2 flex items-center justify-around">
-    <button class="nav-link flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white" data-page="landing">
-      <span class="material-symbols-outlined text-[20px]">home</span>
-      <span>Home</span>
-    </button>
-    <button class="nav-link flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white" data-page="desk">
-      <span class="material-symbols-outlined text-[20px]">analytics</span>
-      <span>Analyze</span>
-    </button>
-    <button class="nav-link flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white" data-page="livevision">
-      <span class="material-symbols-outlined text-[20px]">videocam</span>
-      <span>Live Vision</span>
-    </button>
-    <button class="nav-link flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white" data-page="compare">
-      <span class="material-symbols-outlined text-[20px]">compare</span>
-      <span>Compare</span>
-    </button>
-    <button class="nav-link flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white" data-page="archive">
-      <span class="material-symbols-outlined text-[20px]">archive</span>
-      <span>Archive</span>
-    </button>
-  </nav>
 
   <!-- EXECUTIVE RESEARCHER DASHBOARD PAGE -->
   <div id="page-dashboard" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-8">
