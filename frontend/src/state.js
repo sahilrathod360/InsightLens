@@ -99,10 +99,12 @@ export function navigateTo(pageId) {
   document.querySelectorAll('.nav-link').forEach(link => {
     if (link.getAttribute('data-page') === pageId) {
       link.setAttribute('data-active', 'true');
-      link.className = 'nav-link px-3 py-1.5 rounded-md font-semibold cursor-pointer active-nav transition-colors';
+      link.classList.add('active-nav', 'text-white');
+      link.classList.remove('text-slate-400');
     } else {
       link.removeAttribute('data-active');
-      link.className = 'nav-link px-3 py-1.5 rounded-md cursor-pointer font-medium transition-colors';
+      link.classList.remove('active-nav', 'text-white');
+      link.classList.add('text-slate-400');
     }
   });
 

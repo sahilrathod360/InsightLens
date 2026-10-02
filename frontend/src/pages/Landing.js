@@ -1,14 +1,15 @@
-// Brand New Landing Page V2 Interactive Logic
+// InsightLens — Next-Gen Visual Intelligence Presentation Logic
 
 import { navigateTo } from '../state.js';
 
 let landingCleanupFns = [];
 
 export function setupLandingPageEvents() {
-  // Cleanup previous listeners if called multiple times
+  // Cleanup previous listeners
   landingCleanupFns.forEach(fn => fn());
   landingCleanupFns = [];
 
+  // Hero primary CTA
   const startBtn = document.getElementById('hero-start-btn');
   if (startBtn) {
     const startHandler = () => navigateTo('desk');
@@ -16,14 +17,52 @@ export function setupLandingPageEvents() {
     landingCleanupFns.push(() => startBtn.removeEventListener('click', startHandler));
   }
 
-  const demoBtn = document.getElementById('hero-demo-btn');
-  if (demoBtn) {
-    const demoHandler = () => document.getElementById('landing-demo-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    demoBtn.addEventListener('click', demoHandler);
-    landingCleanupFns.push(() => demoBtn.removeEventListener('click', demoHandler));
+  // Hero secondary CTAs
+  const liveBtn = document.getElementById('hero-live-btn');
+  if (liveBtn) {
+    const liveHandler = () => navigateTo('livevision');
+    liveBtn.addEventListener('click', liveHandler);
+    landingCleanupFns.push(() => liveBtn.removeEventListener('click', liveHandler));
   }
 
-  document.querySelectorAll('.landing-demo-card').forEach(card => {
+  const compareBtn = document.getElementById('hero-compare-btn');
+  if (compareBtn) {
+    const compareHandler = () => navigateTo('compare');
+    compareBtn.addEventListener('click', compareHandler);
+    landingCleanupFns.push(() => compareBtn.removeEventListener('click', compareHandler));
+  }
+
+  // Interactive Transformation Pipeline Tabs
+  const transformTabs = document.querySelectorAll('.hero-transform-tab');
+  const transformStages = document.querySelectorAll('.hero-stage-view');
+
+  transformTabs.forEach(tab => {
+    const tabHandler = () => {
+      const targetStage = tab.getAttribute('data-stage');
+      
+      transformTabs.forEach(t => {
+        t.classList.remove('active', 'border-indigo-500', 'text-white', 'bg-white/[0.08]');
+        t.classList.add('border-transparent', 'text-slate-400', 'hover:text-slate-200');
+      });
+      tab.classList.add('active', 'border-indigo-500', 'text-white', 'bg-white/[0.08]');
+      tab.classList.remove('border-transparent', 'text-slate-400');
+
+      transformStages.forEach(stage => {
+        if (stage.getAttribute('data-stage') === targetStage) {
+          stage.classList.remove('hidden');
+          stage.classList.add('animate-fade-in');
+        } else {
+          stage.classList.add('hidden');
+          stage.classList.remove('animate-fade-in');
+        }
+      });
+    };
+    tab.addEventListener('click', tabHandler);
+    landingCleanupFns.push(() => tab.removeEventListener('click', tabHandler));
+  });
+
+  // Sample Dataset Click Handlers
+  document.querySelectorAll('.landing-sample-card, .landing-demo-card').forEach(card => {
     const cardHandler = () => {
       const sampleType = card.getAttribute('data-sample-type');
       const imgMap = {
@@ -57,7 +96,7 @@ export function setupLandingPageEvents() {
       const infoFilename = document.getElementById('info-filename');
       const infoFilesize = document.getElementById('info-filesize');
       if (infoFilename) infoFilename.textContent = fileName;
-      if (infoFilesize) infoFilesize.textContent = 'Ready';
+      if (infoFilesize) infoFilesize.textContent = 'Ready for Analysis';
     };
     card.addEventListener('click', cardHandler);
     landingCleanupFns.push(() => card.removeEventListener('click', cardHandler));
@@ -69,8 +108,6 @@ export function setupLandingPageEvents() {
   setupScrollReveal(prefersReducedMotion);
   if (!prefersReducedMotion) {
     setupNumberCounters();
-    setupMouseParallax();
-    setupAmbientParticles();
   }
 }
 
@@ -104,12 +141,11 @@ function setupNumberCounters() {
         const suffix = targetText.replace(/[\d.]/g, '');
         
         let startTimestamp = null;
-        const duration = 1500;
+        const duration = 1200;
         
         const step = (timestamp) => {
           if (!startTimestamp) startTimestamp = timestamp;
           const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-          // easeOutQuart
           const easeOut = 1 - Math.pow(1 - progress, 4);
           const current = easeOut * targetVal;
           
@@ -118,7 +154,7 @@ function setupNumberCounters() {
           if (progress < 1) {
             requestAnimationFrame(step);
           } else {
-            el.textContent = targetText; // Ensure exact final value
+            el.textContent = targetText;
           }
         };
         
@@ -130,60 +166,4 @@ function setupNumberCounters() {
 
   document.querySelectorAll('.counter-value').forEach(el => observer.observe(el));
   landingCleanupFns.push(() => observer.disconnect());
-}
-
-function setupMouseParallax() {
-  const hero = document.getElementById('landing-hero');
-  if (!hero) return;
-
-  const layers = document.querySelectorAll('.parallax-layer');
-  if (layers.length === 0) return;
-
-  const handleMouseMove = (e) => {
-    // Calculate mouse position relative to center (-1 to 1)
-    const x = (e.clientX / window.innerWidth - 0.5) * 2;
-    const y = (e.clientY / window.innerHeight - 0.5) * 2;
-
-    layers.forEach(layer => {
-      const speed = parseFloat(layer.getAttribute('data-parallax-speed')) || 20;
-      layer.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
-    });
-  };
-
-  window.addEventListener('mousemove', handleMouseMove, { passive: true });
-  landingCleanupFns.push(() => window.removeEventListener('mousemove', handleMouseMove));
-}
-
-function setupAmbientParticles() {
-  const container = document.querySelector('.landing-bg-container');
-  if (!container) return;
-  
-  // Clean up old particles if they exist
-  container.querySelectorAll('.ambient-particle').forEach(p => p.remove());
-
-  const numParticles = 12;
-  const colors = ['rgba(249, 115, 22, 0.4)', 'rgba(251, 146, 60, 0.4)', 'rgba(251, 113, 133, 0.4)'];
-  
-  for (let i = 0; i < numParticles; i++) {
-    const particle = document.createElement('div');
-    particle.className = 'ambient-particle';
-    
-    // Randomize properties
-    const size = Math.random() * 4 + 2;
-    const left = Math.random() * 100;
-    const top = Math.random() * 100;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const animDuration = Math.random() * 10 + 10;
-    const animDelay = Math.random() * -20; // Start at random point in animation
-    
-    particle.style.width = `${size}px`;
-    particle.style.height = `${size}px`;
-    particle.style.left = `${left}%`;
-    particle.style.top = `${top}%`;
-    particle.style.color = color;
-    particle.style.animationDuration = `${animDuration}s`;
-    particle.style.animationDelay = `${animDelay}s`;
-    
-    container.appendChild(particle);
-  }
 }
