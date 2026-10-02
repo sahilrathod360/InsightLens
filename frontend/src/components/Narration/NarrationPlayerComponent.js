@@ -10,8 +10,14 @@ let currentStepIndex = 0;
 let playbackRate = 1.0;
 let synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 let currentUtterance = null;
+let speechTimeoutId = null;
 let onStepHighlightCallback = null;
 let statusState = 'IDLE'; // IDLE, SPEAKING, PAUSED, ERROR
+
+// Global anchor on window to prevent Chromium garbage collection mid-speech
+if (typeof window !== 'undefined') {
+  window._speechUtteranceRef = null;
+}
 
 export function isSpeechSynthesisSupported() {
   return Boolean(typeof window !== 'undefined' && window.speechSynthesis);
@@ -141,7 +147,7 @@ function renderNarrationModalSkeleton(artifact) {
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
-          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Spoken Narration</h3>
+          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Documentary Narration</h3>
         </div>
         <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
       </div>
@@ -169,7 +175,7 @@ function renderNarrationModalError(message) {
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Spoken Narration</h3>
+          <h3 class="font-serif font-bold text-lg text-slate-100">🔊 Documentary Narration</h3>
         </div>
         <button onclick="window.closeNarrationModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
       </div>
@@ -280,27 +286,38 @@ function renderNarrationModalContent(artifact) {
       if (synth) synth.pause();
     } else {
       statusState = 'SPEAKING';
-      if (synth) synth.resume();
-      if (synth && !synth.speaking) speakCurrentStep(artifact);
+      if (synth && synth.paused) {
+        synth.resume();
+      } else {
+        speakCurrentStep(artifact);
+      }
     }
     renderNarrationModalContent(artifact);
   };
 
   window.prevNarrationStep = () => {
     if (currentStepIndex > 0) {
+      if (speechTimeoutId) clearTimeout(speechTimeoutId);
       if (synth) synth.cancel();
       currentStepIndex--;
+      statusState = isPlaying && !isPaused ? 'SPEAKING' : 'IDLE';
       renderNarrationModalContent(artifact);
-      if (isPlaying && !isPaused) speakCurrentStep(artifact);
+      if (isPlaying && !isPaused) {
+        speechTimeoutId = setTimeout(() => speakCurrentStep(artifact), 60);
+      }
     }
   };
 
   window.nextNarrationStep = () => {
     if (currentStepIndex < totalSteps - 1) {
+      if (speechTimeoutId) clearTimeout(speechTimeoutId);
       if (synth) synth.cancel();
       currentStepIndex++;
+      statusState = isPlaying && !isPaused ? 'SPEAKING' : 'IDLE';
       renderNarrationModalContent(artifact);
-      if (isPlaying && !isPaused) speakCurrentStep(artifact);
+      if (isPlaying && !isPaused) {
+        speechTimeoutId = setTimeout(() => speakCurrentStep(artifact), 60);
+      }
     }
   };
 
@@ -309,6 +326,8 @@ function renderNarrationModalContent(artifact) {
 }
 
 function speakCurrentStep(artifact) {
+  if (speechTimeoutId) clearTimeout(speechTimeoutId);
+
   if (!isPlaying || isPaused || !currentSequence || currentStepIndex >= currentSequence.steps.length) {
     if (currentStepIndex >= (currentSequence?.steps?.length || 0)) {
       showToast('Documentary narration walkthrough complete.', 'success');
@@ -332,7 +351,8 @@ function speakCurrentStep(artifact) {
     return;
   }
 
-  if (synth) synth.cancel();
+  // Ensure speech synthesis is active and not stuck in paused state
+  if (synth.paused) synth.resume();
 
   const utterance = new SpeechSynthesisUtterance(step.text);
   utterance.rate = playbackRate;
@@ -353,7 +373,10 @@ function speakCurrentStep(artifact) {
       if (currentStepIndex < currentSequence.steps.length - 1) {
         currentStepIndex++;
         renderNarrationModalContent(artifact);
-        speakCurrentStep(artifact);
+        // Dispatch next utterance after tiny delay to ensure browser speech engine is ready
+        speechTimeoutId = setTimeout(() => {
+          speakCurrentStep(artifact);
+        }, 80);
       } else {
         showToast('Documentary narration completed.', 'success');
         isPlaying = false;
@@ -364,12 +387,20 @@ function speakCurrentStep(artifact) {
   };
 
   utterance.onerror = (e) => {
-    console.warn('[Narration] Speech synthesis error:', e);
+    console.warn('[Narration] Speech synthesis error on step:', currentStepIndex + 1, e);
+    if (e.error === 'interrupted' || e.error === 'canceled') {
+      // Intentional interruption/cancel, do not mark as failure
+      return;
+    }
     statusState = 'ERROR';
     renderNarrationModalContent(artifact);
   };
 
   currentUtterance = utterance;
+  if (typeof window !== 'undefined') {
+    window._speechUtteranceRef = utterance;
+  }
+
   try {
     synth.speak(utterance);
   } catch (err) {
@@ -380,11 +411,15 @@ function speakCurrentStep(artifact) {
 }
 
 export function stopNarration() {
+  if (speechTimeoutId) clearTimeout(speechTimeoutId);
   isPlaying = false;
   isPaused = false;
   statusState = 'IDLE';
   if (synth) synth.cancel();
   currentUtterance = null;
+  if (typeof window !== 'undefined') {
+    window._speechUtteranceRef = null;
+  }
   currentStepIndex = 0;
 }
 

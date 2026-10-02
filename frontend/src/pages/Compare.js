@@ -107,10 +107,10 @@ function updateSlotPreview(slotIndex) {
     container.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-center p-2 space-y-2">
         <div class="w-full h-28 rounded-lg overflow-hidden border border-white/10 bg-black">
-          <img src="${item.dataUrl}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover" />
+          <img src="${item.dataUrl}" alt="${escapeHtml(item.fileName || item.title || `Image ${slotIndex + 1}`)}" class="w-full h-full object-cover" />
         </div>
         <div class="text-[11px] font-mono text-indigo-300 font-bold truncate max-w-full">
-          ${escapeHtml(item.title || `Image ${slotIndex + 1}`)}
+          ${escapeHtml(item.fileName || item.title || `Image ${slotIndex + 1}`)}
         </div>
       </div>
     `;
@@ -134,7 +134,7 @@ function setupCompareEvents() {
       const dataUrl = e.target.result;
       selectedSlotImages[slotIndex] = {
         id: `IMG-${slotIndex + 1}`,
-        title: file.name.replace(/\.[^/.]+$/, ''),
+        fileName: file.name,
         dataUrl,
         file
       };

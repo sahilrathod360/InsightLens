@@ -32,153 +32,279 @@ export function openReportQuizModal(reportData) {
   renderQuizModalContent(modal, artifact);
 }
 
+/**
+ * Utility to shuffle array and assign clean keys A, B, C, D with tracked correct answer
+ */
+function buildShuffledOptions(correctOption, distractor1, distractor2, distractor3) {
+  const rawList = [
+    { text: correctOption.text, isCorrect: true, explanation: correctOption.explanation },
+    { text: distractor1.text, isCorrect: false, explanation: distractor1.explanation },
+    { text: distractor2.text, isCorrect: false, explanation: distractor2.explanation },
+    { text: distractor3.text, isCorrect: false, explanation: distractor3.explanation }
+  ];
+
+  // Fisher-Yates shuffle
+  for (let i = rawList.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rawList[i], rawList[j]] = [rawList[j], rawList[i]];
+  }
+
+  const keys = ['A', 'B', 'C', 'D'];
+  return rawList.map((opt, idx) => ({
+    key: keys[idx],
+    text: opt.text,
+    isCorrect: opt.isCorrect,
+    explanation: opt.explanation
+  }));
+}
+
 function generateValidatedMCQsFromReport(data) {
   if (!data) return [];
 
   const subject = data.subject || data.title || data.fullData?.subject || data.full_data?.subject || 'Visual Subject';
   const category = data.category || data.domainClassification || data.visualType || data.fullData?.category || 'Visual Intelligence';
-  const claims = data.claims || data.fullData?.claims || data.full_data?.claims || [];
-  const findings = data.findings || data.keyFindings || data.structuredFindings || data.fullData?.findings || data.full_data?.keyFindings || [];
-  const observations = data.observations || data.fullData?.observations || [];
-  const keyFacts = data.keyFacts || data.fullData?.keyFacts || [];
-  const nodes = data.diagramStructure?.nodes || data.fullData?.diagramStructure?.nodes || data.full_data?.diagramStructure?.nodes || [];
+  const claims = Array.isArray(data.claims) ? data.claims : (data.fullData?.claims || []);
+  const findings = Array.isArray(data.findings) ? data.findings : (Array.isArray(data.structuredFindings) ? data.structuredFindings : (data.fullData?.findings || []));
+  const observations = Array.isArray(data.observations) ? data.observations : (data.fullData?.observations || []);
+  const keyFacts = Array.isArray(data.keyFacts) ? data.keyFacts : (data.fullData?.keyFacts || []);
+  const nodes = data.diagramStructure?.nodes || data.fullData?.diagramStructure?.nodes || [];
   const chartData = data.chartStructure || data.fullData?.chartStructure;
-  const summary = data.summary || data.executiveInsight?.summary || data.executiveSummary || data.fullData?.summary;
+  const summary = data.summary || data.executiveInsight?.summary || data.executiveSummary || data.fullData?.summary || '';
+  const keyFinding = data.executiveInsight?.keyFinding || findings[0]?.statement || observations[0]?.statement || 'Core structural features observed in frame';
 
-  const candidateQuestions = [];
+  const questions = [];
   let qId = 1;
 
-  // 1. Primary Subject & Domain Classification Question
-  if (subject && subject !== 'Visual Subject') {
-    candidateQuestions.push({
-      id: qId++,
-      sourceClaimId: `TAXONOMY-01`,
-      question: `What is the primary subject and domain classification established for this visual artifact?`,
-      options: [
-        { key: 'A', text: `${subject} (${category})`, isCorrect: true, explanation: `Correct. Multimodal vision classified the primary subject as "${subject}" in the "${category}" domain.` },
-        { key: 'B', text: `Generic Unidentified Artifact (Miscellaneous)`, isCorrect: false, explanation: 'Incorrect. The subject has been identified and categorized.' },
-        { key: 'C', text: `Unclassified Synthetic Noise Pattern`, isCorrect: false, explanation: 'Incorrect. Optical features confirm authentic domain classification.' },
-        { key: 'D', text: `Static Calibration Target`, isCorrect: false, explanation: 'Incorrect. The image contains verified domain entities.' }
-      ]
-    });
-  }
+  // -------------------------------------------------------------
+  // QUESTION 1: Domain Classification & Optical Staging (Medium)
+  // -------------------------------------------------------------
+  const envObs = observations.find(o => (o.category || '').toLowerCase() === 'environment')?.statement ||
+                 claims.find(c => (c.statement || '').toLowerCase().includes('environment') || (c.statement || '').toLowerCase().includes('setting'))?.statement ||
+                 `Spatial background and lighting context observed in frame`;
+  
+  const attireObs = observations.find(o => ['attire', 'equipment', 'subjects'].includes((o.category || '').toLowerCase()))?.statement ||
+                    findings[0]?.statement ||
+                    `Observable focal morphology and structural details`;
 
-  // 2. Finding / Observation Question
-  if (findings.length > 0 || observations.length > 0) {
-    const fItem = findings[0] || observations[0];
-    const fText = typeof fItem === 'string' ? fItem : (fItem.statement || fItem.title || fItem.text || fItem.claim);
-    if (fText && fText.length > 5) {
-      candidateQuestions.push({
-        id: qId++,
-        sourceClaimId: fItem.sourceClaimId || fItem.id || `OBS-01`,
-        question: `Based on the visual evidence for ${subject}, which finding was directly observed?`,
-        options: [
-          { key: 'A', text: fText.length > 80 ? fText.slice(0, 80) + '...' : fText, isCorrect: true, explanation: `Correct. Grounded visual observation explicitly verified: "${fText}".` },
-          { key: 'B', text: `Contradictory visual artifact structure`, isCorrect: false, explanation: 'Incorrect. No contradiction was found.' },
-          { key: 'C', text: `Unobserved hypothetical element`, isCorrect: false, explanation: 'Incorrect. Only observed features are validated.' },
-          { key: 'D', text: `Speculative background anomaly`, isCorrect: false, explanation: 'Incorrect. This finding is structured and verified.' }
-        ]
-      });
-    }
-  }
+  const q1Correct = {
+    text: `Visible foreground characteristics (${attireObs.slice(0, 65)}) situated within ${envObs.slice(0, 50)}.`,
+    explanation: `Supported by report evidence: The visual classification as ${category} is grounded in observable foreground elements and environmental staging.`
+  };
+  const q1Dist1 = {
+    text: `Isolated laboratory macro capture with uniform monochromatic backlight and no environmental depth.`,
+    explanation: `Incorrect. The visual evidence contains structured spatial depth and domain-specific staging rather than isolated macro capture.`
+  };
+  const q1Dist2 = {
+    text: `Low-altitude isometric orthographic projection lacking focal character or component hierarchy.`,
+    explanation: `Incorrect. The artifact exhibits deliberate focal prominence and natural perspective alignment.`
+  };
+  const q1Dist3 = {
+    text: `Synthetic schematic wireframe composed purely of untextured vector primitives without photographic fidelity.`,
+    explanation: `Incorrect. The artifact presents rich optical detail consistent with authentic ${category} domain imagery.`
+  };
 
-  // 3. Claim Evidence Status Question
-  if (claims.length > 0) {
-    const c1 = typeof claims[0] === 'string' ? claims[0] : (claims[0].statement || claims[0].text || claims[0].claim || '');
-    const c1Status = (claims[0].status || 'OBSERVED').toUpperCase();
-    const c1Id = claims[0].id || claims[0].claimId || `CLAIM-01`;
+  questions.push({
+    id: qId++,
+    topic: 'Classification & Staging Evidence',
+    difficulty: 'medium',
+    sourceClaimId: 'TAXONOMY-01',
+    question: `Which combination of visual evidence and optical staging directly supports the report's classification of ${subject} under ${category}?`,
+    options: buildShuffledOptions(q1Correct, q1Dist1, q1Dist2, q1Dist3)
+  });
 
-    if (c1 && c1.length > 5) {
-      candidateQuestions.push({
-        id: qId++,
-        sourceClaimId: c1Id,
-        question: `What is the verified evidence status for claim [${c1Id}]: "${c1.slice(0, 60)}${c1.length > 60 ? '...' : ''}"?`,
-        options: [
-          { key: 'A', text: `Status: ${c1Status}`, isCorrect: true, explanation: `Correct. Claim ${c1Id} is classified as ${c1Status} based on strict visual evidence.` },
-          { key: 'B', text: `Status: ${c1Status === 'OBSERVED' ? 'UNDETERMINABLE' : 'OBSERVED'}`, isCorrect: false, explanation: `Incorrect. Evidence ledger confirms status is ${c1Status}.` },
-          { key: 'C', text: 'Status: UNCHECKED', isCorrect: false, explanation: 'Incorrect. Claim verification was completed during extraction.' },
-          { key: 'D', text: 'Status: REJECTED', isCorrect: false, explanation: 'Incorrect. The claim was not rejected.' }
-        ]
-      });
-    }
-  }
+  // -------------------------------------------------------------
+  // QUESTION 2: Observed Optical Evidence vs Inferred Deduction (Hard)
+  // -------------------------------------------------------------
+  const observedClaim = claims.find(c => (c.status || '').toUpperCase() === 'OBSERVED') ||
+                        findings.find(f => (f.status || '').toUpperCase() === 'OBSERVED') ||
+                        observations[0] ||
+                        { statement: `Focal entity contours, color saturation, and primary lighting vector` };
+  const obsText = observedClaim.statement || observedClaim.text || observedClaim.claim || 'Primary visual features in frame';
 
-  // 4. Key Fact or Secondary Finding Question
-  if (keyFacts.length > 0) {
-    const kf = keyFacts[0];
-    candidateQuestions.push({
-      id: qId++,
-      sourceClaimId: `FACT-01`,
-      question: `Regarding ${subject}, what was verified for "${kf.label || 'Key Attribute'}"?`,
-      options: [
-        { key: 'A', text: `${kf.detail}`, isCorrect: true, explanation: `Correct. Verified domain fact: "${kf.label}: ${kf.detail}".` },
-        { key: 'B', text: 'Data unavailable or not recorded', isCorrect: false, explanation: 'Incorrect. This attribute was confirmed in the research ledger.' },
-        { key: 'C', text: 'Hypothetical estimate', isCorrect: false, explanation: 'Incorrect. The fact is verified.' },
-        { key: 'D', text: 'Contradicted by external archive', isCorrect: false, explanation: 'Incorrect. Source records support this detail.' }
-      ]
-    });
-  } else if (claims.length >= 2) {
-    const c2 = typeof claims[1] === 'string' ? claims[1] : (claims[1].statement || claims[1].text || claims[1].claim || '');
-    const c2Id = claims[1].id || claims[1].claimId || `CLAIM-02`;
-    if (c2 && c2.length > 5) {
-      candidateQuestions.push({
-        id: qId++,
-        sourceClaimId: c2Id,
-        question: `According to evidence claim [${c2Id}], which statement regarding ${subject} is correct?`,
-        options: [
-          { key: 'A', text: c2.length > 80 ? c2.slice(0, 80) + '...' : c2, isCorrect: true, explanation: `Correct. Grounded evidence [${c2Id}] explicitly asserts: "${c2}".` },
-          { key: 'B', text: `Inverted statement: Opposite of ${c2.slice(0, 30)}...`, isCorrect: false, explanation: 'Incorrect. Contradicts report evidence.' },
-          { key: 'C', text: `Speculative claim not present in the visual`, isCorrect: false, explanation: 'Incorrect. Analysis requires grounded evidence.' },
-          { key: 'D', text: `Unrelated domain assertion`, isCorrect: false, explanation: 'Incorrect. Assertion is unrelated.' }
-        ]
-      });
-    }
-  }
+  const inferredClaim = claims.find(c => (c.status || '').toUpperCase() === 'INFERRED') ||
+                        { statement: `Complete historical operational provenance and external governance records` };
+  const infText = inferredClaim.statement || inferredClaim.text || inferredClaim.claim;
 
-  // 5. Structure / Summary Question
+  const q2Correct = {
+    text: `Directly visible optical detail: "${obsText.slice(0, 80)}" (Status: OBSERVED).`,
+    explanation: `Supported by evidence ledger: This statement represents a direct pixel observation verified within the camera frame.`
+  };
+  const q2Dist1 = {
+    text: `Analytical deduction: "${infText.slice(0, 80)}" (Status: INFERRED).`,
+    explanation: `Incorrect. This statement is an analytical deduction or external correlation, not a direct optical pixel observation.`
+  };
+  const q2Dist2 = {
+    text: `Historical domain record: Long-term archival career statistics and championship chronology.`,
+    explanation: `Incorrect. Archival statistics are verified external domain knowledge, not direct visual features.`
+  };
+  const q2Dist3 = {
+    text: `Manufacturing specification: Internal chemical substrate composition and metallurgy ratings.`,
+    explanation: `Incorrect. Sub-surface material composition cannot be directly observed from a 2D optical frame.`
+  };
+
+  questions.push({
+    id: qId++,
+    topic: 'Evidence Ledger Rigor',
+    difficulty: 'hard',
+    sourceClaimId: observedClaim.id || 'EVI-LEDGER-01',
+    question: `In the evidentiary ledger for ${subject}, which statement is strictly cataloged as directly OBSERVED visual evidence rather than an inferred deduction?`,
+    options: buildShuffledOptions(q2Correct, q2Dist1, q2Dist2, q2Dist3)
+  });
+
+  // -------------------------------------------------------------
+  // QUESTION 3: Structural Topology, Quantitative Chart, or Distinctive Features (Hard)
+  // -------------------------------------------------------------
   if (nodes.length >= 2) {
-    const n1 = nodes[0].label || 'Primary Component';
-    const n2 = nodes[1].label || 'Secondary Component';
-    const n3 = nodes[2]?.label || 'External Boundary';
-    candidateQuestions.push({
+    const n1 = nodes[0].label || 'Primary Client';
+    const n2 = nodes[1].label || 'Processing Gateway';
+    const n3 = nodes[2]?.label || 'Data Store';
+
+    const q3Correct = {
+      text: `Direct directed linkage connecting "${n1}" to "${n2}" with forward data payload flow.`,
+      explanation: `Supported by diagram structure: The topology graph maps a verified directed connector between ${n1} and ${n2}.`
+    };
+    const q3Dist1 = {
+      text: `Cyclic feedback loop routing directly from "${n3}" into "${n1}" bypassing intermediate services.`,
+      explanation: `Incorrect. The diagram topology does not exhibit an unmediated return loop between these nodes.`
+    };
+    const q3Dist2 = {
+      text: `Decoupled pub-sub broadcast bus bridging "${n2}" to an unobserved legacy gateway.`,
+      explanation: `Incorrect. No decoupled broadcast bus is extracted in this diagram.`
+    };
+    const q3Dist3 = {
+      text: `Isolated stateless cluster partition separating "${n1}" from the primary network boundary.`,
+      explanation: `Incorrect. ${n1} maintains active connectivity within the mapped boundary.`
+    };
+
+    questions.push({
       id: qId++,
-      sourceClaimId: `TOPOLOGY-01`,
-      question: `In the visual structural topology of ${subject}, which component connects with "${n1}"?`,
-      options: [
-        { key: 'A', text: n2, isCorrect: true, explanation: `Correct. Topological graph links "${n1}" to "${n2}".` },
-        { key: 'B', text: n3, isCorrect: false, explanation: `Incorrect. "${n3}" is downstream or disconnected.` },
-        { key: 'C', text: 'Unobserved External System', isCorrect: false, explanation: 'Incorrect. No connection exists.' },
-        { key: 'D', text: 'Isolated Orphan Node', isCorrect: false, explanation: 'Incorrect. The component is connected.' }
-      ]
+      topic: 'Diagram Topology & Data Flow',
+      difficulty: 'hard',
+      sourceClaimId: 'TOPOLOGY-01',
+      question: `In the extracted architectural topology of ${subject}, which structural connection is verified between components?`,
+      options: buildShuffledOptions(q3Correct, q3Dist1, q3Dist2, q3Dist3)
     });
   } else if (chartData && chartData.series && chartData.series.length > 0) {
     const sName = chartData.series[0].name || 'Primary Metric';
-    candidateQuestions.push({
+    const yUnit = chartData.yAxis?.unit || 'Units';
+
+    const q3Correct = {
+      text: `Quantitative measurement series tracking "${sName}" across the calibrated Cartesian axis (${yUnit}).`,
+      explanation: `Supported by chart structure: The series "${sName}" maps verified quantitative data points on the dependent axis.`
+    };
+    const q3Dist1 = {
+      text: `Uncalibrated nominal category index measuring qualitative aesthetic rankings.`,
+      explanation: `Incorrect. The chart plots calibrated quantitative numerical metrics, not arbitrary aesthetic rankings.`
+    };
+    const q3Dist2 = {
+      text: `Stochastic Monte Carlo simulation boundary with probabilistic error envelopes.`,
+      explanation: `Incorrect. The chart presents discrete historical data points rather than a simulation envelope.`
+    };
+    const q3Dist3 = {
+      text: `Continuous spectral density distribution plotted on a logarithmic frequency axis.`,
+      explanation: `Incorrect. The X/Y coordinates represent discrete domain data series.`
+    };
+
+    questions.push({
       id: qId++,
-      sourceClaimId: `CHART-01`,
-      question: `In the visual data chart structure, what metric does "${sName}" represent?`,
-      options: [
-        { key: 'A', text: `Extracted quantitative metric: ${sName}`, isCorrect: true, explanation: `Correct. Chart series data measures ${sName}.` },
-        { key: 'B', text: 'Qualitative color swatch', isCorrect: false, explanation: 'Incorrect. Represents numerical chart data.' },
-        { key: 'C', text: 'Uncalibrated measurement axis', isCorrect: false, explanation: 'Incorrect. Metric is calibrated.' },
-        { key: 'D', text: 'Randomly generated sequence', isCorrect: false, explanation: 'Incorrect. Extracted from chart.' }
-      ]
+      topic: 'Quantitative Chart Analysis',
+      difficulty: 'hard',
+      sourceClaimId: 'CHART-01',
+      question: `Based on the quantitative structure extracted for ${subject}, what analytical metric does series "${sName}" quantify?`,
+      options: buildShuffledOptions(q3Correct, q3Dist1, q3Dist2, q3Dist3)
     });
-  } else if (summary && summary.length > 15) {
-    candidateQuestions.push({
+  } else {
+    // Subject specific feature question
+    const fact1 = keyFacts[0] || { label: 'Primary Feature', detail: keyFinding.slice(0, 70) };
+    const q3Correct = {
+      text: `Verified attribute: ${fact1.label ? `${fact1.label} — ${fact1.detail}` : fact1.detail}.`,
+      explanation: `Supported by domain research: The verified attribute profile confirms this exact specification.`
+    };
+    const q3Dist1 = {
+      text: `Alternative specification: Standard commercial baseline configuration without specialized domain attributes.`,
+      explanation: `Incorrect. The analysis establishes distinctive domain attributes rather than a generic baseline.`
+    };
+    const q3Dist2 = {
+      text: `Unverified variant: Experimental prototype lacking public domain registry documentation.`,
+      explanation: `Incorrect. The subject is verified through established domain records.`
+    };
+    const q3Dist3 = {
+      text: `Contradicted attribute: Reversed color scheme and alternate geographic origin.`,
+      explanation: `Incorrect. Contradicts observable optical features and verified archival records.`
+    };
+
+    questions.push({
       id: qId++,
-      sourceClaimId: `SUMMARY-01`,
-      question: `What is the core visual research insight summarized for ${subject}?`,
-      options: [
-        { key: 'A', text: summary.length > 85 ? summary.slice(0, 85) + '...' : summary, isCorrect: true, explanation: `Correct. Executive research summary confirms this finding.` },
-        { key: 'B', text: 'The visual artifact contains no extractable features or structure', isCorrect: false, explanation: 'Incorrect. Full structural model was generated.' },
-        { key: 'C', text: 'The analysis is inconclusive due to low resolution', isCorrect: false, explanation: 'Incorrect. Analysis was successfully concluded.' },
-        { key: 'D', text: 'Standard placeholder description', isCorrect: false, explanation: 'Incorrect. Summary is specific to the uploaded visual.' }
-      ]
+      topic: 'Verified Subject Attributes',
+      difficulty: 'hard',
+      sourceClaimId: 'FACT-01',
+      question: `Regarding ${subject}, which verified attribute is documented in the domain intelligence profile?`,
+      options: buildShuffledOptions(q3Correct, q3Dist1, q3Dist2, q3Dist3)
     });
   }
 
-  return candidateQuestions.filter(q => q.question && q.options && q.options.length === 4 && q.options.some(o => o.isCorrect));
+  // -------------------------------------------------------------
+  // QUESTION 4: Analytical Boundaries & Scope (Hard)
+  // -------------------------------------------------------------
+  const undeterClaim = claims.find(c => (c.status || '').toUpperCase() === 'UNDETERMINABLE');
+  const undeterText = undeterClaim ? (undeterClaim.statement || undeterClaim.text || undeterClaim.claim) : 'Internal mechanical state and unobservable private metadata';
+
+  const q4Correct = {
+    text: `Two-dimensional optical inspection cannot verify unobserved internal states or private metadata without external ground truth.`,
+    explanation: `Supported by epistemic methodology: InsightLens strictly prohibits assuming unobserved facts when optical evidence is absent.`
+  };
+  const q4Dist1 = {
+    text: `The image was flagged as corrupt and rejected by the hardware decoding layer.`,
+    explanation: `Incorrect. The artifact was successfully decoded and processed through the visual pipeline.`
+  };
+  const q4Dist2 = {
+    text: `Direct background contradictions conclusively proved the claim to be false.`,
+    explanation: `Incorrect. An undeterminable status indicates absence of sufficient evidence, not definitive refutation.`
+  };
+  const q4Dist3 = {
+    text: `The model's classification registry is restricted to pre-modern historical eras.`,
+    explanation: `Incorrect. The visual intelligence registry spans modern, technical, and historical domains.`
+  };
+
+  questions.push({
+    id: qId++,
+    topic: 'Epistemic Scope & Verification',
+    difficulty: 'hard',
+    sourceClaimId: undeterClaim?.id || 'LIMIT-01',
+    question: `Why does the report categorize assertions regarding "${undeterText.slice(0, 60)}" as UNDETERMINABLE?`,
+    options: buildShuffledOptions(q4Correct, q4Dist1, q4Dist2, q4Dist3)
+  });
+
+  // -------------------------------------------------------------
+  // QUESTION 5: Executive Synthesis & Key Finding (Medium)
+  // -------------------------------------------------------------
+  const q5Correct = {
+    text: `Core finding: ${keyFinding.slice(0, 85)}${keyFinding.length > 85 ? '...' : ''}`,
+    explanation: `Supported by executive summary: The synthesized report highlights this finding as the primary takeaway.`
+  };
+  const q5Dist1 = {
+    text: `The artifact exhibits low semantic coherence and requires manual re-calibration.`,
+    explanation: `Incorrect. The visual analysis concluded with high confidence and structured evidence.`
+  };
+  const q5Dist2 = {
+    text: `Visual evidence disproves the identity of ${subject} and reclassifies it as synthetic noise.`,
+    explanation: `Incorrect. The report confirms grounded identification and domain alignment.`
+  };
+  const q5Dist3 = {
+    text: `Analysis was terminated prematurely due to unsupported file format encoding.`,
+    explanation: `Incorrect. Complete multi-stage visual synthesis was executed.`
+  };
+
+  questions.push({
+    id: qId++,
+    topic: 'Executive Research Synthesis',
+    difficulty: 'medium',
+    sourceClaimId: 'EXEC-01',
+    question: `What core visual intelligence conclusion is synthesized in the executive overview for ${subject}?`,
+    options: buildShuffledOptions(q5Correct, q5Dist1, q5Dist2, q5Dist3)
+  });
+
+  return questions;
 }
 
 function renderQuizModalContent(modal, reportData) {
@@ -197,10 +323,7 @@ function renderQuizModalContent(modal, reportData) {
 
         <div class="p-6 text-center space-y-3 bg-slate-950/60 rounded-xl border border-white/5">
           <span class="material-symbols-outlined text-4xl text-amber-400">quiz</span>
-          <p class="text-sm text-slate-200 font-sans font-semibold">Not enough report-specific evidence to generate a reliable question.</p>
-          <p class="text-xs text-slate-400 font-sans leading-relaxed">
-            Please analyze a visual image first to generate grounded evidence questions.
-          </p>
+          <p class="text-sm text-slate-200 font-sans font-semibold">Please analyze a visual image first.</p>
         </div>
 
         <div class="pt-2 flex justify-end">
@@ -224,35 +347,42 @@ function renderQuizModalContent(modal, reportData) {
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
           <h3 class="font-serif font-bold text-lg text-slate-100">🎯 Test Your Understanding</h3>
-          <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Report-Grounded</span>
+          <span class="px-2 py-0.5 text-[10px] font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">${totalQ} Grounded Questions</span>
         </div>
         <button onclick="window.closeReportQuizModal()" class="text-slate-400 hover:text-white text-xs font-mono cursor-pointer">✕ Close</button>
       </div>
 
       <!-- Questions List -->
-      <div class="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
-        ${currentQuizQuestions.map(q => {
+      <div class="space-y-6 max-h-[65vh] overflow-y-auto pr-1">
+        ${currentQuizQuestions.map((q, idx) => {
           const selectedKey = currentQuizAnswers[q.id];
           const isAnswered = Boolean(selectedKey);
           const selectedOption = q.options.find(o => o.key === selectedKey);
 
           return `
-            <div class="p-4 rounded-xl bg-slate-950/80 border border-white/5 space-y-3">
+            <div class="p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-3 shadow-md">
               <div class="flex items-start justify-between gap-2">
-                <div class="font-serif font-bold text-slate-200 text-sm">${escapeHtml(q.question)}</div>
-                ${q.sourceClaimId ? `<span class="px-1.5 py-0.5 text-[9px] font-mono rounded bg-slate-800 text-slate-400 shrink-0">${escapeHtml(q.sourceClaimId)}</span>` : ''}
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-500/20 text-indigo-300 font-bold">Q${idx + 1}</span>
+                    <span class="text-[11px] font-mono text-slate-400">${escapeHtml(q.topic || 'Visual Understanding')}</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono ${q.difficulty === 'hard' ? 'bg-rose-500/20 text-rose-300' : 'bg-sky-500/20 text-sky-300'} uppercase">${escapeHtml(q.difficulty || 'medium')}</span>
+                  </div>
+                  <div class="font-serif font-bold text-slate-100 text-sm leading-snug">${escapeHtml(q.question)}</div>
+                </div>
+                ${q.sourceClaimId ? `<span class="px-1.5 py-0.5 text-[9px] font-mono rounded bg-slate-800 text-slate-400 shrink-0 border border-white/5">${escapeHtml(q.sourceClaimId)}</span>` : ''}
               </div>
               
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-sans">
+              <div class="grid grid-cols-1 gap-2 text-xs font-sans pt-1">
                 ${q.options.map(opt => {
                   let btnStyle = 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-white/10';
                   if (isAnswered) {
                     if (opt.isCorrect) {
-                      btnStyle = 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50 font-bold';
+                      btnStyle = 'bg-emerald-950/90 text-emerald-200 border-emerald-500/60 font-semibold shadow-md';
                     } else if (opt.key === selectedKey) {
-                      btnStyle = 'bg-rose-950/80 text-rose-300 border-rose-500/50 font-bold';
+                      btnStyle = 'bg-rose-950/90 text-rose-200 border-rose-500/60 font-semibold shadow-md';
                     } else {
-                      btnStyle = 'bg-slate-950/40 text-slate-500 border-white/5 opacity-50';
+                      btnStyle = 'bg-slate-950/40 text-slate-500 border-white/5 opacity-40';
                     }
                   }
 
@@ -260,17 +390,17 @@ function renderQuizModalContent(modal, reportData) {
                     <button 
                       ${isAnswered ? 'disabled' : ''} 
                       onclick="window.selectQuizOption(${q.id}, '${opt.key}')" 
-                      class="p-2.5 rounded-xl border text-left flex items-start gap-2 transition-all cursor-pointer ${btnStyle}">
-                      <span class="font-mono font-bold text-xs opacity-75">${opt.key}.</span>
-                      <span>${escapeHtml(opt.text)}</span>
+                      class="p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer leading-relaxed ${btnStyle}">
+                      <span class="font-mono font-bold text-xs shrink-0 px-1.5 py-0.5 rounded bg-black/40 border border-white/10">${opt.key}</span>
+                      <span class="flex-1">${escapeHtml(opt.text)}</span>
                     </button>
                   `;
                 }).join('')}
               </div>
 
               ${isAnswered && selectedOption ? `
-                <div class="p-3 rounded-xl text-xs font-sans border ${selectedOption.isCorrect ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}">
-                  <strong>${selectedOption.isCorrect ? '✓ Correct!' : '✗ Incorrect:'}</strong> ${escapeHtml(selectedOption.explanation)}
+                <div class="p-3 rounded-xl text-xs font-sans border animate-fade-in ${selectedOption.isCorrect ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/10 border-rose-500/30 text-rose-300'}">
+                  <strong>${selectedOption.isCorrect ? '✓ Correct Answer!' : '✗ Incorrect Selection:'}</strong> ${escapeHtml(selectedOption.explanation)}
                 </div>
               ` : ''}
             </div>
@@ -281,8 +411,8 @@ function renderQuizModalContent(modal, reportData) {
       <!-- Action Footer -->
       <div class="pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
         ${!isQuizSubmitted ? `
-          <button onclick="window.submitReportQuiz()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs font-mono transition-all cursor-pointer shadow-lg">
-            Calculate Final Score
+          <button onclick="window.submitReportQuiz()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs font-mono transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2">
+            <span>📊</span> Submit &amp; Calculate Final Score
           </button>
         ` : `
           <div class="w-full p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
@@ -290,7 +420,7 @@ function renderQuizModalContent(modal, reportData) {
               <div class="font-serif font-bold text-amber-300 text-base">Quiz Completed!</div>
               <p class="text-xs text-slate-300 font-sans">Final Score: <strong class="text-white text-sm">${calculateScore()} / ${totalQ}</strong></p>
             </div>
-            <button onclick="window.openReportQuizModal(null)" class="px-3.5 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-mono font-semibold cursor-pointer">
+            <button onclick="window.openReportQuizModal(null)" class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-mono font-semibold cursor-pointer">
               Retry Quiz
             </button>
           </div>

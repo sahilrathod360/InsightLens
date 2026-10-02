@@ -405,4 +405,66 @@ describe('Visual Intelligence Platform Core Subsystems', () => {
     assert.equal(narration.steps[1].evidenceId, 'EVI-1');
     assert.ok(narration.steps[1].coordinates.x === 0.1);
   });
+
+  // --------------------------------------------------------------------------
+  // TEST 13: VISUAL COMPARISON FILENAME SANITIZATION & 10-SECTION REPORT
+  // --------------------------------------------------------------------------
+  it('should strictly sanitize raw filenames, slug strings, and numeric IDs in visual comparison', async () => {
+    const demoSources = [
+      {
+        id: 'HERO-1',
+        title: 'Spider-Man-blending-into-the-shadows-with-only-his-glowing-eyes-visible-4K-desktop-wallpaper',
+        subject: 'Spider-Man-blending-into-the-shadows-with-only-his-glowing-eyes-visible-4K-desktop-wallpaper',
+        visualType: 'SUPERHERO CHARACTER ART',
+        dataUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+        isDemoPreset: true,
+        appearance: 'Red and blue suit with web pattern and spider emblem',
+        environment: 'Urban Rooftop',
+        visibleObjects: ['Web Patterned Suit', 'Spider Emblem', 'City Rooftop']
+      },
+      {
+        id: 'HERO-2',
+        title: '1000190325',
+        subject: '1000190325',
+        visualType: 'SUPERHERO CHARACTER ART',
+        dataUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+        isDemoPreset: true,
+        appearance: 'Blue suit with flowing red cape and S-shield chest emblem',
+        environment: 'Metropolis Skyline',
+        visibleObjects: ['Flowing Red Cape', 'S-Shield Chest Crest']
+      },
+      {
+        id: 'HERO-3',
+        title: 'batman-4k-wallpaper.jpg',
+        subject: 'batman-4k-wallpaper.jpg',
+        visualType: 'SUPERHERO CHARACTER ART',
+        dataUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+        isDemoPreset: true,
+        appearance: 'Dark tactical bat-armor with cowl and bat chest symbol',
+        environment: 'Gotham City Rooftop',
+        visibleObjects: ['Dark Bat Cowl', 'Bat Emblem', 'Tactical Armor']
+      }
+    ];
+
+    const result = await VisualComparisonEngine.compareVisuals(demoSources);
+    assert.ok(result.sources.length === 3);
+
+    // Verify sanitized subjects - MUST NOT be raw numeric ID or long hyphenated wallpaper slug
+    assert.notEqual(result.sources[1].subject, '1000190325');
+    assert.ok(result.sources[0].subject.toLowerCase().includes('spider-man'));
+    assert.ok(!result.sources[2].subject.includes('.jpg'));
+
+    // Verify matrix attributes structure (at least 8 rows)
+    assert.ok(result.matrix.attributes.length >= 8);
+    const subjectRow = result.matrix.attributes.find(a => a.name === 'Primary Subject');
+    assert.ok(subjectRow);
+    assert.equal(subjectRow.values.length, 3);
+
+    // Verify 10-Section Comparative Report
+    assert.ok(Array.isArray(result.sections));
+    assert.ok(result.sections.length >= 8);
+    assert.ok(result.sections.some(s => s.heading.includes('Executive Comparative Overview')));
+    assert.ok(result.sections.some(s => s.heading.includes('Entity & Subject Identification')));
+  });
 });
+
