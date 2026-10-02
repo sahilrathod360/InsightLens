@@ -1,5 +1,8 @@
 import puppeteer from 'puppeteer';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const FRONTEND_URL = 'https://insight-lens.vercel.app';
 const BACKEND_URL = 'https://insightlens-backend.onrender.com';
@@ -11,8 +14,10 @@ console.log(`Backend URL:  ${BACKEND_URL}`);
 console.log('============================================================\n');
 
 async function runAudit() {
+  const tempProfileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_audit_'));
   const browser = await puppeteer.launch({
     headless: 'new',
+    userDataDir: tempProfileDir,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -90,7 +95,10 @@ async function runAudit() {
     window.navigateTo('livevision');
   });
 
-  await page.waitForSelector('#page-livevision', { visible: true, timeout: 5000 });
+  await page.waitForFunction(() => {
+    const el = document.getElementById('page-livevision');
+    return el && !el.classList.contains('hidden');
+  }, { timeout: 10000 });
   
   // Check required buttons and status elements
   const hasStartBtn = await page.$('#start-camera-btn');

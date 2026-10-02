@@ -1,57 +1,68 @@
 /* InsightLens - Handcrafted Product Design & Visual Intelligence System */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   --bg-main: #FFFFFF;
-  --bg-canvas: #FFFFFF;
-  --bg-card: #F8FAFC;
+  --bg-canvas: #F8FAFC;
+  --bg-card: #FFFFFF;
   --bg-card-subtle: #F1F5F9;
   --bg-card-lowest: #FFFFFF;
   --border-color: #E2E8F0;
   --border-subtle: #CBD5E1;
+  --border-highlight: rgba(99, 102, 241, 0.2);
   --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #94A3B8;
   --accent-color: #4F46E5;
+  --accent-glow: rgba(79, 70, 229, 0.15);
   --accent-emerald: #059669;
   --accent-amber: #D97706;
   --accent-purple: #7C3AED;
   --accent-link: #2563EB;
-  --nav-bg: rgba(255, 255, 255, 0.92);
+  --nav-bg: rgba(255, 255, 255, 0.85);
   --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 36px -4px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 0 40px -10px rgba(99, 102, 241, 0.2);
 }
 
 .product-trust-bar {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.875rem;
 }
 
 .product-trust-item {
-  padding: 0.85rem 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(15, 23, 42, 0.32);
-  backdrop-filter: blur(8px);
+  padding: 1rem 1.15rem;
+  border-radius: 1.125rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.product-trust-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(168, 85, 247, 0.3);
 }
 
 .product-trust-item strong {
   display: block;
   color: #f8fafc;
-  font-size: 0.76rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .product-trust-item span {
   display: block;
   margin-top: 0.35rem;
-  color: #cbd5e1;
-  font-size: 0.72rem;
-  line-height: 1.5;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  line-height: 1.55;
 }
 
 .compare-status-card {
@@ -74,34 +85,37 @@
 }
 
 html.dark {
-  --bg-main: #0F1117;
-  --bg-canvas: #0F1117;
-  --bg-card: #171A23;
-  --bg-card-subtle: #1E2330;
-  --bg-card-lowest: #141720;
-  --border-color: #2B2F3A;
-  --border-subtle: rgba(255, 255, 255, 0.08);
+  --bg-main: #080A10;
+  --bg-canvas: #0B0E17;
+  --bg-card: #111622;
+  --bg-card-subtle: #171E2E;
+  --bg-card-lowest: #0D111A;
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-highlight: rgba(129, 140, 248, 0.35);
   --text-primary: #F8FAFC;
-  --text-secondary: #A1A8B5;
+  --text-secondary: #94A3B8;
   --text-muted: #64748B;
   --accent-color: #6366F1;
+  --accent-glow: rgba(99, 102, 241, 0.25);
   --accent-emerald: #10B981;
   --accent-amber: #F59E0B;
-  --accent-purple: #8B5CF6;
-  --accent-link: #3B82F6;
-  --nav-bg: rgba(15, 17, 23, 0.9);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 32px -4px rgba(0, 0, 0, 0.5);
+  --accent-purple: #A855F7;
+  --accent-link: #38BDF8;
+  --nav-bg: rgba(8, 10, 16, 0.82);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 40px -4px rgba(0, 0, 0, 0.65);
+  --shadow-glow: 0 0 50px -10px rgba(168, 85, 247, 0.25);
 }
 
 /* Theme Studio Themes */
 html[data-theme="midnight-research"] {
-  --bg-main: #0B0F19;
-  --bg-canvas: #0E1322;
-  --bg-card: #151C30;
-  --bg-card-subtle: #1C253E;
-  --border-color: #263354;
+  --bg-main: #06080F;
+  --bg-canvas: #090D18;
+  --bg-card: #101626;
+  --bg-card-subtle: #172036;
+  --border-color: rgba(99, 102, 241, 0.18);
   --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
@@ -113,10 +127,10 @@ html[data-theme="midnight-research"] {
 }
 
 html[data-theme="neo-glass"] {
-  --bg-main: #070913;
-  --bg-canvas: #0A0E1F;
-  --bg-card: rgba(20, 27, 50, 0.85);
-  --bg-card-subtle: rgba(30, 41, 75, 0.75);
+  --bg-main: #050711;
+  --bg-canvas: #080C1E;
+  --bg-card: rgba(18, 24, 48, 0.85);
+  --bg-card-subtle: rgba(28, 38, 72, 0.75);
   --border-color: rgba(139, 92, 246, 0.35);
   --text-primary: #FFFFFF;
   --text-secondary: #A5B4FC;
@@ -129,10 +143,10 @@ html[data-theme="neo-glass"] {
 }
 
 html[data-theme="terminal"] {
-  --bg-main: #050709;
-  --bg-canvas: #080C10;
-  --bg-card: #0E141C;
-  --bg-card-subtle: #151D28;
+  --bg-main: #040608;
+  --bg-canvas: #070A0E;
+  --bg-card: #0D1219;
+  --bg-card-subtle: #131A24;
   --border-color: #1E293B;
   --text-primary: #E2E8F0;
   --text-secondary: #94A3B8;
@@ -1000,47 +1014,58 @@ select:focus {
   outline: none !important;
 }
 
-/* Distinct Button Hierarchy */
+/* Distinct Button Hierarchy & Micro-Interactions */
 
-/* 1. Primary Buttons */
-.bg-indigo-600,
+/* 1. Primary Luxury Gradient Action Button */
+.btn-premium-primary,
+.bg-gradient-to-r.from-indigo-600,
+.bg-gradient-to-r.from-purple-600,
+#hero-start-btn,
 #dash-new-analysis-btn,
 #browse-btn,
 #export-pdf-btn,
 #submit-login-btn,
 #methodology-try-btn,
 #save-settings-btn {
-  background: var(--accent-color) !important;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%) !important;
   color: #FFFFFF !important;
-  border: 1px solid transparent !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
-  transition: all 0.15s ease !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 4px 16px -2px rgba(99, 102, 241, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
   font-weight: 600 !important;
+  position: relative;
+  overflow: hidden;
 }
 
-.bg-indigo-600:hover,
+.btn-premium-primary:hover,
+.bg-gradient-to-r.from-indigo-600:hover,
+.bg-gradient-to-r.from-purple-600:hover,
+#hero-start-btn:hover,
 #dash-new-analysis-btn:hover,
 #browse-btn:hover,
 #export-pdf-btn:hover,
 #submit-login-btn:hover,
 #methodology-try-btn:hover,
 #save-settings-btn:hover {
-  background: var(--accent-hover) !important;
-  transform: translateY(-0.5px);
-  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.25) !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 24px -2px rgba(168, 85, 247, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.35) !important;
+  filter: brightness(1.06);
 }
 
-.bg-indigo-600:active,
+.btn-premium-primary:active,
+.bg-gradient-to-r.from-indigo-600:active,
+#hero-start-btn:active,
 #dash-new-analysis-btn:active,
 #browse-btn:active,
 #export-pdf-btn:active,
-#submit-login-btn:active,
-#methodology-try-btn:active,
-#save-settings-btn:active {
-  transform: translateY(0) scale(0.98);
+#submit-login-btn:active {
+  transform: translateY(0) scale(0.985);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3) !important;
 }
 
-/* 2. Secondary Buttons */
+/* 2. Secondary Refined Glass Button */
+.btn-premium-secondary,
+#hero-demo-btn,
 #export-md-btn,
 #export-json-btn,
 #share-btn,
@@ -1049,13 +1074,17 @@ select:focus {
 #qa-open-archive,
 #qa-export-all,
 #qa-settings {
-  background-color: var(--bg-card) !important;
-  border: 1px solid var(--border-color) !important;
-  color: var(--text-primary) !important;
-  transition: all 0.15s ease !important;
+  background: rgba(17, 22, 34, 0.75) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #F1F5F9 !important;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   font-weight: 500 !important;
 }
 
+.btn-premium-secondary:hover,
+#hero-demo-btn:hover,
 #export-md-btn:hover,
 #export-json-btn:hover,
 #share-btn:hover,
@@ -1064,8 +1093,42 @@ select:focus {
 #qa-open-archive:hover,
 #qa-export-all:hover,
 #qa-settings:hover {
-  background-color: var(--bg-card-subtle) !important;
-  border-color: var(--border-color) !important;
+  background: rgba(26, 33, 50, 0.9) !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  transform: translateY(-1px);
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 18px -2px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* 3. Modern Cinematic Card & Portal Container */
+.card-cinematic {
+  background: linear-gradient(145deg, rgba(17, 22, 34, 0.85) 0%, rgba(11, 14, 23, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card-cinematic:hover {
+  transform: translateY(-3px);
+  border-color: rgba(168, 85, 247, 0.3) !important;
+  box-shadow: 0 20px 48px -8px rgba(99, 102, 241, 0.18), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-portal {
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  background: linear-gradient(180deg, rgba(18, 24, 38, 0.7) 0%, rgba(10, 13, 20, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-portal:hover {
+  transform: translateY(-4px);
+  border-color: rgba(168, 85, 247, 0.35);
+  box-shadow: 0 20px 40px -6px rgba(129, 140, 248, 0.16);
 }
 
 #export-md-btn:active,
