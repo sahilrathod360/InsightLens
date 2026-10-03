@@ -131,6 +131,8 @@ export function navigateTo(pageId) {
     renderCallbacks.renderComparePage?.();
   } else if (pageId === 'livevision') {
     renderCallbacks.renderLiveVisionPage?.();
+  } else if (pageId === 'landing') {
+    renderCallbacks.renderLandingPage?.();
   }
 
   document.getElementById('user-dropdown-menu')?.classList.remove('show');

@@ -1,3 +1,5 @@
+import * as tf from '@tensorflow/tfjs';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import { sendLiveVisionFrame } from '../services/visualIntelligenceApi.js';
 import { showToast } from '../utils/toast.js';
 import { escapeHtml } from '../utils/sanitize.js';
@@ -14,7 +16,7 @@ let isLiveVisionPaused = false;
 let lastServerSyncTime = 0;
 
 /**
- * Loads the client-side lightweight COCO-SSD object detector lazily.
+ * Loads the client-side lightweight COCO-SSD object detector.
  */
 async function getOrLoadDetector() {
   if (detectorModel) return detectorModel;
@@ -30,40 +32,176 @@ async function getOrLoadDetector() {
     const statusEl = document.getElementById('live-detector-status');
     if (statusEl) statusEl.innerText = 'Loading AI Object Detector...';
     
-    await import('@tensorflow/tfjs');
-    const cocoSsd = await import('@tensorflow-models/coco-ssd');
+    if (tf && typeof tf.ready === 'function') {
+      await tf.ready();
+    }
     
-    detectorModel = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
-    console.log('[LiveVision] COCO-SSD lightweight model loaded successfully');
+    const loadFn = cocoSsd.load || (cocoSsd.default && cocoSsd.default.load);
+    if (!loadFn) {
+      throw new Error('COCO-SSD load function not found on module');
+    }
+
+    try {
+      detectorModel = await loadFn({ base: 'lite_mobilenet_v2' });
+    } catch (e1) {
+      console.warn('[LiveVision] lite_mobilenet_v2 load error, trying mobilenet_v2:', e1.message);
+      detectorModel = await loadFn({ base: 'mobilenet_v2' });
+    }
+
+    console.log('[LiveVision] COCO-SSD model loaded successfully');
     if (statusEl) statusEl.innerText = 'OBJECT DETECTION ACTIVE';
   } catch (err) {
-    console.warn('[LiveVision] Local COCO-SSD load failed, will rely on backend vision:', err.message);
+    console.error('[LiveVision] Local COCO-SSD load failed:', err);
+    const statusEl = document.getElementById('live-detector-status');
+    if (statusEl) statusEl.innerText = 'Detector unavailable';
   } finally {
     isModelLoading = false;
   }
   return detectorModel;
 }
 
+let liveResizeObserver = null;
+
+function getDetectionColorStyle(rawClass = '') {
+  const cls = (rawClass || '').toLowerCase().trim();
+  
+  if (['person', 'man', 'woman', 'child'].includes(cls)) {
+    return {
+      border: 'border-cyan-400',
+      bg: 'bg-cyan-500/10',
+      pillBg: 'bg-cyan-600/90',
+      text: 'text-cyan-200'
+    };
+  }
+  
+  if (['tv', 'tvmonitor', 'laptop', 'cell phone', 'mouse', 'keyboard', 'remote', 'microwave', 'oven', 'toaster', 'refrigerator'].includes(cls)) {
+    return {
+      border: 'border-indigo-400',
+      bg: 'bg-indigo-500/10',
+      pillBg: 'bg-indigo-600/90',
+      text: 'text-indigo-200'
+    };
+  }
+  
+  if (['chair', 'couch', 'bed', 'dining table', 'bench', 'desk'].includes(cls)) {
+    return {
+      border: 'border-amber-400',
+      bg: 'bg-amber-500/10',
+      pillBg: 'bg-amber-600/90',
+      text: 'text-amber-200'
+    };
+  }
+
+  if (['bottle', 'cup', 'wine glass', 'bowl', 'potted plant', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'pizza', 'donut', 'cake', 'book', 'vase', 'clock'].includes(cls)) {
+    return {
+      border: 'border-emerald-400',
+      bg: 'bg-emerald-500/10',
+      pillBg: 'bg-emerald-600/90',
+      text: 'text-emerald-200'
+    };
+  }
+
+  if (['car', 'bicycle', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter'].includes(cls)) {
+    return {
+      border: 'border-rose-400',
+      bg: 'bg-rose-500/10',
+      pillBg: 'bg-rose-600/90',
+      text: 'text-rose-200'
+    };
+  }
+
+  return {
+    border: 'border-purple-400',
+    bg: 'bg-purple-500/10',
+    pillBg: 'bg-purple-600/90',
+    text: 'text-purple-200'
+  };
+}
+
 function formatClassLabel(rawClass) {
   if (!rawClass) return 'Object';
   const mapping = {
-    'tv': 'TV',
-    'tvmonitor': 'TV / Monitor',
-    'cell phone': 'Phone',
-    'laptop': 'Laptop',
-    'couch': 'Sofa',
-    'dining table': 'Table',
-    'potted plant': 'Plant',
-    'sports ball': 'Ball',
-    'wine glass': 'Wine Glass',
-    'hair drier': 'Hair Dryer',
-    'teddy bear': 'Teddy Bear',
-    'refrigerator': 'Fridge',
-    'microwave': 'Microwave',
+    'person': 'Person',
+    'bicycle': 'Bicycle',
+    'car': 'Car',
+    'motorcycle': 'Motorcycle',
+    'airplane': 'Airplane',
+    'bus': 'Bus',
+    'train': 'Train',
+    'truck': 'Truck',
+    'boat': 'Boat',
     'traffic light': 'Traffic Light',
     'fire hydrant': 'Fire Hydrant',
     'stop sign': 'Stop Sign',
-    'parking meter': 'Parking Meter'
+    'parking meter': 'Parking Meter',
+    'bench': 'Bench',
+    'bird': 'Bird',
+    'cat': 'Cat',
+    'dog': 'Dog',
+    'horse': 'Horse',
+    'sheep': 'Sheep',
+    'cow': 'Cow',
+    'elephant': 'Elephant',
+    'bear': 'Bear',
+    'zebra': 'Zebra',
+    'giraffe': 'Giraffe',
+    'backpack': 'Backpack',
+    'umbrella': 'Umbrella',
+    'handbag': 'Handbag',
+    'tie': 'Tie',
+    'suitcase': 'Suitcase',
+    'frisbee': 'Frisbee',
+    'skis': 'Skis',
+    'snowboard': 'Snowboard',
+    'sports ball': 'Sports Ball',
+    'kite': 'Kite',
+    'baseball bat': 'Baseball Bat',
+    'baseball glove': 'Baseball Glove',
+    'skateboard': 'Skateboard',
+    'surfboard': 'Surfboard',
+    'tennis racket': 'Tennis Racket',
+    'bottle': 'Bottle',
+    'wine glass': 'Wine Glass',
+    'cup': 'Cup',
+    'fork': 'Fork',
+    'knife': 'Knife',
+    'spoon': 'Spoon',
+    'bowl': 'Bowl',
+    'banana': 'Banana',
+    'apple': 'Apple',
+    'sandwich': 'Sandwich',
+    'orange': 'Orange',
+    'broccoli': 'Broccoli',
+    'carrot': 'Carrot',
+    'hot dog': 'Hot Dog',
+    'pizza': 'Pizza',
+    'donut': 'Donut',
+    'cake': 'Cake',
+    'chair': 'Chair',
+    'couch': 'Couch / Sofa',
+    'potted plant': 'Potted Plant',
+    'bed': 'Bed',
+    'dining table': 'Table',
+    'toilet': 'Toilet',
+    'tv': 'TV',
+    'tvmonitor': 'TV / Monitor',
+    'laptop': 'Laptop',
+    'mouse': 'Mouse',
+    'remote': 'Remote Control',
+    'keyboard': 'Keyboard',
+    'cell phone': 'Cell Phone',
+    'microwave': 'Microwave',
+    'oven': 'Oven',
+    'toaster': 'Toaster',
+    'sink': 'Sink',
+    'refrigerator': 'Refrigerator',
+    'book': 'Book',
+    'clock': 'Clock',
+    'vase': 'Vase',
+    'scissors': 'Scissors',
+    'teddy bear': 'Teddy Bear',
+    'hair drier': 'Hair Dryer',
+    'toothbrush': 'Toothbrush'
   };
 
   const key = rawClass.toLowerCase().trim();
@@ -273,6 +411,18 @@ function setupLiveVisionEvents() {
       updatePauseButton();
 
       showToast(`Camera active (${currentFacingMode}). Real-time object detection engaged.`, 'success');
+      
+      // Auto-recalculate coordinates on camera container resize
+      if (wrapper && typeof ResizeObserver !== 'undefined') {
+        if (liveResizeObserver) liveResizeObserver.disconnect();
+        liveResizeObserver = new ResizeObserver(() => {
+          if (currentFrameDetections && currentFrameDetections.length > 0) {
+            renderLiveBoundingBoxes(currentFrameDetections);
+          }
+        });
+        liveResizeObserver.observe(wrapper);
+      }
+
       startRealtimeDetectionLoop();
     } catch (err) {
       console.error('[LiveVision] getUserMedia Error:', err);
@@ -319,6 +469,11 @@ function setupLiveVisionEvents() {
   };
 
   window.stopLiveCameraStream = () => {
+    if (liveResizeObserver) {
+      liveResizeObserver.disconnect();
+      liveResizeObserver = null;
+    }
+
     if (detectionLoopTimer) {
       clearTimeout(detectionLoopTimer);
       detectionLoopTimer = null;
@@ -426,8 +581,8 @@ function startRealtimeDetectionLoop() {
         let rawDetections = [];
 
         if (model) {
-          // Real-time object detection directly on HTML5 video element
-          const predictions = await model.detect(video, 12, 0.40);
+          // Real-time multi-object detection directly on HTML5 video element
+          const predictions = await model.detect(video, 16, 0.30);
           const vWidth = video.videoWidth || 1280;
           const vHeight = video.videoHeight || 720;
 
@@ -443,6 +598,7 @@ function startRealtimeDetectionLoop() {
             return {
               id: `DET-${idx + 1}`,
               label,
+              rawClass: pred.class,
               confidence: score,
               status: 'OBSERVED',
               coordinates: {
@@ -600,13 +756,14 @@ function renderLiveBoundingBoxes(detections = []) {
 
   layer.innerHTML = detections.map((r, idx) => {
     const coords = r.coordinates || { x: 0.1 + idx * 0.2, y: 0.2, width: 0.25, height: 0.35 };
-    
+    const colorStyle = getDetectionColorStyle(r.rawClass || r.label);
+
     let styleStr = '';
     if (useAbsoluteRect) {
       const boxLeft = Math.round(rect.left + coords.x * rect.width);
       const boxTop = Math.round(rect.top + coords.y * rect.height);
-      const boxWidth = Math.round(coords.width * rect.width);
-      const boxHeight = Math.round(coords.height * rect.height);
+      const boxWidth = Math.max(28, Math.round(coords.width * rect.width));
+      const boxHeight = Math.max(28, Math.round(coords.height * rect.height));
       styleStr = `left: ${boxLeft}px; top: ${boxTop}px; width: ${boxWidth}px; height: ${boxHeight}px;`;
     } else {
       const left = (coords.x * 100).toFixed(1);
@@ -620,11 +777,11 @@ function renderLiveBoundingBoxes(detections = []) {
       <div 
         onclick="window.showLiveRegionDetails(${idx})"
         style="${styleStr}"
-        class="absolute border-2 border-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all cursor-pointer rounded-lg group shadow-xl flex items-start p-1 pointer-events-auto"
+        class="absolute border-2 ${colorStyle.border} ${colorStyle.bg} hover:brightness-125 transition-all cursor-pointer rounded-lg shadow-xl flex items-start p-1 pointer-events-auto live-detection-box"
       >
-        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-600/90 text-white font-mono font-bold text-[10px] tracking-wider uppercase shadow backdrop-blur-sm">
+        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded ${colorStyle.pillBg} text-white font-mono font-bold text-[10px] sm:text-[11px] tracking-wide uppercase shadow backdrop-blur-md">
           <span>${escapeHtml(r.label || `Object ${idx + 1}`)}</span>
-          <span class="text-[9px] text-emerald-200 font-normal opacity-90">${r.confidence}%</span>
+          <span class="text-[9px] sm:text-[10px] font-normal opacity-90">${r.confidence}%</span>
         </div>
       </div>
     `;
@@ -642,21 +799,23 @@ function renderLiveBoundingBoxes(detections = []) {
     popover.style.top = '70%';
     popover.style.transform = 'translate(-50%, -50%)';
 
+    const colorStyle = getDetectionColorStyle(r.rawClass || r.label);
+
     popover.innerHTML = `
       <div class="space-y-2 text-left">
         <div class="flex items-center justify-between border-b border-white/10 pb-1.5">
           <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full ${colorStyle.pillBg}"></span>
             <span class="font-serif font-bold text-slate-100 text-sm">${escapeHtml(r.label || 'Detected Object')}</span>
           </div>
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono ${colorStyle.bg} ${colorStyle.text} border ${colorStyle.border} font-bold">
             ${r.confidence}% CONFIDENCE
           </span>
         </div>
         <div class="text-[11px] text-slate-300 font-sans">${escapeHtml(r.observation || `Visual detection of ${r.label} in camera frame.`)}</div>
         <div class="flex items-center justify-between pt-1 border-t border-white/5 text-[10px] font-mono text-slate-400">
           <span>Status: <strong class="text-emerald-400">${escapeHtml(r.status || 'OBSERVED')}</strong></span>
-          <button onclick="document.getElementById('live-region-popover').classList.add('hidden')" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white text-[10px] font-mono cursor-pointer border border-white/10">
+          <button onclick="document.getElementById('live-region-popover').classList.add('hidden')" class="px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[10px] font-mono cursor-pointer border border-white/10">
             Close
           </button>
         </div>

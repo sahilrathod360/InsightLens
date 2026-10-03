@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderVisualWorkspace,
     renderComparePage,
     renderLiveVisionPage,
+    renderLandingPage: setupLandingPageEvents,
     updateAuthUI,
     setAuthModeUI: setAuthMode
   });
