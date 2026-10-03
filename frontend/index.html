@@ -136,10 +136,10 @@
 
         <!-- Welcome [Name] & Avatar Badge -->
         <div id="user-welcome-badge" class="hidden flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.1] px-3 py-1.5 rounded-lg text-xs text-slate-200 border border-white/10 cursor-pointer transition-all">
-          <div id="nav-user-avatar" class="w-5.5 h-5.5 rounded-full bg-gradient-to-tr from-orange-500 to-rose-500 text-white font-semibold text-[10px] flex items-center justify-center shadow-sm">
+          <div id="nav-user-avatar" class="w-7 h-7 min-w-[28px] max-w-[28px] h-[28px] rounded-full bg-gradient-to-tr from-orange-500 to-rose-500 text-white font-semibold text-[10px] flex items-center justify-center shadow-sm overflow-hidden shrink-0">
             SR
           </div>
-          <span class="hidden sm:inline font-medium text-slate-300"><strong id="header-user-name" class="font-medium text-slate-100 max-w-[110px] truncate inline-block align-bottom">Dr. Sahil</strong></span>
+          <span class="hidden sm:inline font-medium text-slate-300"><strong id="header-user-name" class="font-medium text-slate-100 max-w-[120px] truncate inline-block align-bottom">Yo, Researcher</strong></span>
         </div>
 
         <!-- Lightweight Auth Initializing State -->
@@ -2169,10 +2169,10 @@
       <form id="dedicated-signup-form" class="space-y-4.5 text-xs">
         <!-- Avatar Upload & Live Preview Container -->
         <div class="bg-surface-container-lowest border ghost-border rounded-2xl p-4 flex items-center gap-4">
-          <div id="signup-avatar-dropzone" class="w-18 h-18 rounded-full border-2 border-dashed border-white/20 hover:border-indigo-400 flex items-center justify-center overflow-hidden cursor-pointer relative shrink-0 transition-all group">
+          <div id="signup-avatar-dropzone" class="w-[80px] h-[80px] min-w-[80px] max-w-[80px] min-h-[80px] max-h-[80px] rounded-full border-2 border-dashed border-white/20 hover:border-indigo-400 flex items-center justify-center overflow-hidden cursor-pointer relative shrink-0 transition-all group avatar-upload-dropzone" style="width: 80px; height: 80px; min-width: 80px; max-width: 80px; min-height: 80px; max-height: 80px; border-radius: 50%; overflow: hidden; position: relative;">
             <input type="file" id="signup-avatar-input" accept="image/png, image/jpeg, image/webp" class="hidden" />
-            <img id="signup-avatar-preview" alt="Avatar preview" class="w-full h-full object-cover hidden" />
-            <div id="signup-avatar-placeholder" class="text-center flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-300 transition-colors">
+            <img id="signup-avatar-preview" alt="Avatar preview" class="w-full h-full object-cover rounded-full hidden avatar-preview-img" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;" />
+            <div id="signup-avatar-placeholder" class="text-center flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-300 transition-colors pointer-events-none">
               <span class="material-symbols-outlined text-[24px]">add_a_photo</span>
               <span class="text-[9px] font-mono mt-0.5">Photo</span>
             </div>
@@ -2627,8 +2627,8 @@
         <div class="flex items-center gap-5">
           <!-- Avatar Container -->
           <div class="relative shrink-0">
-            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-orange-500 to-rose-500 text-white font-bold text-3xl flex items-center justify-center shadow-xl border-2 border-white/20 overflow-hidden">
-              <img id="profile-avatar-img" alt="Avatar" class="w-full h-full object-cover hidden" />
+            <div id="profile-avatar-circle" class="w-20 h-20 sm:w-24 sm:h-24 min-w-[80px] max-w-[96px] min-h-[80px] max-h-[96px] rounded-full bg-gradient-to-tr from-orange-500 to-rose-500 text-white font-bold text-3xl flex items-center justify-center shadow-xl border-2 border-white/20 overflow-hidden profile-avatar-container" style="border-radius: 50%; overflow: hidden; position: relative;">
+              <img id="profile-avatar-img" alt="Avatar" class="w-full h-full object-cover hidden rounded-full" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;" />
               <span id="profile-avatar-initials">SR</span>
             </div>
             <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#0e111a]" title="Active Researcher"></span>
@@ -3719,10 +3719,10 @@
       <form id="edit-profile-form" class="space-y-4 text-xs">
         <!-- Avatar Upload in Modal -->
         <div class="bg-surface-container-lowest border ghost-border rounded-2xl p-4 flex items-center gap-4">
-          <div id="edit-profile-avatar-dropzone" class="w-16 h-16 rounded-full border-2 border-dashed border-white/20 hover:border-indigo-400 flex items-center justify-center overflow-hidden cursor-pointer relative shrink-0 transition-all group">
+          <div id="edit-profile-avatar-dropzone" class="w-[80px] h-[80px] min-w-[80px] max-w-[80px] min-h-[80px] max-h-[80px] rounded-full border-2 border-dashed border-white/20 hover:border-indigo-400 flex items-center justify-center overflow-hidden cursor-pointer relative shrink-0 transition-all group avatar-upload-dropzone" style="width: 80px; height: 80px; min-width: 80px; max-width: 80px; min-height: 80px; max-height: 80px; border-radius: 50%; overflow: hidden; position: relative;">
             <input type="file" id="edit-profile-avatar-input" accept="image/png, image/jpeg, image/webp" class="hidden" />
-            <img id="edit-profile-avatar-preview" alt="Avatar Preview" class="w-full h-full object-cover hidden" />
-            <div id="edit-profile-avatar-placeholder" class="text-center flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-300">
+            <img id="edit-profile-avatar-preview" alt="Avatar Preview" class="w-full h-full object-cover rounded-full hidden avatar-preview-img" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;" />
+            <div id="edit-profile-avatar-placeholder" class="text-center flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-300 pointer-events-none">
               <span class="material-symbols-outlined text-[22px]">photo_camera</span>
             </div>
           </div>

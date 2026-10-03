@@ -9,6 +9,40 @@ import { updateAuthUI } from '../components/Navbar.js';
 
 let editAvatarBase64 = null;
 
+function resizeImageToAvatar(file, maxDim = 256) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function setupProfileEvents() {
   // Edit Profile Modal Triggers
   document.getElementById('profile-edit-btn')?.addEventListener('click', openEditProfileModal);
@@ -30,24 +64,31 @@ export function setupProfileEvents() {
 
   document.getElementById('edit-profile-avatar-dropzone')?.addEventListener('click', () => avatarInput?.click());
 
-  avatarInput?.addEventListener('change', (e) => {
+  avatarInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 4 * 1024 * 1024) {
-        showToast('Image exceeds 4MB size limit.', 'warning');
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file (PNG, JPEG, WebP).', 'warning');
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        editAvatarBase64 = evt.target.result;
+      if (file.size > 8 * 1024 * 1024) {
+        showToast('Image exceeds size limit.', 'warning');
+        return;
+      }
+      try {
+        const base64 = await resizeImageToAvatar(file, 256);
+        editAvatarBase64 = base64;
         if (avatarPreview) {
           avatarPreview.src = editAvatarBase64;
+          avatarPreview.style.display = 'block';
           avatarPreview.classList.remove('hidden');
         }
         if (avatarPlaceholder) avatarPlaceholder.classList.add('hidden');
         if (removeAvatarBtn) removeAvatarBtn.classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('[Profile Avatar Processing Error]', err);
+        showToast('Failed to process image.', 'warning');
+      }
     }
   });
 
@@ -57,6 +98,7 @@ export function setupProfileEvents() {
     if (avatarInput) avatarInput.value = '';
     if (avatarPreview) {
       avatarPreview.src = '';
+      avatarPreview.style.display = 'none';
       avatarPreview.classList.add('hidden');
     }
     if (avatarPlaceholder) avatarPlaceholder.classList.remove('hidden');
@@ -113,11 +155,16 @@ function populateBasicProfile(user) {
   if (user.avatar) {
     if (avatarImg) {
       avatarImg.src = user.avatar;
+      avatarImg.style.display = 'block';
       avatarImg.classList.remove('hidden');
     }
     if (avatarInitials) avatarInitials.classList.add('hidden');
   } else {
-    if (avatarImg) avatarImg.classList.add('hidden');
+    if (avatarImg) {
+      avatarImg.src = '';
+      avatarImg.style.display = 'none';
+      avatarImg.classList.add('hidden');
+    }
     if (avatarInitials) {
       avatarInitials.textContent = user.initials || getInitials(user.name);
       avatarInitials.classList.remove('hidden');
@@ -244,12 +291,17 @@ function openEditProfileModal() {
   if (session.avatar) {
     if (avatarPreview) {
       avatarPreview.src = session.avatar;
+      avatarPreview.style.display = 'block';
       avatarPreview.classList.remove('hidden');
     }
     if (avatarPlaceholder) avatarPlaceholder.classList.add('hidden');
     if (removeAvatarBtn) removeAvatarBtn.classList.remove('hidden');
   } else {
-    if (avatarPreview) avatarPreview.classList.add('hidden');
+    if (avatarPreview) {
+      avatarPreview.src = '';
+      avatarPreview.style.display = 'none';
+      avatarPreview.classList.add('hidden');
+    }
     if (avatarPlaceholder) avatarPlaceholder.classList.remove('hidden');
     if (removeAvatarBtn) removeAvatarBtn.classList.add('hidden');
   }

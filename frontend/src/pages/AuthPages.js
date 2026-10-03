@@ -152,19 +152,52 @@ export function setupAuthPages() {
   });
 }
 
-function handleAvatarFile(file) {
+function resizeImageToAvatar(file, maxDim = 256) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleAvatarFile(file) {
   if (!file.type.startsWith('image/')) {
     showToast('Please select a valid image file (PNG, JPEG, WebP).', 'warning');
     return;
   }
-  if (file.size > 4 * 1024 * 1024) {
-    showToast('Image size exceeds 4MB. Please choose a smaller photo.', 'warning');
+  if (file.size > 8 * 1024 * 1024) {
+    showToast('Image size exceeds limit. Please choose a smaller photo.', 'warning');
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const base64 = e.target.result;
+  try {
+    const base64 = await resizeImageToAvatar(file, 256);
     signupAvatarBase64 = base64;
 
     const avatarPreview = document.getElementById('signup-avatar-preview');
@@ -173,12 +206,15 @@ function handleAvatarFile(file) {
 
     if (avatarPreview) {
       avatarPreview.src = base64;
+      avatarPreview.style.display = 'block';
       avatarPreview.classList.remove('hidden');
     }
     if (avatarPlaceholder) avatarPlaceholder.classList.add('hidden');
     if (removeAvatarBtn) removeAvatarBtn.classList.remove('hidden');
-  };
-  reader.readAsDataURL(file);
+  } catch (err) {
+    console.error('[Avatar Processing Error]', err);
+    showToast('Failed to process avatar image.', 'warning');
+  }
 }
 
 async function handleLoginSubmit(e) {

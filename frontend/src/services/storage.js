@@ -142,12 +142,21 @@ export async function initPersistentSession(updateAuthUI) {
         const json = await res.json();
         if (json.success && json.data) {
           const user = json.data;
+          const firstName = user.firstName || (user.name ? user.name.split(' ')[0] : 'Researcher');
           const session = {
             id: user.id,
             name: user.name,
+            firstName,
+            lastName: user.lastName || '',
+            username: user.username || user.email.split('@')[0],
             email: user.email,
+            avatar: user.avatar || null,
+            onboarding_completed: !!user.onboarding_completed,
             initials: user.initials || getInitials(user.name),
             role: user.role || 'Researcher',
+            field: user.field || '',
+            institution: user.institution || '',
+            bio: user.bio || '',
             loginTime: user.created_at || Date.now()
           };
           setUserSession(session);

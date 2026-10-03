@@ -182,15 +182,15 @@ async function submitOnboardingData() {
       }
 
       showToast('Personalization complete! Welcome to your InsightLens workbench.', 'success');
-      navigateTo('desk');
+      navigateTo('landing');
     } else {
       showToast(json.message || 'Saved with local preferences.', 'info');
-      navigateTo('desk');
+      navigateTo('landing');
     }
   } catch (err) {
     console.error('[Onboarding Error]', err);
     showToast('Preferences saved for this session.', 'info');
-    navigateTo('desk');
+    navigateTo('landing');
   } finally {
     if (finishBtn) {
       finishBtn.disabled = false;
