@@ -93,46 +93,98 @@ export const register = async (req, res, next) => {
       });
     }
 
-    // Check if username already taken by another user
-    const checkUsername = await pool.query('SELECT id FROM users WHERE LOWER(username) = $1', [cleanUsername]);
-    if (checkUsername.rows.length > 0) {
-      cleanUsername = `${cleanUsername}_${Math.floor(100 + Math.random() * 900)}`;
+    // Auto-heal schema if running before startup migration completes
+    try {
+      await pool.query(`
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100);
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100);
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(100);
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
+        CREATE TABLE IF NOT EXISTS user_profiles (
+          user_email VARCHAR(255) PRIMARY KEY,
+          first_name VARCHAR(100),
+          last_name VARCHAR(100),
+          username VARCHAR(100),
+          role VARCHAR(100) DEFAULT 'Researcher',
+          field VARCHAR(150),
+          institution VARCHAR(200),
+          bio TEXT,
+          avatar TEXT,
+          primary_uses JSONB DEFAULT '[]'::jsonb,
+          interests JSONB DEFAULT '[]'::jsonb,
+          visual_types JSONB DEFAULT '[]'::jsonb,
+          analysis_depth VARCHAR(50) DEFAULT 'balanced',
+          presentation_style JSONB DEFAULT '["balanced", "evidence-first"]'::jsonb,
+          evidence_preference VARCHAR(50) DEFAULT 'strict',
+          technical_level VARCHAR(50) DEFAULT 'advanced',
+          onboarding_completed BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `);
+    } catch (e) {
+      // Ignore if table/columns already present or in concurrent migration
     }
+
+    // Check if username already taken by another user
+    try {
+      const checkUsername = await pool.query('SELECT id FROM users WHERE LOWER(username) = $1', [cleanUsername]);
+      if (checkUsername.rows.length > 0) {
+        cleanUsername = `${cleanUsername}_${Math.floor(100 + Math.random() * 900)}`;
+      }
+    } catch (e) {}
 
     const validatedAvatar = validateAvatar(avatar);
     const hashedPassword = await bcrypt.hash(password, 10);
     const initials = getInitials(fullName || cleanEmail);
 
-    const insertUser = await pool.query(
-      `INSERT INTO users (email, password_hash, name, first_name, last_name, username, initials, role, avatar)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'Researcher', $8)
-       RETURNING id, email, name, first_name, last_name, username, initials, role, avatar, created_at`,
-      [cleanEmail, hashedPassword, fullName || cleanEmail, cleanFirstName || null, cleanLastName || null, cleanUsername, initials, validatedAvatar]
-    );
+    let insertUser;
+    try {
+      insertUser = await pool.query(
+        `INSERT INTO users (email, password_hash, name, first_name, last_name, username, initials, role, avatar)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'Researcher', $8)
+         RETURNING id, email, name, first_name, last_name, username, initials, role, avatar, created_at`,
+        [cleanEmail, hashedPassword, fullName || cleanEmail, cleanFirstName || null, cleanLastName || null, cleanUsername, initials, validatedAvatar]
+      );
+    } catch (insertErr) {
+      // Fallback for minimal legacy schema
+      insertUser = await pool.query(
+        `INSERT INTO users (email, password_hash, name, initials, role)
+         VALUES ($1, $2, $3, $4, 'Researcher')
+         RETURNING id, email, name, initials, role, created_at`,
+        [cleanEmail, hashedPassword, fullName || cleanEmail, initials]
+      );
+    }
 
     const newUser = insertUser.rows[0];
 
     // Initialize user_profiles with onboarding_completed = false
-    await pool.query(
-      `INSERT INTO user_profiles (user_email, first_name, last_name, username, role, avatar, onboarding_completed)
-       VALUES ($1, $2, $3, $4, 'Researcher', $5, FALSE)
-       ON CONFLICT (user_email) DO UPDATE SET
-         first_name = EXCLUDED.first_name,
-         last_name = EXCLUDED.last_name,
-         username = EXCLUDED.username,
-         avatar = COALESCE(EXCLUDED.avatar, user_profiles.avatar),
-         updated_at = NOW()`,
-      [cleanEmail, cleanFirstName || null, cleanLastName || null, cleanUsername, validatedAvatar]
-    );
+    try {
+      await pool.query(
+        `INSERT INTO user_profiles (user_email, first_name, last_name, username, role, avatar, onboarding_completed)
+         VALUES ($1, $2, $3, $4, 'Researcher', $5, FALSE)
+         ON CONFLICT (user_email) DO UPDATE SET
+           first_name = EXCLUDED.first_name,
+           last_name = EXCLUDED.last_name,
+           username = EXCLUDED.username,
+           avatar = COALESCE(EXCLUDED.avatar, user_profiles.avatar),
+           updated_at = NOW()`,
+        [cleanEmail, cleanFirstName || null, cleanLastName || null, cleanUsername, validatedAvatar]
+      );
+    } catch (pErr) {
+      console.warn('[AuthController] Notice: user_profiles init skipped:', pErr.message);
+    }
 
     // Initialize default preferences in PostgreSQL
-    await pool.query(
-      `INSERT INTO user_preferences (user_email) VALUES ($1) ON CONFLICT (user_email) DO NOTHING`,
-      [cleanEmail]
-    );
+    try {
+      await pool.query(
+        `INSERT INTO user_preferences (user_email) VALUES ($1) ON CONFLICT (user_email) DO NOTHING`,
+        [cleanEmail]
+      );
+    } catch (prefErr) {}
 
     const token = jwt.sign(
-      { id: newUser.id, email: newUser.email, name: newUser.name, username: newUser.username },
+      { id: newUser.id, email: newUser.email, name: newUser.name, username: newUser.username || cleanUsername },
       config.jwtSecret,
       { expiresIn: '7d' }
     );
