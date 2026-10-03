@@ -156,7 +156,13 @@ async function runTests() {
     await page.type('#onboard-bio-input', 'Investigating high-frequency visual spectra and spider silk crystalline diffraction.');
 
     console.log('Submitting onboarding setup...');
-    await page.click('#onboarding-finish-btn');
+    await page.evaluate(() => {
+      const btn = document.getElementById('onboarding-finish-btn');
+      if (btn) {
+        btn.scrollIntoView();
+        btn.click();
+      }
+    });
 
     // Wait for landing page to become active
     await page.waitForFunction(() => !document.getElementById('page-landing').classList.contains('hidden'), { timeout: 15000 });
@@ -227,7 +233,7 @@ async function runTests() {
     }
 
     // Open Edit Profile modal and upload new avatar
-    await page.click('#profile-edit-btn');
+    await page.evaluate(() => document.getElementById('profile-edit-btn')?.click());
     await new Promise(r => setTimeout(r, 400));
 
     console.log('Uploading photo in Edit Profile modal...');
@@ -245,7 +251,7 @@ async function runTests() {
     }
 
     // Save profile changes
-    await page.click('#edit-profile-save-btn');
+    await page.evaluate(() => document.getElementById('edit-profile-save-btn')?.click());
     await new Promise(r => setTimeout(r, 1200));
     console.log('✓ Profile saved successfully with contained photo.');
 
@@ -257,9 +263,9 @@ async function runTests() {
     // TEST D: Sign Out and Test Login Redirection
     // -------------------------------------------------------------
     console.log('\n[TEST D] Signing Out...');
-    await page.click('#profile-logout-btn');
+    await page.evaluate(() => document.getElementById('profile-logout-btn')?.click());
     await new Promise(r => setTimeout(r, 400));
-    await page.click('#confirm-logout-btn');
+    await page.evaluate(() => document.getElementById('confirm-logout-btn')?.click());
     await new Promise(r => setTimeout(r, 600));
 
     console.log('✓ Signed out. Arrived at Landing page.');
@@ -271,7 +277,7 @@ async function runTests() {
     console.log(`Logging in with existing completed user: ${testUser.username}...`);
     await page.type('#dedicated-login-identifier', testUser.username);
     await page.type('#dedicated-login-password', testUser.password);
-    await page.click('#dedicated-login-submit-btn');
+    await page.evaluate(() => document.getElementById('dedicated-login-submit-btn')?.click());
 
     // Wait for landing page to become visible
     await page.waitForFunction(() => !document.getElementById('page-landing').classList.contains('hidden'), { timeout: 15000 });

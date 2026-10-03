@@ -26,47 +26,26 @@ export const getPreferences = async (req, res, next) => {
       });
     }
 
-    const result = await pool.query('SELECT * FROM user_preferences WHERE user_email = $1', [userEmail]);
-    if (result.rows.length === 0) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          userEmail,
-          theme: 'dark',
-          provider: 'auto',
-          model: 'auto',
-          autoModelFallback: true,
-          compactMode: false,
-          fontSize: 'medium',
-          animationsOn: true,
-          writingStyle: 'classic',
-          researchLength: 'long',
-          citationStyle: 'APA',
-          language: 'en',
-          exportFormat: 'pdf',
-          autoSaveReports: true
-        }
-      });
-    }
+    const result = await pool.query('SELECT ui_preferences FROM user_profiles WHERE user_email = $1', [userEmail]);
+    const prefs = result.rows[0]?.ui_preferences || {};
 
-    const row = result.rows[0];
     return res.status(200).json({
       success: true,
       data: {
-        userEmail: row.user_email,
-        theme: row.theme,
-        provider: row.provider || 'auto',
-        model: row.model,
-        autoModelFallback: row.auto_model_fallback,
-        compactMode: row.compact_mode,
-        fontSize: row.font_size,
-        animationsOn: row.animations_on,
-        writingStyle: row.writing_style,
-        researchLength: row.research_length,
-        citationStyle: row.citation_style,
-        language: row.language,
-        exportFormat: row.export_format,
-        autoSaveReports: row.auto_save_reports
+        userEmail,
+        theme: prefs.theme || 'dark',
+        provider: prefs.provider || 'auto',
+        model: prefs.model || 'auto',
+        autoModelFallback: prefs.autoModelFallback !== undefined ? prefs.autoModelFallback : true,
+        compactMode: prefs.compactMode || false,
+        fontSize: prefs.fontSize || 'medium',
+        animationsOn: prefs.animationsOn !== undefined ? prefs.animationsOn : true,
+        writingStyle: prefs.writingStyle || 'classic',
+        researchLength: prefs.researchLength || 'long',
+        citationStyle: prefs.citationStyle || 'APA',
+        language: prefs.language || 'en',
+        exportFormat: prefs.exportFormat || 'pdf',
+        autoSaveReports: prefs.autoSaveReports !== undefined ? prefs.autoSaveReports : true
       }
     });
   } catch (err) {
@@ -115,70 +94,52 @@ export const updatePreferences = async (req, res, next) => {
       });
     }
 
+    const newPrefs = {
+      theme: theme || 'dark',
+      provider: provider === 'gemini' || provider === 'openrouter' ? provider : 'auto',
+      model: model || 'auto',
+      autoModelFallback: autoModelFallback !== undefined ? autoModelFallback : true,
+      compactMode: compactMode || false,
+      fontSize: fontSize || 'medium',
+      animationsOn: animationsOn !== undefined ? animationsOn : true,
+      writingStyle: writingStyle || 'classic',
+      researchLength: researchLength || 'long',
+      citationStyle: citationStyle || 'APA',
+      language: language || 'en',
+      exportFormat: exportFormat || 'pdf',
+      autoSaveReports: autoSaveReports !== undefined ? autoSaveReports : true
+    };
+
     const query = `
-      INSERT INTO user_preferences (
-        user_email, theme, provider, model, auto_model_fallback, compact_mode,
-        font_size, animations_on, writing_style, research_length,
-        citation_style, language, export_format, auto_save_reports, updated_at
-      )
-      VALUES (
-        $1, COALESCE($2, 'dark'), COALESCE($3, 'auto'), COALESCE($4, 'auto'),
-        COALESCE($5, TRUE), COALESCE($6, FALSE), COALESCE($7, 'medium'),
-        COALESCE($8, TRUE), COALESCE($9, 'classic'), COALESCE($10, 'long'),
-        COALESCE($11, 'APA'), COALESCE($12, 'en'), COALESCE($13, 'pdf'), COALESCE($14, TRUE),
-        NOW()
-      )
+      INSERT INTO user_profiles (user_email, ui_preferences, updated_at)
+      VALUES ($1, $2::jsonb, NOW())
       ON CONFLICT (user_email) DO UPDATE SET
-        theme = COALESCE(EXCLUDED.theme, user_preferences.theme),
-        provider = COALESCE(EXCLUDED.provider, user_preferences.provider),
-        model = COALESCE(EXCLUDED.model, user_preferences.model),
-        auto_model_fallback = COALESCE(EXCLUDED.auto_model_fallback, user_preferences.auto_model_fallback),
-        compact_mode = COALESCE(EXCLUDED.compact_mode, user_preferences.compact_mode),
-        font_size = COALESCE(EXCLUDED.font_size, user_preferences.font_size),
-        animations_on = COALESCE(EXCLUDED.animations_on, user_preferences.animations_on),
-        writing_style = COALESCE(EXCLUDED.writing_style, user_preferences.writing_style),
-        research_length = COALESCE(EXCLUDED.research_length, user_preferences.research_length),
-        citation_style = COALESCE(EXCLUDED.citation_style, user_preferences.citation_style),
-        language = COALESCE(EXCLUDED.language, user_preferences.language),
-        export_format = COALESCE(EXCLUDED.export_format, user_preferences.export_format),
-        auto_save_reports = COALESCE(EXCLUDED.auto_save_reports, user_preferences.auto_save_reports),
+        ui_preferences = COALESCE(user_profiles.ui_preferences, '{}'::jsonb) || $2::jsonb,
         updated_at = NOW()
-      RETURNING *;
+      RETURNING ui_preferences;
     `;
 
-    const values = [
-      userEmail,
-      theme !== undefined ? theme : null,
-      provider === 'gemini' || provider === 'openrouter' ? provider : 'auto',
-      model !== undefined ? model : null, autoModelFallback !== undefined ? autoModelFallback : null,
-      compactMode !== undefined ? compactMode : null, fontSize !== undefined ? fontSize : null,
-      animationsOn !== undefined ? animationsOn : null, writingStyle !== undefined ? writingStyle : null,
-      researchLength !== undefined ? researchLength : null, citationStyle !== undefined ? citationStyle : null,
-      language !== undefined ? language : null, exportFormat !== undefined ? exportFormat : null,
-      autoSaveReports !== undefined ? autoSaveReports : null
-    ];
-
-    const result = await pool.query(query, values);
-    const row = result.rows[0];
+    const result = await pool.query(query, [userEmail, JSON.stringify(newPrefs)]);
+    const merged = result.rows[0]?.ui_preferences || newPrefs;
 
     return res.status(200).json({
       success: true,
       message: 'System preferences saved to database.',
       data: {
-        userEmail: row.user_email,
-        theme: row.theme,
-        provider: row.provider || 'auto',
-        model: row.model,
-        autoModelFallback: row.auto_model_fallback,
-        compactMode: row.compact_mode,
-        fontSize: row.font_size,
-        animationsOn: row.animations_on,
-        writingStyle: row.writing_style,
-        researchLength: row.research_length,
-        citationStyle: row.citation_style,
-        language: row.language,
-        exportFormat: row.export_format,
-        autoSaveReports: row.auto_save_reports
+        userEmail,
+        theme: merged.theme,
+        provider: merged.provider || 'auto',
+        model: merged.model,
+        autoModelFallback: merged.autoModelFallback,
+        compactMode: merged.compactMode,
+        fontSize: merged.fontSize,
+        animationsOn: merged.animationsOn,
+        writingStyle: merged.writingStyle,
+        researchLength: merged.researchLength,
+        citationStyle: merged.citationStyle,
+        language: merged.language,
+        exportFormat: merged.exportFormat,
+        autoSaveReports: merged.autoSaveReports
       }
     });
   } catch (err) {

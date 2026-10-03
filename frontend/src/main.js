@@ -6,9 +6,9 @@ import { setupNavigation, setupMobileDrawer, setupGlobalKeyboardEvents, setupThe
 import { setupUploadEvents } from './components/ResearchDesk.js';
 import { startAnalysisPipeline, setupLoadingFailureActions } from './components/LoadingPipeline.js';
 import { setupReportActions } from './components/ReportViewer.js';
-import { setupDashboardEvents, renderDashboard } from './components/Dashboard.js';
-import { renderArchivePage } from './components/Archive.js';
-import { setupSettingsEvents, renderSettingsPage } from './components/Settings.js';
+import { setupDashboardEvents, renderDashboard } from './components/Dashboard/DashboardComponent.js';
+import { renderArchivePage } from './components/Archive/ArchiveComponent.js';
+import { setupSettingsEvents, renderSettingsPage } from './components/Settings/SettingsComponent.js';
 import { setupProfileEvents, renderProfilePage } from './pages/Profile.js';
 import { setupAuthPages } from './pages/AuthPages.js';
 import { setupOnboardingEvents, renderOnboardingPage } from './pages/Onboarding.js';

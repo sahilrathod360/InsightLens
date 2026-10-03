@@ -8,10 +8,9 @@
     "build": "node -e \"console.log('Backend build verified')\"",
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/security-hardening.test.mjs && node test/audit-fixes.test.mjs && node test/ai-pipeline-phase1.test.mjs && node test/phase2-non-generic.test.mjs && node test/pdf-section-parity.test.mjs && node test/dfd-structural-integrity.test.mjs && node test/visual-intelligence-core.test.mjs && node test/extensions-platform.test.mjs && node test/production-e2e-verification.mjs",
-    "test:live": "node test/ai-reliability.test.mjs",
-    "test:prod:http": "node test/true-production-http.mjs",
-    "test:prod:browser": "node test/true-production-browser.mjs"
+    "test": "node test/auth.test.mjs && node test/analysis.test.mjs && node test/evidence.test.mjs && node test/livevision.test.mjs && node test/comparison.test.mjs && node test/extensions.test.mjs && node test/security-hardening.test.mjs && node test/dfd-structural-integrity.test.mjs && node test/pdf-section-parity.test.mjs && node test/visual-intelligence-core.test.mjs",
+    "test:e2e": "node test/e2e-browser.test.mjs",
+    "test:avatar": "node test/test-avatar-login-flow.mjs"
   },
   "engines": {
     "node": ">=18.0.0"

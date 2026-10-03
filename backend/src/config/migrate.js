@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 /**
  * Automatically initializes and verifies database schema upon server startup.
- * Safe for multiple executions (idempotent CREATE TABLE IF NOT EXISTS).
+ * Safe for multiple executions (idempotent CREATE TABLE IF NOT EXISTS & safe migration).
  */
 export async function initDb() {
   if (!pool) {
@@ -24,9 +24,9 @@ export async function initDb() {
     try {
       await client.query('BEGIN');
       await client.query(schemaSql);
-      // Backward-compatible additive migrations for existing deployed tables.
+
+      // Additive columns for existing deployments
       await client.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS thumbnail_data_url TEXT`);
-      await client.query(`ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS provider VARCHAR(20) DEFAULT 'auto'`);
       await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)`);
       await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)`);
       await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(100)`);
@@ -35,29 +35,7 @@ export async function initDb() {
       await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
       await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT`);
 
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS user_profiles (
-          user_email VARCHAR(255) PRIMARY KEY,
-          first_name VARCHAR(100),
-          last_name VARCHAR(100),
-          username VARCHAR(100),
-          role VARCHAR(100) DEFAULT 'Researcher',
-          field VARCHAR(150),
-          institution VARCHAR(200),
-          bio TEXT,
-          avatar TEXT,
-          primary_uses JSONB DEFAULT '[]'::jsonb,
-          interests JSONB DEFAULT '[]'::jsonb,
-          visual_types JSONB DEFAULT '[]'::jsonb,
-          analysis_depth VARCHAR(50) DEFAULT 'balanced',
-          presentation_style JSONB DEFAULT '["balanced", "evidence-first"]'::jsonb,
-          evidence_preference VARCHAR(50) DEFAULT 'strict',
-          technical_level VARCHAR(50) DEFAULT 'advanced',
-          onboarding_completed BOOLEAN DEFAULT FALSE,
-          created_at TIMESTAMPTZ DEFAULT NOW(),
-          updated_at TIMESTAMPTZ DEFAULT NOW()
-        )
-      `);
+      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE`);
       await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)`);
       await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)`);
       await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS username VARCHAR(100)`);
@@ -73,13 +51,72 @@ export async function initDb() {
       await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS presentation_style JSONB DEFAULT '["balanced", "evidence-first"]'::jsonb`);
       await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS evidence_preference VARCHAR(50) DEFAULT 'strict'`);
       await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE`);
+      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ui_preferences JSONB DEFAULT '{}'::jsonb`);
 
-      await client.query(`CREATE INDEX IF NOT EXISTS idx_reports_user_timestamp ON reports(user_email, timestamp DESC)`);
-      await client.query(`CREATE INDEX IF NOT EXISTS idx_app_metrics_user_email ON app_metrics(user_email)`);
+      // 1. Backfill user_profiles.user_id from users.id
+      await client.query(`
+        UPDATE user_profiles p
+        SET user_id = u.id
+        FROM users u
+        WHERE LOWER(u.email) = LOWER(p.user_email) AND p.user_id IS NULL;
+      `);
+
+      // 2. Safe consolidation: Migrate user_preferences & user_ui_preferences into user_profiles.ui_preferences
+      try {
+        await client.query(`
+          UPDATE user_profiles p
+          SET ui_preferences = COALESCE(p.ui_preferences, '{}'::jsonb) || jsonb_build_object(
+            'theme', up.theme,
+            'provider', up.provider,
+            'model', up.model,
+            'autoModelFallback', up.auto_model_fallback,
+            'compactMode', up.compact_mode,
+            'fontSize', up.font_size,
+            'animationsOn', up.animations_on,
+            'writingStyle', up.writing_style,
+            'researchLength', up.research_length,
+            'citationStyle', up.citation_style,
+            'language', up.language,
+            'exportFormat', up.export_format,
+            'autoSaveReports', up.auto_save_reports
+          )
+          FROM user_preferences up
+          WHERE LOWER(up.user_email) = LOWER(p.user_email);
+        `);
+      } catch (e) {
+        // user_preferences table might not exist
+      }
+
+      try {
+        await client.query(`
+          UPDATE user_profiles p
+          SET ui_preferences = COALESCE(p.ui_preferences, '{}'::jsonb) || jsonb_build_object(
+            'themeSlug', uui.theme_slug,
+            'typographySlug', uui.typography_slug,
+            'layoutSlug', uui.layout_slug,
+            'activeModes', uui.active_modes,
+            'customPreferences', uui.preferences_json
+          )
+          FROM user_ui_preferences uui
+          WHERE LOWER(uui.user_email) = LOWER(p.user_email);
+        `);
+      } catch (e) {
+        // user_ui_preferences table might not exist
+      }
+
+      // 3. Drop legacy redundant tables after safe migration
+      await client.query(`DROP TABLE IF EXISTS user_preferences CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS user_ui_preferences CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS app_metrics CASCADE`);
+
+      // 4. Verification Indexes
       await client.query(`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`);
       await client.query(`CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles(username)`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id)`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_reports_user_timestamp ON reports(user_email, timestamp DESC)`);
+
       await client.query('COMMIT');
-      console.log('[Database Migration] PostgreSQL tables & indexes verified successfully.');
+      console.log('[Database Migration] PostgreSQL tables & indexes consolidated successfully.');
 
       // Seed builtin extensions and catalog
       try {

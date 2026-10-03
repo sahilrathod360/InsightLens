@@ -57,11 +57,15 @@ export const getDashboardStats = async (req, res, next) => {
         [email]
       ),
 
-      // 5. Per-user app telemetry
-      pool.query('SELECT * FROM app_metrics WHERE metric_key = $1 AND user_email = $2', [`user:${email}`, email])
+      // 5. Total exports from activity_logs
+      pool.query(
+        `SELECT COUNT(*) as count FROM activity_logs WHERE user_email = $1 AND activity_type = 'export'`,
+        [email]
+      )
     ]);
 
     const totalReports = parseInt(totalReportsRes.rows[0]?.count || '0', 10);
+    const totalExports = parseInt(metricsRes.rows[0]?.count || '0', 10);
 
     const categoryDistribution = {};
     categoryRes.rows.forEach(r => {
@@ -86,22 +90,20 @@ export const getDashboardStats = async (req, res, next) => {
       thumbnailDataUrl: r.thumbnail_data_url || null
     }));
 
-    const metrics = metricsRes.rows[0] || {};
-
     return res.status(200).json({
       success: true,
       data: {
         totalReports,
-        totalAnalyses: Math.max(totalReports, metrics.total_images_analyzed || 0),
+        totalAnalyses: totalReports,
         categoryDistribution,
         modelDistribution,
         metrics: {
-          totalImagesAnalyzed: metrics.total_images_analyzed || totalReports,
-          totalReportsGenerated: metrics.total_reports_generated || totalReports,
-          pdfExportsCount: metrics.pdf_exports_count || 0,
-          markdownExportsCount: metrics.markdown_exports_count || 0,
-          lastSuccessfulModel: metrics.last_successful_model || 'gemini-2.5-flash',
-          lastSuccessfulTime: metrics.last_successful_time || null
+          totalImagesAnalyzed: totalReports,
+          totalReportsGenerated: totalReports,
+          pdfExportsCount: totalExports,
+          markdownExportsCount: 0,
+          lastSuccessfulModel: 'gemini-2.5-flash',
+          lastSuccessfulTime: recentReports[0]?.timestamp || null
         },
         recentReports
       }

@@ -158,30 +158,23 @@ export const register = async (req, res, next) => {
 
     const newUser = insertUser.rows[0];
 
-    // Initialize user_profiles with onboarding_completed = false
+    // Initialize user_profiles with user_id & onboarding_completed = false
     try {
       await pool.query(
-        `INSERT INTO user_profiles (user_email, first_name, last_name, username, role, avatar, onboarding_completed)
-         VALUES ($1, $2, $3, $4, 'Researcher', $5, FALSE)
+        `INSERT INTO user_profiles (user_email, user_id, first_name, last_name, username, role, avatar, onboarding_completed, ui_preferences)
+         VALUES ($1, $2, $3, $4, $5, 'Researcher', $6, FALSE, '{}'::jsonb)
          ON CONFLICT (user_email) DO UPDATE SET
+           user_id = COALESCE(user_profiles.user_id, EXCLUDED.user_id),
            first_name = EXCLUDED.first_name,
            last_name = EXCLUDED.last_name,
            username = EXCLUDED.username,
            avatar = COALESCE(EXCLUDED.avatar, user_profiles.avatar),
            updated_at = NOW()`,
-        [cleanEmail, cleanFirstName || null, cleanLastName || null, cleanUsername, validatedAvatar]
+        [cleanEmail, newUser.id, cleanFirstName || null, cleanLastName || null, cleanUsername, validatedAvatar]
       );
     } catch (pErr) {
       console.warn('[AuthController] Notice: user_profiles init skipped:', pErr.message);
     }
-
-    // Initialize default preferences in PostgreSQL
-    try {
-      await pool.query(
-        `INSERT INTO user_preferences (user_email) VALUES ($1) ON CONFLICT (user_email) DO NOTHING`,
-        [cleanEmail]
-      );
-    } catch (prefErr) {}
 
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email, name: newUser.name, username: newUser.username || cleanUsername },
@@ -257,7 +250,7 @@ export const login = async (req, res, next) => {
       `SELECT u.id, u.email, u.password_hash, u.name, u.first_name, u.last_name, u.username, u.initials, u.role, u.avatar, u.created_at,
               p.onboarding_completed, p.bio, p.institution, p.field, p.primary_uses, p.interests, p.visual_types, p.analysis_depth, p.presentation_style, p.evidence_preference
        FROM users u
-       LEFT JOIN user_profiles p ON p.user_email = u.email
+       LEFT JOIN user_profiles p ON (p.user_id = u.id OR LOWER(p.user_email) = LOWER(u.email))
        WHERE LOWER(u.email) = $1 OR LOWER(u.username) = $1`,
       [identifier]
     );
@@ -374,7 +367,7 @@ export const getMe = async (req, res, next) => {
               p.onboarding_completed, p.bio, p.institution, p.field, p.primary_uses, p.interests, p.visual_types,
               p.analysis_depth, p.presentation_style, p.evidence_preference, p.technical_level
        FROM users u
-       LEFT JOIN user_profiles p ON p.user_email = u.email
+       LEFT JOIN user_profiles p ON (p.user_id = u.id OR LOWER(p.user_email) = LOWER(u.email))
        WHERE LOWER(u.email) = $1`,
       [userEmail.toLowerCase()]
     );

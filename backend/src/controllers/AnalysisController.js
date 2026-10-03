@@ -180,28 +180,14 @@ export const analyzeArtifact = async (req, res, next) => {
     }
     const dbInsertDurationMs = Date.now() - dbStartTime;
 
-    // 2. Parallel Telemetry and Activity Log Auditing
+    // 2. Activity Log Auditing
     const telemetryStartTime = Date.now();
-    const metricsQuery = pool.query(
-      `INSERT INTO app_metrics (metric_key, user_email, total_images_analyzed, total_reports_generated, last_analysis_timestamp, last_successful_model, last_successful_time)
-       VALUES ($1, $2, 1, 1, $3, $4, $5)
-       ON CONFLICT (metric_key) DO UPDATE SET
-         total_images_analyzed = app_metrics.total_images_analyzed + 1,
-         total_reports_generated = app_metrics.total_reports_generated + 1,
-         last_analysis_timestamp = EXCLUDED.last_analysis_timestamp,
-         last_successful_model = EXCLUDED.last_successful_model,
-         last_successful_time = EXCLUDED.last_successful_time,
-         updated_at = NOW()`,
-      [`user:${email}`, email, now, modelName, now]
-    ).catch(metricErr => console.error('[AnalysisController] PostgreSQL Metrics Update Error:', metricErr.message));
-
-    const activityQuery = pool.query(
+    await pool.query(
       `INSERT INTO activity_logs (id, user_email, activity_type, text, timestamp)
        VALUES ($1, $2, 'generate', $3, $4)`,
       [`LOG-${now}-${Math.floor(Math.random() * 1000)}`, email, `Analysis Completed: ${report.title || 'Visual Artifact'} (${modelName})`, now]
     ).catch(logErr => console.error('[AnalysisController] PostgreSQL Activity Log Error:', logErr.message));
 
-    await Promise.allSettled([metricsQuery, activityQuery]);
     const telemetryDurationMs = Date.now() - telemetryStartTime;
 
     const totalRequestTimeMs = Date.now() - reqStartTime;

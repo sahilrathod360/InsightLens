@@ -8,6 +8,14 @@ import { exportPreferencesFile } from '../../services/preferences.js';
 import { API_BASE, getAuthHeaders } from '../../utils/api.js';
 import { escapeHtml, sanitizeUrl } from '../../utils/sanitize.js';
 
+export function setupDashboardEvents() {
+  // Navigation & interaction listeners are mounted dynamically when dashboard view renders
+}
+
+export async function renderDashboard() {
+  return renderRealDashboard();
+}
+
 export async function renderRealDashboard() {
   const dashboardContainer = document.getElementById('page-dashboard');
   if (!dashboardContainer) return;

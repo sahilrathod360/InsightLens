@@ -658,21 +658,22 @@ export function deactivate() {
 
     try {
       const { rows } = await pool.query(`
-        SELECT theme_slug as theme, typography_slug as typography, layout_slug as layout, active_modes, preferences_json as preferences
-        FROM user_ui_preferences
+        SELECT ui_preferences
+        FROM user_profiles
         WHERE user_email = $1
       `, [userEmail]);
 
-      if (rows.length > 0) {
+      if (rows.length > 0 && rows[0].ui_preferences) {
+        const uip = rows[0].ui_preferences;
         return {
-          theme: rows[0].theme || 'midnight-research',
-          typography: rows[0].typography || 'modern',
-          layout: rows[0].layout || 'research-desk',
-          activeTheme: rows[0].theme || 'midnight-research',
-          activeTypography: rows[0].typography || 'modern',
-          activeLayout: rows[0].layout || 'research-desk',
-          activeModes: rows[0].active_modes || [],
-          preferences: rows[0].preferences || {}
+          theme: uip.themeSlug || uip.theme || 'midnight-research',
+          typography: uip.typographySlug || uip.typography || 'modern',
+          layout: uip.layoutSlug || uip.layout || 'research-desk',
+          activeTheme: uip.themeSlug || uip.theme || 'midnight-research',
+          activeTypography: uip.typographySlug || uip.typography || 'modern',
+          activeLayout: uip.layoutSlug || uip.layout || 'research-desk',
+          activeModes: uip.activeModes || [],
+          preferences: uip.customPreferences || uip.preferences || {}
         };
       }
 
@@ -713,29 +714,36 @@ export function deactivate() {
       return nextState;
     }
 
+    const statePayload = {
+      themeSlug: theme || 'midnight-research',
+      typographySlug: typography || 'modern',
+      layoutSlug: layout || 'research-desk',
+      activeModes: activeModes || [],
+      customPreferences: preferences || {}
+    };
+
     const query = `
-      INSERT INTO user_ui_preferences (user_email, theme_slug, typography_slug, layout_slug, active_modes, preferences_json, updated_at)
-      VALUES ($1, COALESCE($2, 'midnight-research'), COALESCE($3, 'modern'), COALESCE($4, 'research-desk'), COALESCE($5::jsonb, '[]'::jsonb), COALESCE($6::jsonb, '{}'::jsonb), NOW())
+      INSERT INTO user_profiles (user_email, ui_preferences, updated_at)
+      VALUES ($1, $2::jsonb, NOW())
       ON CONFLICT (user_email) DO UPDATE SET
-        theme_slug = COALESCE($2, user_ui_preferences.theme_slug),
-        typography_slug = COALESCE($3, user_ui_preferences.typography_slug),
-        layout_slug = COALESCE($4, user_ui_preferences.layout_slug),
-        active_modes = CASE WHEN $5::jsonb IS NOT NULL THEN $5::jsonb ELSE user_ui_preferences.active_modes END,
-        preferences_json = CASE WHEN $6::jsonb IS NOT NULL THEN $6::jsonb ELSE user_ui_preferences.preferences_json END,
+        ui_preferences = COALESCE(user_profiles.ui_preferences, '{}'::jsonb) || $2::jsonb,
         updated_at = NOW()
-      RETURNING theme_slug as theme, typography_slug as typography, layout_slug as layout, active_modes, preferences_json as preferences;
+      RETURNING ui_preferences;
     `;
 
     const { rows } = await pool.query(query, [
       userEmail,
-      theme || null,
-      typography || null,
-      layout || null,
-      activeModes ? JSON.stringify(activeModes) : null,
-      preferences ? JSON.stringify(preferences) : null
+      JSON.stringify(statePayload)
     ]);
 
-    return rows[0];
+    const uip = rows[0]?.ui_preferences || statePayload;
+    return {
+      theme: uip.themeSlug || theme || 'midnight-research',
+      typography: uip.typographySlug || typography || 'modern',
+      layout: uip.layoutSlug || layout || 'research-desk',
+      activeModes: uip.activeModes || [],
+      preferences: uip.customPreferences || preferences || {}
+    };
   }
 }
 

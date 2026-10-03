@@ -113,19 +113,6 @@ export const saveReport = async (req, res, next) => {
 
     const savedRow = result.rows[0];
 
-    // Increment telemetry metrics in database (non-blocking)
-    pool.query(
-      `INSERT INTO app_metrics (metric_key, user_email, total_reports_generated, last_analysis_timestamp, last_successful_model, last_successful_time)
-       VALUES ($1, $2, 1, $3, $4, $5)
-       ON CONFLICT (metric_key) DO UPDATE SET
-         total_reports_generated = app_metrics.total_reports_generated + 1,
-         last_analysis_timestamp = EXCLUDED.last_analysis_timestamp,
-         last_successful_model = EXCLUDED.last_successful_model,
-         last_successful_time = EXCLUDED.last_successful_time,
-         updated_at = NOW()`,
-      [`user:${email}`, email, nowTime, modelUsed || 'gemini-2.5-flash', nowTime]
-    ).catch(() => {});
-
     return res.status(200).json({
       success: true,
       message: 'Report persisted to database successfully.',
@@ -437,24 +424,14 @@ export const trackExportMetric = async (req, res, next) => {
       });
     }
 
-    if (format === 'pdf') {
-      await pool.query(`
-        INSERT INTO app_metrics (metric_key, user_email, pdf_exports_count)
-        VALUES ($1, $2, 1)
-        ON CONFLICT (metric_key) DO UPDATE SET
-          pdf_exports_count = app_metrics.pdf_exports_count + 1,
-          updated_at = NOW()
-      `, [`user:${email}`, email]);
-      console.log(`[Export Metrics] Incremented pdf_exports_count for ${email}`);
-    } else if (format === 'markdown') {
-      await pool.query(`
-        INSERT INTO app_metrics (metric_key, user_email, markdown_exports_count)
-        VALUES ($1, $2, 1)
-        ON CONFLICT (metric_key) DO UPDATE SET
-          markdown_exports_count = app_metrics.markdown_exports_count + 1,
-          updated_at = NOW()
-      `, [`user:${email}`, email]);
-      console.log(`[Export Metrics] Incremented markdown_exports_count for ${email}`);
+    if (format === 'pdf' || format === 'markdown') {
+      const now = Date.now();
+      await pool.query(
+        `INSERT INTO activity_logs (id, user_email, activity_type, text, timestamp)
+         VALUES ($1, $2, 'export', $3, $4)`,
+        [`EXP-${now}-${Math.floor(Math.random() * 1000)}`, email, `Exported ${format.toUpperCase()} Brief`, now]
+      );
+      console.log(`[Export Metrics] Logged ${format} export for ${email}`);
     } else {
       return res.status(400).json({ success: false, message: 'Invalid export format specified.' });
     }
