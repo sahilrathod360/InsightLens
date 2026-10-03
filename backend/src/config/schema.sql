@@ -8,14 +8,46 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(150) NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    username VARCHAR(100) UNIQUE,
     initials VARCHAR(10),
-    role VARCHAR(50) DEFAULT 'Researcher',
+    role VARCHAR(100) DEFAULT 'Researcher',
+    field VARCHAR(150),
+    institution VARCHAR(200),
+    bio TEXT,
     avatar TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- 1b. User Research Profiles & Onboarding Personalization
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_email VARCHAR(255) PRIMARY KEY,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    username VARCHAR(100),
+    role VARCHAR(100) DEFAULT 'Researcher',
+    field VARCHAR(150),
+    institution VARCHAR(200),
+    bio TEXT,
+    avatar TEXT,
+    primary_uses JSONB DEFAULT '[]'::jsonb,
+    interests JSONB DEFAULT '[]'::jsonb,
+    visual_types JSONB DEFAULT '[]'::jsonb,
+    analysis_depth VARCHAR(50) DEFAULT 'balanced', -- 'quick', 'balanced', 'deep', 'research'
+    presentation_style JSONB DEFAULT '["balanced", "evidence-first"]'::jsonb,
+    evidence_preference VARCHAR(50) DEFAULT 'strict', -- 'standard', 'strict', 'research-grade'
+    technical_level VARCHAR(50) DEFAULT 'advanced',
+    onboarding_completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles(username);
 
 -- 2. User Preferences (Theme, AI model, formatting options)
 CREATE TABLE IF NOT EXISTS user_preferences (

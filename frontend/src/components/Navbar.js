@@ -75,8 +75,7 @@ export function setupAuthEvents(renderArchivePage, renderDashboard) {
     if (getUserSession()) {
       openLogoutModal();
     } else {
-      setAuthMode('signin');
-      openLoginModal();
+      navigateTo('login');
     }
   });
 
@@ -364,12 +363,20 @@ export function updateAuthUI() {
   if (userSession) {
     authNavBtn?.classList.add('hidden'); // Hide Login/Sign Up button
     
+    const firstName = userSession.firstName || (userSession.name ? userSession.name.split(' ')[0] : 'Researcher');
     if (headerUserName) {
-      const firstName = userSession.name.split(' ')[0];
-      headerUserName.textContent = `👋 Welcome, ${firstName}`;
+      headerUserName.textContent = `Yo, ${firstName}`;
     }
     
-    if (navUserAvatar) navUserAvatar.textContent = userSession.initials || getInitials(userSession.name);
+    if (navUserAvatar) {
+      if (userSession.avatar) {
+        navUserAvatar.innerHTML = `<img src="${userSession.avatar}" alt="${firstName}" class="w-full h-full object-cover rounded-full" />`;
+        navUserAvatar.classList.remove('bg-gradient-to-tr');
+      } else {
+        navUserAvatar.textContent = userSession.initials || getInitials(userSession.name);
+        navUserAvatar.classList.add('bg-gradient-to-tr');
+      }
+    }
 
     welcomeBadge?.classList.remove('hidden');
     userMenuContainer?.classList.remove('hidden');

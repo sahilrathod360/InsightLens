@@ -1,7 +1,34 @@
 import { AnalysisStrategyFactory } from '../services/classification/AnalysisStrategyFactory.js';
 
-export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA') {
+export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA', userPreferences = {}) {
   const strategyGuide = AnalysisStrategyFactory.buildPromptInstructions();
+
+  // Extract user personalization settings
+  const depth = userPreferences?.analysis_depth || userPreferences?.analysisDepth || researchLength || 'balanced';
+  const stylePrefs = Array.isArray(userPreferences?.presentation_style) ? userPreferences.presentation_style : (Array.isArray(userPreferences?.presentationStyle) ? userPreferences.presentationStyle : []);
+  const evidencePref = userPreferences?.evidence_preference || userPreferences?.evidencePreference || 'strict';
+  const primaryUses = Array.isArray(userPreferences?.primary_uses) ? userPreferences.primary_uses : (Array.isArray(userPreferences?.primaryUses) ? userPreferences.primaryUses : []);
+  const interests = Array.isArray(userPreferences?.interests) ? userPreferences.interests : (Array.isArray(userPreferences?.interests) ? userPreferences.interests : []);
+  const userRole = userPreferences?.role || '';
+  const userField = userPreferences?.field || '';
+
+  let personalizationBlock = '';
+  if (primaryUses.length > 0 || interests.length > 0 || userRole || userField || stylePrefs.length > 0 || depth || evidencePref) {
+    personalizationBlock = `
+==================================================
+RESEARCHER PERSONALIZATION & PROFILE DIRECTIVES:
+==================================================
+The user requesting this research has the following profile and output preferences:
+${userRole ? `- Researcher Role: ${userRole}` : ''}
+${userField ? `- Field / Specialization: ${userField}` : ''}
+${primaryUses.length > 0 ? `- Primary Research Focus Areas: ${primaryUses.join(', ')}` : ''}
+${interests.length > 0 ? `- Domain Interests: ${interests.join(', ')}` : ''}
+- Target Analysis Depth: ${depth} (Tailor synthesis depth, technical precision, and analytical detail accordingly)
+- Evidence Verification Level: ${evidencePref} (Apply ${evidencePref} evidentiary standards to visual observations and citations)
+${stylePrefs.length > 0 ? `- Preferred Presentation Style: ${stylePrefs.join(', ')} (Incorporate these stylistic nuances into the structured findings and narrative synthesis)` : ''}
+* Adapt the report's framing and analytical tone to these researcher preferences while preserving total empirical accuracy and strict adherence to the JSON schema.
+`;
+  }
 
   // Helper to detect generic filenames, numbers, or dummy strings
   const isGenericOrFilename = (text) => {
@@ -40,6 +67,7 @@ Your mission is to perform deep, accurate, subject-centered empirical research b
 
 ${strategyGuide}
 ${userContextBlock}
+${personalizationBlock}
 ==================================================
 CRITICAL RESEARCH DIRECTIVES:
 ==================================================

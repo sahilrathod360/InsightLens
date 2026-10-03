@@ -27,8 +27,16 @@ export async function initDb() {
       // Backward-compatible additive migrations for existing deployed tables.
       await client.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS thumbnail_data_url TEXT`);
       await client.query(`ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS provider VARCHAR(20) DEFAULT 'auto'`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(100)`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS field VARCHAR(150)`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS institution VARCHAR(200)`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT`);
       await client.query(`CREATE INDEX IF NOT EXISTS idx_reports_user_timestamp ON reports(user_email, timestamp DESC)`);
       await client.query(`CREATE INDEX IF NOT EXISTS idx_app_metrics_user_email ON app_metrics(user_email)`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`);
       await client.query('COMMIT');
       console.log('[Database Migration] PostgreSQL tables & indexes verified successfully.');
 

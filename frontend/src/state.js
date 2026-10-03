@@ -121,6 +121,8 @@ export function navigateTo(pageId) {
     renderCallbacks.renderDashboard();
   } else if (pageId === 'profile') {
     renderCallbacks.renderProfilePage();
+  } else if (pageId === 'onboarding') {
+    renderCallbacks.renderOnboardingPage?.();
   } else if (pageId === 'settings') {
     renderCallbacks.renderSettingsPage();
   } else if (pageId === 'extensions') {

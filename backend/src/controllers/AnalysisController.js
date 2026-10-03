@@ -64,7 +64,38 @@ export const analyzeArtifact = async (req, res, next) => {
       });
     }
 
-    const report = await AIManager.generateReport(dataUrl, promptObj, preferredProvider);
+    // Enrich promptObj with authenticated user's stored personalization profile
+    let enrichedPromptObj = { ...promptObj };
+    if (pool && email) {
+      try {
+        const profileRes = await pool.query(
+          `SELECT role, field, primary_uses, interests, visual_types, analysis_depth, presentation_style, evidence_preference
+           FROM user_profiles WHERE LOWER(user_email) = $1`,
+          [email.toLowerCase()]
+        );
+        if (profileRes.rows.length > 0) {
+          const userProf = profileRes.rows[0];
+          enrichedPromptObj.userPreferences = {
+            role: userProf.role,
+            field: userProf.field,
+            primary_uses: userProf.primary_uses || [],
+            interests: userProf.interests || [],
+            visual_types: userProf.visual_types || [],
+            analysis_depth: userProf.analysis_depth || 'balanced',
+            presentation_style: userProf.presentation_style || ['balanced', 'evidence-first'],
+            evidence_preference: userProf.evidence_preference || 'strict',
+            ...(promptObj.userPreferences || {})
+          };
+          if (!enrichedPromptObj.researchLength && userProf.analysis_depth) {
+            enrichedPromptObj.researchLength = userProf.analysis_depth === 'quick' ? 'short' : (userProf.analysis_depth === 'research' || userProf.analysis_depth === 'deep' ? 'exhaustive' : 'long');
+          }
+        }
+      } catch (profErr) {
+        console.warn('[AnalysisController] Notice: Could not load user profile preferences for AI personalization:', profErr.message);
+      }
+    }
+
+    const report = await AIManager.generateReport(dataUrl, enrichedPromptObj, preferredProvider);
 
     // Verify database connection pool availability
     if (!pool) {

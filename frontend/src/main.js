@@ -10,6 +10,8 @@ import { setupDashboardEvents, renderDashboard } from './components/Dashboard.js
 import { renderArchivePage } from './components/Archive.js';
 import { setupSettingsEvents, renderSettingsPage } from './components/Settings.js';
 import { setupProfileEvents, renderProfilePage } from './pages/Profile.js';
+import { setupAuthPages } from './pages/AuthPages.js';
+import { setupOnboardingEvents, renderOnboardingPage } from './pages/Onboarding.js';
 import { setupMethodologyEvents } from './components/Methodology.js';
 import { setupLandingPageEvents } from './pages/Landing.js';
 import { exportCleanPDF } from './utils/export.js';
@@ -46,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderArchivePage,
     renderDashboard,
     renderProfilePage,
+    renderOnboardingPage,
     renderSettingsPage,
     renderExtensionManager,
     renderVisualWorkspace,
@@ -64,6 +67,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupMobileDrawer();
   setupUploadEvents(startAnalysisPipeline);
   setupAuthEvents(renderArchivePage, renderDashboard);
+  setupAuthPages();
+  setupOnboardingEvents();
   setupProfileEvents();
   setupSettingsEvents();
   setupExtensionEvents();
@@ -85,6 +90,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderArchivePage();
   } else if (window.location.hash === '#dashboard' || document.getElementById('page-dashboard')?.classList.contains('active')) {
     renderDashboard();
+  } else if (window.location.hash === '#profile') {
+    renderProfilePage();
+  } else if (window.location.hash === '#onboarding') {
+    renderOnboardingPage();
+  } else if (window.location.hash === '#login') {
+    navigateTo('login');
+  } else if (window.location.hash === '#signup') {
+    navigateTo('signup');
   } else if (window.location.hash === '#extensions' || document.getElementById('page-extensions')?.classList.contains('active')) {
     renderExtensionManager();
   } else if (window.location.hash === '#workspace' || document.getElementById('page-workspace')?.classList.contains('active')) {

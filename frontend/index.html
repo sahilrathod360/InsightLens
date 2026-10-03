@@ -2096,6 +2096,716 @@
     </div>
   </div>
 
+  <!-- SCREEN: DEDICATED LOGIN PAGE -->
+  <div id="page-login" class="page-view hidden flex-grow w-full max-w-[500px] mx-auto px-4 sm:px-6 py-12 flex flex-col justify-center">
+    <div class="bg-surface-container border ghost-border rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6 relative backdrop-blur-xl">
+      <div class="text-center space-y-3">
+        <div class="w-14 h-14 rounded-2xl bg-[#1A1333] border border-[#8B6CFF]/40 text-indigo-400 flex items-center justify-center mx-auto shadow-lg shadow-purple-950/40">
+          <span class="material-symbols-outlined text-[28px] text-indigo-300">lock</span>
+        </div>
+        <h1 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">Researcher Sign In</h1>
+        <p class="text-xs text-slate-400 font-sans leading-relaxed max-w-sm mx-auto">
+          Access your persistent visual research briefs, multi-model vision intelligence, and customized telemetry.
+        </p>
+      </div>
+
+      <form id="dedicated-login-form" class="space-y-5 text-xs">
+        <div class="space-y-1.5">
+          <label for="dedicated-login-identifier" class="block text-slate-200 font-medium font-sans">Email Address or Username</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">person</span>
+            <input type="text" id="dedicated-login-identifier" required placeholder="researcher@university.edu or username" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl py-3 pl-10 pr-4 text-xs focus:border-indigo-400 focus:outline-none transition-all placeholder:text-slate-500" />
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label for="dedicated-login-password" class="block text-slate-200 font-medium font-sans">Password</label>
+          </div>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">key</span>
+            <input type="password" id="dedicated-login-password" required placeholder="••••••••••••" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl py-3 pl-10 pr-10 text-xs focus:border-indigo-400 focus:outline-none transition-all placeholder:text-slate-500" />
+            <button type="button" id="login-show-password-toggle" tabindex="-1" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer transition-colors" aria-label="Toggle password visibility">
+              <span id="login-pwd-icon" class="material-symbols-outlined text-[18px]">visibility_off</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" id="dedicated-login-submit-btn" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-indigo-950/40">
+            <span class="material-symbols-outlined text-[18px]">login</span>
+            Sign In to Workspace
+          </button>
+        </div>
+
+        <div class="border-t border-white/[0.08] pt-4 text-center space-y-2">
+          <p class="text-xs text-slate-400">
+            Don't have a researcher account yet?
+            <a href="#signup" data-auth-goto="signup" class="text-indigo-400 hover:text-indigo-300 font-medium ml-1 underline underline-offset-2">Create an account &rarr;</a>
+          </p>
+          <div>
+            <button type="button" onclick="navigateTo('landing')" class="text-[11px] text-slate-400 hover:text-slate-300 cursor-pointer transition-colors">
+              &larr; Back to InsightLens Home
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN: DEDICATED SIGN-UP PAGE WITH AVATAR UPLOAD -->
+  <div id="page-signup" class="page-view hidden flex-grow w-full max-w-[560px] mx-auto px-4 sm:px-6 py-10 flex flex-col justify-center">
+    <div class="bg-surface-container border ghost-border rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6 relative backdrop-blur-xl">
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto shadow-lg shadow-indigo-950/40">
+          <span class="material-symbols-outlined text-[28px] text-indigo-300">person_add</span>
+        </div>
+        <h1 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">Create Researcher Account</h1>
+        <p class="text-xs text-slate-400 font-sans leading-relaxed max-w-sm mx-auto">
+          Persist research briefs, customize vision analysis depths, and link evidence archives directly to your identity.
+        </p>
+      </div>
+
+      <form id="dedicated-signup-form" class="space-y-4.5 text-xs">
+        <!-- Avatar Upload & Live Preview Container -->
+        <div class="bg-surface-container-lowest border ghost-border rounded-2xl p-4 flex items-center gap-4">
+          <div id="signup-avatar-dropzone" class="w-18 h-18 rounded-full border-2 border-dashed border-white/20 hover:border-indigo-400 flex items-center justify-center overflow-hidden cursor-pointer relative shrink-0 transition-all group">
+            <input type="file" id="signup-avatar-input" accept="image/png, image/jpeg, image/webp" class="hidden" />
+            <img id="signup-avatar-preview" alt="Avatar preview" class="w-full h-full object-cover hidden" />
+            <div id="signup-avatar-placeholder" class="text-center flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-300 transition-colors">
+              <span class="material-symbols-outlined text-[24px]">add_a_photo</span>
+              <span class="text-[9px] font-mono mt-0.5">Photo</span>
+            </div>
+          </div>
+          <div class="flex-grow min-w-0 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-medium text-slate-200 block text-xs">Profile Picture <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></span>
+              <button type="button" id="signup-avatar-remove" class="text-xs text-red-400 hover:text-red-300 cursor-pointer hidden">Remove</button>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-snug">
+              Upload a PNG, JPEG, or WebP portrait (&lt; 4MB). If omitted, an initials badge will be generated.
+            </p>
+          </div>
+        </div>
+
+        <!-- Name Inputs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label for="signup-first-name" class="block text-slate-200 font-medium">First Name <span class="text-red-400">*</span></label>
+            <input type="text" id="signup-first-name" required placeholder="Sahil" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+          </div>
+          <div class="space-y-1.5">
+            <label for="signup-last-name" class="block text-slate-200 font-medium">Last Name <span class="text-red-400">*</span></label>
+            <input type="text" id="signup-last-name" required placeholder="Rathod" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+          </div>
+        </div>
+
+        <!-- Username & Email -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label for="signup-username" class="block text-slate-200 font-medium">Username</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">@</span>
+              <input type="text" id="signup-username" placeholder="sahil_research" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl py-3 pl-8 pr-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <label for="signup-email" class="block text-slate-200 font-medium">Email Address <span class="text-red-400">*</span></label>
+            <input type="email" id="signup-email" required placeholder="researcher@lab.org" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+          </div>
+        </div>
+
+        <!-- Password with Strength Meter -->
+        <div class="space-y-1.5">
+          <label for="signup-password" class="block text-slate-200 font-medium">Password <span class="text-red-400">*</span></label>
+          <div class="relative">
+            <input type="password" id="signup-password" required placeholder="At least 8 characters" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 pr-10 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+            <button type="button" id="signup-show-pwd-toggle" tabindex="-1" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer" aria-label="Toggle password visibility">
+              <span id="signup-pwd-icon" class="material-symbols-outlined text-[18px]">visibility_off</span>
+            </button>
+          </div>
+          <!-- Live Strength Meter -->
+          <div class="pt-1 space-y-1">
+            <div class="flex gap-1.5 h-1 w-full rounded overflow-hidden bg-white/5">
+              <div id="signup-str-1" class="flex-1 transition-colors bg-white/10"></div>
+              <div id="signup-str-2" class="flex-1 transition-colors bg-white/10"></div>
+              <div id="signup-str-3" class="flex-1 transition-colors bg-white/10"></div>
+              <div id="signup-str-4" class="flex-1 transition-colors bg-white/10"></div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-slate-400">
+              <span>Password Strength</span>
+              <span id="signup-strength-text">Minimum 8 characters</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="space-y-1.5">
+          <label for="signup-confirm-password" class="block text-slate-200 font-medium">Confirm Password <span class="text-red-400">*</span></label>
+          <div class="relative">
+            <input type="password" id="signup-confirm-password" required placeholder="Re-enter password" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 pr-10 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+            <button type="button" id="signup-show-cpwd-toggle" tabindex="-1" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer" aria-label="Toggle password visibility">
+              <span id="signup-cpwd-icon" class="material-symbols-outlined text-[18px]">visibility_off</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" id="signup-submit-btn" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-xs py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-indigo-950/40">
+            <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+            Create Account &amp; Continue
+          </button>
+        </div>
+
+        <div class="border-t border-white/[0.08] pt-4 text-center space-y-2">
+          <p class="text-xs text-slate-400">
+            Already have an account?
+            <a href="#login" data-auth-goto="login" class="text-indigo-400 hover:text-indigo-300 font-medium ml-1 underline underline-offset-2">Sign in &rarr;</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN: PERSONALIZED ONBOARDING WIZARD (7 STEPS) -->
+  <div id="page-onboarding" class="page-view hidden flex-grow w-full max-w-[800px] mx-auto px-4 sm:px-6 py-10 space-y-8">
+    
+    <!-- Wizard Header & Progress Bar -->
+    <header class="text-center space-y-3">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
+        <span class="material-symbols-outlined text-[16px]">tune</span>
+        Personalized Research Setup
+      </div>
+      <h1 class="font-serif text-2xl sm:text-3xl font-bold text-slate-100">
+        Welcome, <span id="onboarding-welcome-name">Researcher</span>
+      </h1>
+      <p class="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
+        Let's calibrate your InsightLens multimodal research engine to match your domain workflows, analytical depth, and presentation standards.
+      </p>
+
+      <!-- Progress Meter -->
+      <div class="max-w-md mx-auto pt-3 space-y-1.5">
+        <div class="flex justify-between text-[11px] font-mono text-slate-400">
+          <span id="onboarding-progress-text">Step 1 of 7</span>
+          <span id="onboarding-step-counter">14% Complete</span>
+        </div>
+        <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div id="onboarding-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300 rounded-full" style="width: 14%;"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Card Container for Active Step -->
+    <div class="bg-surface-container border ghost-border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+
+      <!-- STEP 1: PRIMARY USES -->
+      <div id="onboard-step-1" class="space-y-6">
+        <div>
+          <h2 class="font-serif text-xl font-bold text-slate-100">1. Primary Research Uses</h2>
+          <p class="text-xs text-slate-400 mt-1">Select the key research purposes for which you will use InsightLens (Select multiple):</p>
+        </div>
+
+        <div data-onboard-group="primaryUses" data-multi="true" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <button type="button" data-onboard-value="Academic & Scholarly Research" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Academic &amp; Scholarly</strong>
+              <p class="text-[11px] text-slate-400">Formal paper citations, methodology deconstruction, peer literature.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="Software & System Flow Analysis" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Software &amp; Systems</strong>
+              <p class="text-[11px] text-slate-400">Flowcharts, DFDs, microservice topologies, and sequence diagrams.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="Data & Statistical Charts" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Data &amp; Financial Charts</strong>
+              <p class="text-[11px] text-slate-400">Time-series, radar plots, bar distributions, and quantitative tables.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="Business & Executive Strategy" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Business &amp; Strategy</strong>
+              <p class="text-[11px] text-slate-400">Executive briefs, organizational models, and market matrices.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="Technical Documentation" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Technical Docs &amp; Specs</strong>
+              <p class="text-[11px] text-slate-400">Engineering schematics, user guides, and hardware blueprints.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="Investigative Visual Inspection" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Investigative Inspection</strong>
+              <p class="text-[11px] text-slate-400">Deep artifact analysis, subject staging, and forensic timeline extraction.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: DOMAIN INTERESTS -->
+      <div id="onboard-step-2" class="space-y-6 hidden">
+        <div>
+          <h2 class="font-serif text-xl font-bold text-slate-100">2. Domain Specializations &amp; Interests</h2>
+          <p class="text-xs text-slate-400 mt-1">Select fields you frequently inspect to enrich AI context and terminology:</p>
+        </div>
+
+        <div data-onboard-group="interests" data-multi="true" class="flex flex-wrap gap-2.5 text-xs">
+          <button type="button" data-onboard-value="Artificial Intelligence & ML" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>🤖 AI &amp; Machine Learning</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="Computer Science & Systems" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>💻 Software Engineering</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="Data Science & Analytics" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>📊 Data Analytics</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="Biology & Life Sciences" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>🧬 Biology &amp; Life Sciences</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="Physics & Aerospace" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>🚀 Physics &amp; Aerospace</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="Architecture & Urban Design" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>🏛️ Architecture &amp; Urbanism</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="History & Archaeology" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>📜 History &amp; Archaeology</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="Sports, Athletics & Media" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>🏆 Sports &amp; Athletics</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+          <button type="button" data-onboard-value="Cinema & Visual Arts" class="px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-slate-200 transition-all cursor-pointer flex items-center gap-2">
+            <span>🎬 Cinema &amp; Visual Arts</span>
+            <span class="material-symbols-outlined text-[15px] choice-check-icon">check</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: MOST ANALYZED VISUAL TYPES -->
+      <div id="onboard-step-3" class="space-y-6 hidden">
+        <div>
+          <h2 class="font-serif text-xl font-bold text-slate-100">3. Primary Visual Artifact Types</h2>
+          <p class="text-xs text-slate-400 mt-1">What visual formats do you inspect most frequently?</p>
+        </div>
+
+        <div data-onboard-group="visualTypes" data-multi="true" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <button type="button" data-onboard-value="Photographs & Subject Staging" class="p-3.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-center justify-between group cursor-pointer">
+            <span class="text-slate-200 group-hover:text-indigo-300 font-medium">📷 Photographs &amp; Scenes</span>
+            <span class="material-symbols-outlined text-[17px] choice-check-icon">check_circle</span>
+          </button>
+          <button type="button" data-onboard-value="Charts, Plots & Histograms" class="p-3.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-center justify-between group cursor-pointer">
+            <span class="text-slate-200 group-hover:text-indigo-300 font-medium">📈 Charts, Plots &amp; Graphs</span>
+            <span class="material-symbols-outlined text-[17px] choice-check-icon">check_circle</span>
+          </button>
+          <button type="button" data-onboard-value="System Flowcharts & DFDs" class="p-3.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-center justify-between group cursor-pointer">
+            <span class="text-slate-200 group-hover:text-indigo-300 font-medium">🔀 Flowcharts &amp; DFDs</span>
+            <span class="material-symbols-outlined text-[17px] choice-check-icon">check_circle</span>
+          </button>
+          <button type="button" data-onboard-value="UML & Entity Relationship (ER)" class="p-3.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-center justify-between group cursor-pointer">
+            <span class="text-slate-200 group-hover:text-indigo-300 font-medium">🗄️ UML &amp; Database ERDs</span>
+            <span class="material-symbols-outlined text-[17px] choice-check-icon">check_circle</span>
+          </button>
+          <button type="button" data-onboard-value="Technical UI Screenshots" class="p-3.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-center justify-between group cursor-pointer">
+            <span class="text-slate-200 group-hover:text-indigo-300 font-medium">🖥️ App Screenshots &amp; UI</span>
+            <span class="material-symbols-outlined text-[17px] choice-check-icon">check_circle</span>
+          </button>
+          <button type="button" data-onboard-value="Archival Documents & Manuscripts" class="p-3.5 rounded-xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-center justify-between group cursor-pointer">
+            <span class="text-slate-200 group-hover:text-indigo-300 font-medium">📑 Documents &amp; Papers</span>
+            <span class="material-symbols-outlined text-[17px] choice-check-icon">check_circle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 4: ANALYSIS DEPTH -->
+      <div id="onboard-step-4" class="space-y-6 hidden">
+        <div>
+          <h2 class="font-serif text-xl font-bold text-slate-100">4. Target Research Depth</h2>
+          <p class="text-xs text-slate-400 mt-1">Configure default synthesis granularity for reports generated across your desk:</p>
+        </div>
+
+        <div data-onboard-group="analysisDepth" data-multi="false" class="space-y-3 text-xs">
+          <button type="button" data-onboard-value="quick" class="w-full p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">⚡ Quick Summary (Fast)</strong>
+              <p class="text-[11px] text-slate-400">High-level takeaways, core visual classification, and essential bullet points.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="balanced" class="selected-choice w-full p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">⚖️ Balanced Synthesis (Recommended)</strong>
+                <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono">DEFAULT</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Full 11-section research journal, markdown data tables, and structured findings.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="deep" class="w-full p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">🔍 Deep Investigation</strong>
+              <p class="text-[11px] text-slate-400">Exhaustive background history, technical specifications, and career chronology.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="research" class="w-full p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">🎓 Academic &amp; Research-Grade</strong>
+              <p class="text-[11px] text-slate-400">Maximum analytical depth, peer-reviewed source framing, and complete evidence ledger.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 5: PRESENTATION STYLE -->
+      <div id="onboard-step-5" class="space-y-6 hidden">
+        <div>
+          <h2 class="font-serif text-xl font-bold text-slate-100">5. Report Presentation Style</h2>
+          <p class="text-xs text-slate-400 mt-1">Select the narrative and formatting tone you prefer (Select multiple):</p>
+        </div>
+
+        <div data-onboard-group="presentationStyle" data-multi="true" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <button type="button" data-onboard-value="evidence-first" class="selected-choice p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">🛡️ Evidence-First</strong>
+              <p class="text-[11px] text-slate-400">Prioritize verified claims, confidence status, and optical observations.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="balanced" class="selected-choice p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">📖 Academic Narrative</strong>
+              <p class="text-[11px] text-slate-400">Publication-style prose with structured editorial headings.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="technical" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">💻 Technical &amp; Monospace</strong>
+              <p class="text-[11px] text-slate-400">Dense tables, specs parameters, and tensor telemetry breakdowns.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="step-by-step" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">🪜 Step-by-Step Logic</strong>
+              <p class="text-[11px] text-slate-400">Sequential reasoning deconstructing visual flow and causality.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 6: EVIDENCE IMPORTANCE -->
+      <div id="onboard-step-6" class="space-y-6 hidden">
+        <div>
+          <h2 class="font-serif text-xl font-bold text-slate-100">6. Evidence &amp; Citation Rigor</h2>
+          <p class="text-xs text-slate-400 mt-1">Set the strictness of external knowledge verification and claims isolation:</p>
+        </div>
+
+        <div data-onboard-group="evidencePreference" data-multi="false" class="space-y-3 text-xs">
+          <button type="button" data-onboard-value="standard" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Standard Optical Inspection</strong>
+              <p class="text-[11px] text-slate-400">General visual observations with standard domain facts.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="strict" class="selected-choice p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Strict Source Verification (Recommended)</strong>
+                <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono">STANDARD</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Strict separation between optical observation and secondary inference with evidence ledger.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+
+          <button type="button" data-onboard-value="research-grade" class="p-4 rounded-2xl bg-surface-container-lowest border border-white/10 hover:border-indigo-400/50 text-left transition-all flex items-start justify-between group cursor-pointer">
+            <div class="space-y-1">
+              <strong class="text-slate-100 block font-medium group-hover:text-indigo-300">Research-Grade Peer Standards</strong>
+              <p class="text-[11px] text-slate-400">Exhaustive governing body reference checks (ICC, IEEE, NASA, Britannica) without synthetic DOIs.</p>
+            </div>
+            <span class="material-symbols-outlined text-[18px] choice-check-icon">check_circle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 7: OPTIONAL PROFESSIONAL PROFILE -->
+      <div id="onboard-step-7" class="space-y-6 hidden">
+        <div>
+          <h2 class="font-serif text-xl font-bold text-slate-100">7. Professional Information</h2>
+          <p class="text-xs text-slate-400 mt-1">Optional details to display on your researcher profile journal and briefs:</p>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label for="onboard-role-input" class="block text-slate-200 font-medium">Role / Profession</label>
+              <input type="text" id="onboard-role-input" placeholder="e.g. Lead Research Scientist / Systems Architect" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+            </div>
+            <div class="space-y-1.5">
+              <label for="onboard-field-input" class="block text-slate-200 font-medium">Field / Area of Study</label>
+              <input type="text" id="onboard-field-input" placeholder="e.g. Computer Vision & Distributed Systems" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="onboard-inst-input" class="block text-slate-200 font-medium">Institution / Organization</label>
+            <input type="text" id="onboard-inst-input" placeholder="e.g. Advanced AI Research Institute" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="onboard-bio-input" class="block text-slate-200 font-medium">Short Bio</label>
+            <textarea id="onboard-bio-input" rows="3" placeholder="Brief summary of your research focus..." class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none placeholder:text-slate-500 leading-relaxed"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Navigation Footer -->
+      <div class="border-t border-white/[0.08] pt-6 flex items-center justify-between gap-4 mt-8">
+        <button type="button" id="onboarding-prev-btn" class="invisible px-5 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-variant text-slate-300 text-xs font-medium cursor-pointer transition-colors border ghost-border">
+          &larr; Back
+        </button>
+
+        <div class="flex items-center gap-3">
+          <button type="button" id="onboarding-skip-btn" class="px-4 py-2.5 text-xs text-slate-400 hover:text-slate-200 font-medium cursor-pointer transition-colors">
+            Skip Setup
+          </button>
+          
+          <button type="button" id="onboarding-next-btn" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium cursor-pointer transition-all shadow-md flex items-center gap-1.5">
+            Next Step &rarr;
+          </button>
+
+          <button type="button" id="onboarding-finish-btn" class="hidden px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white text-xs font-medium cursor-pointer transition-all shadow-lg flex items-center gap-2">
+            <span class="material-symbols-outlined text-[17px]">check_circle</span>
+            Complete Setup &amp; Launch
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCREEN: COMPREHENSIVE RESEARCHER PROFILE PAGE -->
+  <div id="page-profile" class="page-view hidden flex-grow w-full max-w-[1100px] mx-auto px-4 sm:px-6 md:px-8 py-8 space-y-8">
+    
+    <!-- Profile Header Card -->
+    <header class="bg-surface-container border ghost-border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+        <div class="flex items-center gap-5">
+          <!-- Avatar Container -->
+          <div class="relative shrink-0">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-orange-500 to-rose-500 text-white font-bold text-3xl flex items-center justify-center shadow-xl border-2 border-white/20 overflow-hidden">
+              <img id="profile-avatar-img" alt="Avatar" class="w-full h-full object-cover hidden" />
+              <span id="profile-avatar-initials">SR</span>
+            </div>
+            <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#0e111a]" title="Active Researcher"></span>
+          </div>
+
+          <!-- Identity Details -->
+          <div class="space-y-1">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <h1 id="profile-display-name" class="font-serif text-2xl sm:text-3xl font-bold text-slate-100">Researcher Name</h1>
+              <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[10px] font-mono font-semibold uppercase">
+                Active Researcher
+              </span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-400 font-sans flex-wrap">
+              <span id="profile-display-username" class="font-mono text-indigo-300 font-medium">@username</span>
+              <span>•</span>
+              <span id="profile-display-email">researcher@university.edu</span>
+              <span>•</span>
+              <span>Member since <strong id="profile-stat-joined" class="text-slate-300 font-medium">--</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center gap-2.5 self-stretch sm:self-auto justify-end flex-wrap">
+          <button id="profile-edit-btn" class="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-slate-200 border border-white/10 text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-[16px]">edit</span>
+            Edit Profile
+          </button>
+          <button id="profile-change-pwd-btn" class="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-slate-200 border border-white/10 text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-[16px]">key</span>
+            Password
+          </button>
+          <button id="profile-logout-btn" class="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-[16px]">logout</span>
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Column 1 & 2: Personal Info & Preferences -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Personal Info Card -->
+        <section class="bg-surface-container border ghost-border rounded-3xl p-6 sm:p-7 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-400 text-[20px]">badge</span>
+              <h2 class="font-serif text-lg font-bold text-slate-100">Professional Information</h2>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="space-y-1">
+              <span class="text-slate-400 block font-mono text-[10px] uppercase tracking-wider">Role / Profession</span>
+              <p id="profile-val-role" class="text-slate-200 font-medium text-sm">Lead Research Scientist</p>
+            </div>
+            <div class="space-y-1">
+              <span class="text-slate-400 block font-mono text-[10px] uppercase tracking-wider">Field of Study</span>
+              <p id="profile-val-field" class="text-slate-200 font-medium text-sm">Visual Intelligence &amp; ML</p>
+            </div>
+            <div class="space-y-1 sm:col-span-2">
+              <span class="text-slate-400 block font-mono text-[10px] uppercase tracking-wider">Institution / Affiliation</span>
+              <p id="profile-val-inst" class="text-slate-200 font-medium text-sm">Independent Research Laboratory</p>
+            </div>
+            <div class="space-y-1 sm:col-span-2">
+              <span class="text-slate-400 block font-mono text-[10px] uppercase tracking-wider">Bio</span>
+              <p id="profile-val-bio" class="text-slate-300 leading-relaxed">
+                Investigating multimodal visual reasoning, data graphics, and system architecture.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Personalization & Output Preferences Card -->
+        <section class="bg-surface-container border ghost-border rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-purple-400 text-[20px]">psychology</span>
+              <h2 class="font-serif text-lg font-bold text-slate-100">Research &amp; Output Personalization</h2>
+            </div>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            <div class="space-y-1.5">
+              <span class="text-slate-400 block font-mono text-[10px] uppercase tracking-wider">Primary Research Focus</span>
+              <div id="profile-tags-uses" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <div class="space-y-1.5">
+              <span class="text-slate-400 block font-mono text-[10px] uppercase tracking-wider">Domain Interests</span>
+              <div id="profile-tags-interests" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <div class="space-y-1.5">
+              <span class="text-slate-400 block font-mono text-[10px] uppercase tracking-wider">Most Analyzed Visual Formats</span>
+              <div id="profile-tags-visuals" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div class="p-3 rounded-xl bg-surface-container-lowest border ghost-border space-y-1">
+                <span class="text-[10px] font-mono uppercase text-slate-400 block">Analysis Depth</span>
+                <strong id="profile-val-depth" class="text-xs font-serif font-bold text-indigo-300">BALANCED</strong>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-lowest border ghost-border space-y-1">
+                <span class="text-[10px] font-mono uppercase text-slate-400 block">Presentation Style</span>
+                <strong id="profile-val-style" class="text-xs font-serif font-bold text-purple-300 truncate block">Evidence-First</strong>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-lowest border ghost-border space-y-1">
+                <span class="text-[10px] font-mono uppercase text-slate-400 block">Evidence Rigor</span>
+                <strong id="profile-val-evidence" class="text-xs font-serif font-bold text-emerald-300">STRICT</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Column 3: Live PostgreSQL Stats & Activity Timeline -->
+      <div class="space-y-6">
+        
+        <!-- Live Activity Stats Card -->
+        <section class="bg-surface-container border ghost-border rounded-3xl p-6 sm:p-7 shadow-xl space-y-4">
+          <div class="flex items-center gap-2 border-b border-white/[0.08] pb-3">
+            <span class="material-symbols-outlined text-amber-400 text-[20px]">query_stats</span>
+            <h2 class="font-serif text-lg font-bold text-slate-100">Live Activity Stats</h2>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-surface-container-lowest p-3.5 rounded-2xl border ghost-border space-y-1">
+              <span class="text-[10px] font-mono uppercase text-indigo-400">Reports</span>
+              <div id="profile-stat-reports" class="text-2xl font-serif font-bold text-indigo-200">0</div>
+            </div>
+            <div class="bg-surface-container-lowest p-3.5 rounded-2xl border ghost-border space-y-1">
+              <span class="text-[10px] font-mono uppercase text-emerald-400">Analyses</span>
+              <div id="profile-stat-analyses" class="text-2xl font-serif font-bold text-emerald-200">0</div>
+            </div>
+            <div class="bg-surface-container-lowest p-3.5 rounded-2xl border ghost-border space-y-1">
+              <span class="text-[10px] font-mono uppercase text-purple-400">Comparisons</span>
+              <div id="profile-stat-comparisons" class="text-2xl font-serif font-bold text-purple-200">0</div>
+            </div>
+            <div class="bg-surface-container-lowest p-3.5 rounded-2xl border ghost-border space-y-1">
+              <span class="text-[10px] font-mono uppercase text-amber-400">Saved Briefs</span>
+              <div id="profile-stat-saved" class="text-2xl font-serif font-bold text-amber-200">0</div>
+            </div>
+          </div>
+
+          <!-- Last Analysis Details -->
+          <div class="p-3.5 rounded-2xl bg-surface-container-lowest border ghost-border space-y-1 text-xs">
+            <span class="text-[10px] font-mono uppercase text-slate-400 block">Latest Visual Research</span>
+            <p id="profile-stat-last-title" class="font-serif font-bold text-slate-100 truncate">No history found</p>
+            <span id="profile-stat-last-date" class="text-[11px] text-slate-400 font-mono block">--</span>
+          </div>
+        </section>
+
+        <!-- Recent Activity Timeline Card -->
+        <section class="bg-surface-container border ghost-border rounded-3xl p-6 sm:p-7 shadow-xl space-y-4">
+          <div class="flex items-center gap-2 border-b border-white/[0.08] pb-3">
+            <span class="material-symbols-outlined text-indigo-400 text-[20px]">history</span>
+            <h2 class="font-serif text-lg font-bold text-slate-100">Recent Activity</h2>
+          </div>
+
+          <div id="profile-activity-timeline" class="space-y-2">
+            <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 text-center text-xs text-slate-400">
+              Loading activity timeline...
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
   <!-- SCREEN: SYSTEM SETTINGS PAGE -->
   <div id="page-settings" class="page-view hidden flex-grow w-full max-w-[1200px] mx-auto px-6 md:px-8 py-10 space-y-8"></div>
 
@@ -2987,6 +3697,144 @@
       }
     };
   </script>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[580px] w-full p-6 sm:p-8 rounded-3xl border ghost-border shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <span class="material-symbols-outlined text-[22px]">manage_accounts</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-lg font-bold text-slate-100">Edit Researcher Profile</h3>
+            <p class="text-[11px] text-slate-400 font-sans">Update your identity, credentials, and avatar photo.</p>
+          </div>
+        </div>
+        <button type="button" id="edit-profile-close-btn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <form id="edit-profile-form" class="space-y-4 text-xs">
+        <!-- Avatar Upload in Modal -->
+        <div class="bg-surface-container-lowest border ghost-border rounded-2xl p-4 flex items-center gap-4">
+          <div id="edit-profile-avatar-dropzone" class="w-16 h-16 rounded-full border-2 border-dashed border-white/20 hover:border-indigo-400 flex items-center justify-center overflow-hidden cursor-pointer relative shrink-0 transition-all group">
+            <input type="file" id="edit-profile-avatar-input" accept="image/png, image/jpeg, image/webp" class="hidden" />
+            <img id="edit-profile-avatar-preview" alt="Avatar Preview" class="w-full h-full object-cover hidden" />
+            <div id="edit-profile-avatar-placeholder" class="text-center flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-300">
+              <span class="material-symbols-outlined text-[22px]">photo_camera</span>
+            </div>
+          </div>
+          <div class="flex-grow min-w-0 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-medium text-slate-200 block text-xs">Update Photo</span>
+              <button type="button" id="edit-profile-avatar-remove" class="text-xs text-red-400 hover:text-red-300 cursor-pointer hidden">Remove</button>
+            </div>
+            <p class="text-[11px] text-slate-400">Upload portrait photo (&lt; 4MB).</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label for="edit-profile-fname" class="block text-slate-200 font-medium">First Name</label>
+            <input type="text" id="edit-profile-fname" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          </div>
+          <div class="space-y-1.5">
+            <label for="edit-profile-lname" class="block text-slate-200 font-medium">Last Name</label>
+            <input type="text" id="edit-profile-lname" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label for="edit-profile-uname" class="block text-slate-200 font-medium">Username</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">@</span>
+              <input type="text" id="edit-profile-uname" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl py-3 pl-8 pr-3 text-xs focus:border-indigo-400 focus:outline-none" />
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <label for="edit-profile-role" class="block text-slate-200 font-medium">Role / Profession</label>
+            <input type="text" id="edit-profile-role" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label for="edit-profile-field" class="block text-slate-200 font-medium">Field of Study</label>
+            <input type="text" id="edit-profile-field" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          </div>
+          <div class="space-y-1.5">
+            <label for="edit-profile-inst" class="block text-slate-200 font-medium">Institution</label>
+            <input type="text" id="edit-profile-inst" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="edit-profile-bio" class="block text-slate-200 font-medium">Bio</label>
+          <textarea id="edit-profile-bio" rows="3" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none leading-relaxed"></textarea>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2.5">
+          <button type="button" id="edit-profile-cancel-btn" class="px-5 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-variant text-slate-300 text-xs font-medium cursor-pointer transition-colors border ghost-border">
+            Cancel
+          </button>
+          <button type="submit" id="edit-profile-save-btn" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium cursor-pointer transition-all shadow-md flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">save</span>
+            Save Profile
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="change-password-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+    <div class="bg-surface-container max-w-[440px] w-full p-6 sm:p-8 rounded-3xl border ghost-border shadow-2xl space-y-6 relative">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+            <span class="material-symbols-outlined text-[22px]">key</span>
+          </div>
+          <div>
+            <h3 class="font-serif text-lg font-bold text-slate-100">Change Password</h3>
+            <p class="text-[11px] text-slate-400 font-sans">Secure your researcher account credentials.</p>
+          </div>
+        </div>
+        <button type="button" id="change-pwd-close-btn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <form id="change-pwd-form" class="space-y-4 text-xs">
+        <div class="space-y-1.5">
+          <label for="change-pwd-current" class="block text-slate-200 font-medium">Current Password</label>
+          <input type="password" id="change-pwd-current" required placeholder="••••••••••••" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="change-pwd-new" class="block text-slate-200 font-medium">New Password (Min 8 chars)</label>
+          <input type="password" id="change-pwd-new" required placeholder="••••••••••••" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="change-pwd-confirm" class="block text-slate-200 font-medium">Confirm New Password</label>
+          <input type="password" id="change-pwd-confirm" required placeholder="••••••••••••" class="w-full bg-surface-container-lowest border ghost-border text-slate-100 rounded-xl p-3 text-xs focus:border-indigo-400 focus:outline-none" />
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2.5">
+          <button type="button" id="change-pwd-cancel-btn" class="px-5 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-variant text-slate-300 text-xs font-medium cursor-pointer transition-colors border ghost-border">
+            Cancel
+          </button>
+          <button type="submit" id="change-pwd-submit-btn" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium cursor-pointer transition-all shadow-md flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+            Update Password
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Logout Confirmation Modal -->
   <div id="logout-modal" class="modal-transition opacity-0 pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
