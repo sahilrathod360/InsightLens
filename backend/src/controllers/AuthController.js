@@ -517,7 +517,7 @@ export const updateProfile = async (req, res, next) => {
         primary_uses, interests, visual_types, analysis_depth, presentation_style,
         evidence_preference, technical_level, updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12::jsonb, $13, $14::jsonb, $15, $16, NOW())
       ON CONFLICT (user_email) DO UPDATE SET
         first_name = COALESCE(EXCLUDED.first_name, user_profiles.first_name),
         last_name = COALESCE(EXCLUDED.last_name, user_profiles.last_name),
@@ -629,7 +629,7 @@ export const saveOnboarding = async (req, res, next) => {
         presentation_style, evidence_preference, role, field, institution, bio,
         onboarding_completed, updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, TRUE, NOW())
+      VALUES ($1, $2::jsonb, $3::jsonb, $4::jsonb, $5, $6::jsonb, $7, $8, $9, $10, $11, TRUE, NOW())
       ON CONFLICT (user_email) DO UPDATE SET
         primary_uses = EXCLUDED.primary_uses,
         interests = EXCLUDED.interests,
