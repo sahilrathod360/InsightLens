@@ -193,8 +193,8 @@ function setupDepthCanvas(reducedMotion = false) {
   let shapeRotation = 0;
 
   const isMobile = window.innerWidth < 768;
-  const particleCount = isMobile ? 32 : 72;
-  const maxDistance = isMobile ? 95 : 155;
+  const particleCount = isMobile ? 32 : 100;
+  const maxDistance = isMobile ? 95 : 180;
 
   // Controlled, vibrant multi-color palette
   const COLOR_PALETTE = [
@@ -233,7 +233,7 @@ function setupDepthCanvas(reducedMotion = false) {
       z: depth,
       vx: (Math.random() - 0.5) * 0.35 * (0.6 + depth * 0.4),
       vy: (Math.random() - 0.5) * 0.35 * (0.6 + depth * 0.4),
-      baseRadius: (0.8 + depth * 1.6),
+      baseRadius: (1.2 + depth * 2.2),
       color: colorObj,
       pulse: Math.random() * Math.PI * 2,
       pulseSpeed: 0.02 + Math.random() * 0.03
@@ -263,9 +263,9 @@ function setupDepthCanvas(reducedMotion = false) {
   ];
 
   const floatingShapes = [
-    { x: width * 0.15, y: height * 0.28, size: isMobile ? 30 : 55, rotX: 0.2, rotY: 0.5, speedX: 0.008, speedY: 0.012, color: 'rgba(6, 182, 212, ' },
-    { x: width * 0.88, y: height * 0.45, size: isMobile ? 35 : 70, rotX: 0.8, rotY: 0.3, speedX: 0.006, speedY: -0.009, color: 'rgba(139, 92, 246, ' },
-    { x: width * 0.50, y: height * 0.82, size: isMobile ? 25 : 45, rotX: 0.5, rotY: 0.9, speedX: -0.009, speedY: 0.007, color: 'rgba(236, 72, 153, ' }
+    { x: width * 0.15, y: height * 0.28, size: isMobile ? 30 : 75, rotX: 0.2, rotY: 0.5, speedX: 0.008, speedY: 0.012, color: 'rgba(6, 182, 212, ' },
+    { x: width * 0.88, y: height * 0.45, size: isMobile ? 35 : 95, rotX: 0.8, rotY: 0.3, speedX: 0.006, speedY: -0.009, color: 'rgba(139, 92, 246, ' },
+    { x: width * 0.50, y: height * 0.82, size: isMobile ? 25 : 60, rotX: 0.5, rotY: 0.9, speedX: -0.009, speedY: 0.007, color: 'rgba(236, 72, 153, ' }
   ];
 
   const render = () => {
@@ -284,7 +284,7 @@ function setupDepthCanvas(reducedMotion = false) {
     const vanishX = width * 0.5 + mouseX * 0.8;
 
     ctx.save();
-    ctx.lineWidth = 0.7;
+    ctx.lineWidth = 1.0;
 
     // Converging Perspective Rays
     const numRays = isMobile ? 12 : 24;
@@ -292,8 +292,8 @@ function setupDepthCanvas(reducedMotion = false) {
       const bottomX = (width / numRays) * i + (mouseX * 0.5);
       const grad = ctx.createLinearGradient(vanishX, horizonY, bottomX, height);
       grad.addColorStop(0, 'rgba(99, 102, 241, 0)');
-      grad.addColorStop(0.35, 'rgba(6, 182, 212, 0.05)');
-      grad.addColorStop(1, 'rgba(139, 92, 246, 0.18)');
+      grad.addColorStop(0.35, 'rgba(6, 182, 212, 0.08)');
+      grad.addColorStop(1, 'rgba(139, 92, 246, 0.28)');
 
       ctx.beginPath();
       ctx.moveTo(vanishX, horizonY);
@@ -307,7 +307,7 @@ function setupDepthCanvas(reducedMotion = false) {
     for (let j = 0; j < numTransverse; j++) {
       const t = (j + gridPhase) / numTransverse;
       const lineY = horizonY + Math.pow(t, 2.4) * (height - horizonY);
-      const alpha = Math.min(1, Math.pow(t, 1.8) * 0.32);
+      const alpha = Math.min(1, Math.pow(t, 1.8) * 0.48);
 
       ctx.beginPath();
       ctx.moveTo(0, lineY);
@@ -351,12 +351,12 @@ function setupDepthCanvas(reducedMotion = false) {
       });
 
       // Draw Edges
-      ctx.lineWidth = 0.9;
+      ctx.lineWidth = 1.4;
       octahedronEdges.forEach(([i1, i2]) => {
         const p1 = projected[i1];
         const p2 = projected[i2];
         const avgScale = (p1[2] + p2[2]) / 2;
-        const alpha = Math.max(0.08, Math.min(0.45, avgScale * 0.32));
+        const alpha = Math.max(0.12, Math.min(0.65, avgScale * 0.55));
 
         ctx.beginPath();
         ctx.moveTo(p1[0], p1[1]);
@@ -368,8 +368,8 @@ function setupDepthCanvas(reducedMotion = false) {
       // Draw vertices halos
       projected.forEach(p => {
         ctx.beginPath();
-        ctx.arc(p[0], p[1], 2 * p[2], 0, Math.PI * 2);
-        ctx.fillStyle = `${shape.color}0.75)`;
+        ctx.arc(p[0], p[1], 3 * p[2], 0, Math.PI * 2);
+        ctx.fillStyle = `${shape.color}0.85)`;
         ctx.fill();
       });
     });
@@ -397,13 +397,13 @@ function setupDepthCanvas(reducedMotion = false) {
       const drawX = p.x + mouseX * p.z * 0.8;
       const drawY = p.y + mouseY * p.z * 0.8;
       const dynamicRadius = p.baseRadius * (0.85 + Math.sin(p.pulse) * 0.25);
-      const alpha = Math.min(0.95, (0.35 + p.z * 0.45) * (0.8 + Math.sin(p.pulse) * 0.2));
+      const alpha = Math.min(1, (0.45 + p.z * 0.45) * (0.8 + Math.sin(p.pulse) * 0.2));
 
-      // Draw particle glowing halo
-      if (p.z > 0.8) {
+      // Draw particle glowing halo (visible for more particles)
+      if (p.z > 0.5) {
         ctx.beginPath();
-        ctx.arc(drawX, drawY, dynamicRadius * 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${alpha * 0.25})`;
+        ctx.arc(drawX, drawY, dynamicRadius * 4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${alpha * 0.2})`;
         ctx.fill();
       }
 
@@ -426,7 +426,7 @@ function setupDepthCanvas(reducedMotion = false) {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < maxDistance) {
-          const lineAlpha = (1 - dist / maxDistance) * (0.32 + p.z * 0.28);
+          const lineAlpha = (1 - dist / maxDistance) * (0.4 + p.z * 0.35);
           
           ctx.beginPath();
           ctx.moveTo(drawX, drawY);
@@ -438,7 +438,7 @@ function setupDepthCanvas(reducedMotion = false) {
           lineGrad.addColorStop(1, `rgba(${p2.color.r}, ${p2.color.g}, ${p2.color.b}, ${lineAlpha})`);
 
           ctx.strokeStyle = lineGrad;
-          ctx.lineWidth = 0.85 * p.z;
+          ctx.lineWidth = 1.1 * p.z;
           ctx.stroke();
 
           if (dist > 30 && Math.random() < 0.003 && pulses.length < maxPulses) {
@@ -471,10 +471,10 @@ function setupDepthCanvas(reducedMotion = false) {
       const pAlpha = Math.sin(pulse.progress * Math.PI) * 0.9;
 
       ctx.beginPath();
-      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+      ctx.arc(px, py, 3.5, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${pulse.color.r}, ${pulse.color.g}, ${pulse.color.b}, ${pAlpha})`;
-      ctx.shadowColor = `rgba(${pulse.color.r}, ${pulse.color.g}, ${pulse.color.b}, 0.8)`;
-      ctx.shadowBlur = 8;
+      ctx.shadowColor = `rgba(${pulse.color.r}, ${pulse.color.g}, ${pulse.color.b}, 0.9)`;
+      ctx.shadowBlur = 12;
       ctx.fill();
       ctx.shadowBlur = 0; // reset
     }

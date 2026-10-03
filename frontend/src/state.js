@@ -135,6 +135,16 @@ export function navigateTo(pageId) {
     renderCallbacks.renderLandingPage?.();
   }
 
+  // Toggle landing page 3D background visibility
+  const bgRoot = document.getElementById('landing-bg-root');
+  if (bgRoot) {
+    if (pageId === 'landing') {
+      bgRoot.style.display = 'block';
+    } else {
+      bgRoot.style.display = 'none';
+    }
+  }
+
   document.getElementById('user-dropdown-menu')?.classList.remove('show');
   document.getElementById('mobile-nav-drawer')?.classList.remove('show');
 

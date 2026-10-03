@@ -796,6 +796,8 @@ p, span:not(.material-symbols-outlined):not(.badge-text), label {
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  /* Ensure the container breaks out of any parent max-width / overflow clipping */
+  contain: none;
 }
 
 .landing-depth-canvas {
@@ -805,7 +807,7 @@ p, span:not(.material-symbols-outlined):not(.badge-text), label {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.95;
+  opacity: 1;
 }
 
 .landing-bg-gradient {

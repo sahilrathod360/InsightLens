@@ -16,7 +16,7 @@ let isLiveVisionPaused = false;
 let lastServerSyncTime = 0;
 
 /**
- * Loads the client-side lightweight COCO-SSD object detector.
+ * Loads the client-side lightweight COCO-SSD object detector with resilient fallback.
  */
 async function getOrLoadDetector() {
   if (detectorModel) return detectorModel;
@@ -42,10 +42,15 @@ async function getOrLoadDetector() {
     }
 
     try {
-      detectorModel = await loadFn({ base: 'lite_mobilenet_v2' });
+      detectorModel = await loadFn();
     } catch (e1) {
-      console.warn('[LiveVision] lite_mobilenet_v2 load error, trying mobilenet_v2:', e1.message);
-      detectorModel = await loadFn({ base: 'mobilenet_v2' });
+      console.warn('[LiveVision] Default load notice, trying lite_mobilenet_v2:', e1.message);
+      try {
+        detectorModel = await loadFn({ base: 'lite_mobilenet_v2' });
+      } catch (e2) {
+        console.warn('[LiveVision] lite_mobilenet_v2 notice, trying mobilenet_v2:', e2.message);
+        detectorModel = await loadFn({ base: 'mobilenet_v2' });
+      }
     }
 
     console.log('[LiveVision] COCO-SSD model loaded successfully');
@@ -397,7 +402,20 @@ function setupLiveVisionEvents() {
       liveStreamTrack = stream;
       if (video) {
         video.srcObject = stream;
-        await video.play();
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
+        video.muted = true;
+        
+        try {
+          await video.play();
+        } catch (playErr) {
+          console.warn('[LiveVision] Autoplay notice:', playErr.message);
+        }
+
+        // Trigger immediate detection when video metadata is ready
+        video.onloadedmetadata = () => {
+          startRealtimeDetectionLoop();
+        };
       }
 
       placeholder?.classList.add('hidden');
@@ -567,7 +585,7 @@ function startRealtimeDetectionLoop() {
     if (isLiveVisionPaused || !liveStreamTrack) return;
 
     const video = document.getElementById('live-camera-feed');
-    if (!video || !video.videoWidth || video.paused) {
+    if (!video || !video.videoWidth || video.paused || (video.readyState !== undefined && video.readyState < 2)) {
       detectionLoopTimer = setTimeout(runDetectionTick, 200);
       return;
     }
@@ -581,8 +599,8 @@ function startRealtimeDetectionLoop() {
         let rawDetections = [];
 
         if (model) {
-          // Real-time multi-object detection directly on HTML5 video element
-          const predictions = await model.detect(video, 16, 0.30);
+          // Real-time multi-object detection directly on HTML5 video element (threshold 0.25, max 20)
+          const predictions = await model.detect(video, 20, 0.25);
           const vWidth = video.videoWidth || 1280;
           const vHeight = video.videoHeight || 720;
 
