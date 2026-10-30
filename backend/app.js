@@ -141,8 +141,9 @@ app.post('/api/audit/inspect-data', async (req, res) => {
     const extsRes = await pool.query('SELECT user_email, count(*)::int as count FROM user_extensions GROUP BY user_email');
     const workspacesRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_workspaces GROUP BY user_email');
     const comparisonsRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_comparisons GROUP BY user_email');
-    const evidenceRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_evidence GROUP BY user_email');
     const artifactsRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_artifacts GROUP BY user_email');
+    const consistenciesRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_consistencies GROUP BY user_email');
+    const evidenceRes = await pool.query('SELECT count(*)::int as count FROM visual_evidence');
     const settingsRes = await pool.query('SELECT count(*)::int as count FROM extension_settings');
     const catalogRes = await pool.query('SELECT id, name, is_builtin FROM extensions');
 
@@ -155,10 +156,11 @@ app.post('/api/audit/inspect-data', async (req, res) => {
       user_extensions: extsRes.rows.reduce((sum, r) => sum + r.count, 0),
       visual_workspaces: workspacesRes.rows.reduce((sum, r) => sum + r.count, 0),
       visual_comparisons: comparisonsRes.rows.reduce((sum, r) => sum + r.count, 0),
-      visual_evidence: evidenceRes.rows.reduce((sum, r) => sum + r.count, 0),
+      visual_consistencies: consistenciesRes.rows.reduce((sum, r) => sum + r.count, 0),
+      visual_evidence: evidenceRes.rows[0]?.count || 0,
       visual_artifacts: artifactsRes.rows.reduce((sum, r) => sum + r.count, 0),
       extension_settings: settingsRes.rows[0]?.count || 0,
-      extensions_catalog: catalogRes.rows.length
+      extensions: catalogRes.rows.length
     };
 
     return res.status(200).json({
@@ -172,7 +174,7 @@ app.post('/api/audit/inspect-data', async (req, res) => {
         extensions: extsRes.rows,
         workspaces: workspacesRes.rows,
         comparisons: comparisonsRes.rows,
-        evidence: evidenceRes.rows,
+        consistencies: consistenciesRes.rows,
         artifacts: artifactsRes.rows
       },
       catalog: catalogRes.rows
