@@ -26,6 +26,10 @@ export const getPreferences = async (req, res, next) => {
       });
     }
 
+    try {
+      await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ui_preferences JSONB DEFAULT '{}'::jsonb`);
+    } catch (_) {}
+
     const result = await pool.query('SELECT ui_preferences FROM user_profiles WHERE user_email = $1', [userEmail]);
     const prefs = result.rows[0]?.ui_preferences || {};
 
@@ -110,11 +114,15 @@ export const updatePreferences = async (req, res, next) => {
       autoSaveReports: autoSaveReports !== undefined ? autoSaveReports : true
     };
 
+    try {
+      await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ui_preferences JSONB DEFAULT '{}'::jsonb`);
+    } catch (_) {}
+
     const query = `
       INSERT INTO user_profiles (user_email, ui_preferences, updated_at)
       VALUES ($1, $2::jsonb, NOW())
       ON CONFLICT (user_email) DO UPDATE SET
-        ui_preferences = COALESCE(user_profiles.ui_preferences, '{}'::jsonb) || $2::jsonb,
+        ui_preferences = COALESCE(user_profiles.ui_preferences, '{}'::jsonb) || EXCLUDED.ui_preferences,
         updated_at = NOW()
       RETURNING ui_preferences;
     `;

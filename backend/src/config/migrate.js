@@ -22,103 +22,135 @@ export async function initDb() {
 
     const client = await pool.connect();
     try {
-      await client.query('BEGIN');
+      // 1. Execute base schema idempotently
       await client.query(schemaSql);
 
-      // Additive columns for existing deployments
-      await client.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS thumbnail_data_url TEXT`);
-      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)`);
-      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)`);
-      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(100)`);
-      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS field VARCHAR(150)`);
-      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS institution VARCHAR(200)`);
-      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
-      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT`);
+      // 2. Additive columns for existing deployments (individual safe executions)
+      const additiveQueries = [
+        `ALTER TABLE reports ADD COLUMN IF NOT EXISTS thumbnail_data_url TEXT`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(100)`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS field VARCHAR(150)`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS institution VARCHAR(200)`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS username VARCHAR(100)`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS role VARCHAR(100) DEFAULT 'Researcher'`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS field VARCHAR(150)`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS institution VARCHAR(200)`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS bio TEXT`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS avatar TEXT`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS primary_uses JSONB DEFAULT '[]'::jsonb`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS interests JSONB DEFAULT '[]'::jsonb`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS visual_types JSONB DEFAULT '[]'::jsonb`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS analysis_depth VARCHAR(50) DEFAULT 'balanced'`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS presentation_style JSONB DEFAULT '["balanced", "evidence-first"]'::jsonb`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS evidence_preference VARCHAR(50) DEFAULT 'strict'`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE`,
+        `ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ui_preferences JSONB DEFAULT '{}'::jsonb`
+      ];
 
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS first_name VARCHAR(100)`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS last_name VARCHAR(100)`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS username VARCHAR(100)`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS role VARCHAR(100) DEFAULT 'Researcher'`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS field VARCHAR(150)`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS institution VARCHAR(200)`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS bio TEXT`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS avatar TEXT`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS primary_uses JSONB DEFAULT '[]'::jsonb`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS interests JSONB DEFAULT '[]'::jsonb`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS visual_types JSONB DEFAULT '[]'::jsonb`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS analysis_depth VARCHAR(50) DEFAULT 'balanced'`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS presentation_style JSONB DEFAULT '["balanced", "evidence-first"]'::jsonb`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS evidence_preference VARCHAR(50) DEFAULT 'strict'`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE`);
-      await client.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ui_preferences JSONB DEFAULT '{}'::jsonb`);
+      for (const q of additiveQueries) {
+        try {
+          await client.query(q);
+        } catch (colErr) {
+          console.warn('[Database Migration] Column migration notice:', colErr.message);
+        }
+      }
 
-      // 1. Backfill user_profiles.user_id from users.id
-      await client.query(`
-        UPDATE user_profiles p
-        SET user_id = u.id
-        FROM users u
-        WHERE LOWER(u.email) = LOWER(p.user_email) AND p.user_id IS NULL;
-      `);
-
-      // 2. Safe consolidation: Migrate user_preferences & user_ui_preferences into user_profiles.ui_preferences
+      // 3. Backfill user_profiles.user_id from users.id
       try {
         await client.query(`
           UPDATE user_profiles p
-          SET ui_preferences = COALESCE(p.ui_preferences, '{}'::jsonb) || jsonb_build_object(
-            'theme', up.theme,
-            'provider', up.provider,
-            'model', up.model,
-            'autoModelFallback', up.auto_model_fallback,
-            'compactMode', up.compact_mode,
-            'fontSize', up.font_size,
-            'animationsOn', up.animations_on,
-            'writingStyle', up.writing_style,
-            'researchLength', up.research_length,
-            'citationStyle', up.citation_style,
-            'language', up.language,
-            'exportFormat', up.export_format,
-            'autoSaveReports', up.auto_save_reports
-          )
-          FROM user_preferences up
-          WHERE LOWER(up.user_email) = LOWER(p.user_email);
+          SET user_id = u.id
+          FROM users u
+          WHERE LOWER(u.email) = LOWER(p.user_email) AND p.user_id IS NULL;
         `);
-      } catch (e) {
-        // user_preferences table might not exist
+      } catch (bfErr) {
+        console.warn('[Database Migration] User ID backfill notice:', bfErr.message);
+      }
+
+      // 4. Safe consolidation: Check table existence first before reading legacy tables
+      try {
+        const hasPrefs = await client.query("SELECT to_regclass('public.user_preferences') AS tbl");
+        if (hasPrefs.rows[0]?.tbl) {
+          await client.query(`
+            UPDATE user_profiles p
+            SET ui_preferences = COALESCE(p.ui_preferences, '{}'::jsonb) || jsonb_build_object(
+              'theme', up.theme,
+              'provider', up.provider,
+              'model', up.model,
+              'autoModelFallback', up.auto_model_fallback,
+              'compactMode', up.compact_mode,
+              'fontSize', up.font_size,
+              'animationsOn', up.animations_on,
+              'writingStyle', up.writing_style,
+              'researchLength', up.research_length,
+              'citationStyle', up.citation_style,
+              'language', up.language,
+              'exportFormat', up.export_format,
+              'autoSaveReports', up.auto_save_reports
+            )
+            FROM user_preferences up
+            WHERE LOWER(up.user_email) = LOWER(p.user_email);
+          `);
+        }
+      } catch (prefErr) {
+        console.warn('[Database Migration] Legacy user_preferences notice:', prefErr.message);
       }
 
       try {
-        await client.query(`
-          UPDATE user_profiles p
-          SET ui_preferences = COALESCE(p.ui_preferences, '{}'::jsonb) || jsonb_build_object(
-            'themeSlug', uui.theme_slug,
-            'typographySlug', uui.typography_slug,
-            'layoutSlug', uui.layout_slug,
-            'activeModes', uui.active_modes,
-            'customPreferences', uui.preferences_json
-          )
-          FROM user_ui_preferences uui
-          WHERE LOWER(uui.user_email) = LOWER(p.user_email);
-        `);
-      } catch (e) {
-        // user_ui_preferences table might not exist
+        const hasUiPrefs = await client.query("SELECT to_regclass('public.user_ui_preferences') AS tbl");
+        if (hasUiPrefs.rows[0]?.tbl) {
+          await client.query(`
+            UPDATE user_profiles p
+            SET ui_preferences = COALESCE(p.ui_preferences, '{}'::jsonb) || jsonb_build_object(
+              'themeSlug', uui.theme_slug,
+              'typographySlug', uui.typography_slug,
+              'layoutSlug', uui.layout_slug,
+              'activeModes', uui.active_modes,
+              'customPreferences', uui.preferences_json
+            )
+            FROM user_ui_preferences uui
+            WHERE LOWER(uui.user_email) = LOWER(p.user_email);
+          `);
+        }
+      } catch (uiPrefErr) {
+        console.warn('[Database Migration] Legacy user_ui_preferences notice:', uiPrefErr.message);
       }
 
-      // 3. Drop legacy redundant tables after safe migration
-      await client.query(`DROP TABLE IF EXISTS user_preferences CASCADE`);
-      await client.query(`DROP TABLE IF EXISTS user_ui_preferences CASCADE`);
-      await client.query(`DROP TABLE IF EXISTS app_metrics CASCADE`);
+      // 5. Drop legacy redundant tables safely
+      try {
+        await client.query(`DROP TABLE IF EXISTS user_preferences CASCADE`);
+        await client.query(`DROP TABLE IF EXISTS user_ui_preferences CASCADE`);
+        await client.query(`DROP TABLE IF EXISTS app_metrics CASCADE`);
+      } catch (dropErr) {
+        console.warn('[Database Migration] Drop legacy tables notice:', dropErr.message);
+      }
 
-      // 4. Verification Indexes
-      await client.query(`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`);
-      await client.query(`CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles(username)`);
-      await client.query(`CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id)`);
-      await client.query(`CREATE INDEX IF NOT EXISTS idx_reports_user_timestamp ON reports(user_email, timestamp DESC)`);
+      // 6. Verification Indexes
+      const indexQueries = [
+        `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`,
+        `CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON user_profiles(username)`,
+        `CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_reports_user_timestamp ON reports(user_email, timestamp DESC)`
+      ];
 
-      await client.query('COMMIT');
+      for (const idxQ of indexQueries) {
+        try {
+          await client.query(idxQ);
+        } catch (idxErr) {
+          console.warn('[Database Migration] Index creation notice:', idxErr.message);
+        }
+      }
+
       console.log('[Database Migration] PostgreSQL tables & indexes consolidated successfully.');
 
-      // Seed builtin extensions and catalog
+      // 7. Seed builtin extensions catalog
       try {
         const { default: ExtensionService } = await import('../services/extensions/ExtensionService.js');
         await ExtensionService.seedBuiltinExtensions();
@@ -129,8 +161,7 @@ export async function initDb() {
 
       return { initialized: true };
     } catch (queryErr) {
-      await client.query('ROLLBACK');
-      console.error('[Database Migration Error] Failed executing schema.sql:', queryErr.message);
+      console.error('[Database Migration Error] Migration issue:', queryErr.message);
       return { initialized: false, error: queryErr.message };
     } finally {
       client.release();

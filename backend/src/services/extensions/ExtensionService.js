@@ -422,10 +422,14 @@ export function deactivate() {
     const { rows } = await pool.query(query, [userEmail, extensionId]);
 
     // Update active modes if relevant
-    const activeState = await this.getActiveState(userEmail);
-    const modes = new Set(activeState.activeModes || []);
-    modes.add(extensionId);
-    await this.updateActiveState(userEmail, { activeModes: Array.from(modes) });
+    try {
+      const activeState = await this.getActiveState(userEmail);
+      const modes = new Set(activeState.activeModes || []);
+      modes.add(extensionId);
+      await this.updateActiveState(userEmail, { activeModes: Array.from(modes) });
+    } catch (prefErr) {
+      console.warn('[ExtensionService.enableExtension] UI preference sync notice:', prefErr.message);
+    }
 
     return {
       success: true,
@@ -483,18 +487,23 @@ export function deactivate() {
     const { rows } = await pool.query(query, [userEmail, extensionId]);
 
     // Revert active modes or styles if needed
-    const stateUpdates = {};
-    const activeState = await this.getActiveState(userEmail);
+    let revertedState = null;
+    try {
+      const stateUpdates = {};
+      const activeState = await this.getActiveState(userEmail);
 
-    if (extensionId === 'theme-studio') stateUpdates.theme = 'midnight-research';
-    if (extensionId === 'typography-lab') stateUpdates.typography = 'modern';
-    if (extensionId === 'layout-packs') stateUpdates.layout = 'research-desk';
+      if (extensionId === 'theme-studio') stateUpdates.theme = 'midnight-research';
+      if (extensionId === 'typography-lab') stateUpdates.typography = 'modern';
+      if (extensionId === 'layout-packs') stateUpdates.layout = 'research-desk';
 
-    const modes = new Set(activeState.activeModes || []);
-    modes.delete(extensionId);
-    stateUpdates.activeModes = Array.from(modes);
+      const modes = new Set(activeState.activeModes || []);
+      modes.delete(extensionId);
+      stateUpdates.activeModes = Array.from(modes);
 
-    const revertedState = await this.updateActiveState(userEmail, stateUpdates);
+      revertedState = await this.updateActiveState(userEmail, stateUpdates);
+    } catch (prefErr) {
+      console.warn('[ExtensionService.disableExtension] UI preference revert notice:', prefErr.message);
+    }
 
     return {
       success: true,
@@ -714,6 +723,11 @@ export function deactivate() {
       return nextState;
     }
 
+    // Auto-heal column if not yet present
+    try {
+      await pool.query(`ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ui_preferences JSONB DEFAULT '{}'::jsonb`);
+    } catch (_) {}
+
     const statePayload = {
       themeSlug: theme || 'midnight-research',
       typographySlug: typography || 'modern',
@@ -726,7 +740,7 @@ export function deactivate() {
       INSERT INTO user_profiles (user_email, ui_preferences, updated_at)
       VALUES ($1, $2::jsonb, NOW())
       ON CONFLICT (user_email) DO UPDATE SET
-        ui_preferences = COALESCE(user_profiles.ui_preferences, '{}'::jsonb) || $2::jsonb,
+        ui_preferences = COALESCE(user_profiles.ui_preferences, '{}'::jsonb) || EXCLUDED.ui_preferences,
         updated_at = NOW()
       RETURNING ui_preferences;
     `;

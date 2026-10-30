@@ -102,6 +102,7 @@ export const register = async (req, res, next) => {
         ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
         CREATE TABLE IF NOT EXISTS user_profiles (
           user_email VARCHAR(255) PRIMARY KEY,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
           first_name VARCHAR(100),
           last_name VARCHAR(100),
           username VARCHAR(100),
@@ -118,9 +119,12 @@ export const register = async (req, res, next) => {
           evidence_preference VARCHAR(50) DEFAULT 'strict',
           technical_level VARCHAR(50) DEFAULT 'advanced',
           onboarding_completed BOOLEAN DEFAULT FALSE,
+          ui_preferences JSONB DEFAULT '{}'::jsonb,
           created_at TIMESTAMPTZ DEFAULT NOW(),
           updated_at TIMESTAMPTZ DEFAULT NOW()
         );
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ui_preferences JSONB DEFAULT '{}'::jsonb;
+        ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE;
       `);
     } catch (e) {
       // Ignore if table/columns already present or in concurrent migration
