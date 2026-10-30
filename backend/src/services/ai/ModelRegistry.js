@@ -68,7 +68,7 @@ export const MODEL_REGISTRY = [
     speedTier: 'DEEP',
     priority: 82,
     enabled: true,
-    thinkingConfig: undefined
+    thinkingConfig: { thinking_budget: 0 }
   },
 
   // --- OPENROUTER VISION MODELS ---

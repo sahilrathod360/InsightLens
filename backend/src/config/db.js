@@ -24,13 +24,14 @@ if (rawDbUrl) {
     })
     .replace(/[?&]$/, '');
 
+  const poolMax = process.env.DB_POOL_MAX ? parseInt(process.env.DB_POOL_MAX, 10) : 5;
   pool = new Pool({
     connectionString: cleanDbUrl,
     ssl: {
       rejectUnauthorized: false
     },
-    max: 10,
-    idleTimeoutMillis: 30000,
+    max: poolMax,
+    idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 10000
   });
 

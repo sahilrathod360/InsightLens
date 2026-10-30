@@ -31,4 +31,13 @@ await assert.rejects(
   /file size|Malformed dataUrl|corrupted|valid image/i
 );
 
+// Regression checks for final production audit & hardening
+const dbSource = source('src/config/db.js');
+const workspaceServiceSource = source('src/services/workspace/VisualWorkspaceService.js');
+const reportControllerSource = source('src/controllers/ReportController.js');
+
+assert.match(dbSource, /max:\s*poolMax/);
+assert.match(workspaceServiceSource, /workspace\.userEmail\.toLowerCase\(\)\s*!==\s*cleanEmail/);
+assert.match(reportControllerSource, /COALESCE\(thumbnail_data_url,\s*image_data_url\)/);
+
 console.log('Security hardening regression checks passed.');

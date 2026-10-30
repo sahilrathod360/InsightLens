@@ -55,12 +55,22 @@ export class VisualWorkspaceService {
   /**
    * Retrieves workspace data and computes real-time cross-visual intelligence.
    */
-  async getWorkspaceIntelligence(workspaceId, userEmail = 'guest@insightlens.edu') {
+  async getWorkspaceIntelligence(workspaceId, userEmail = null) {
+    const cleanEmail = userEmail ? userEmail.trim().toLowerCase() : null;
     let workspace = this.inMemoryWorkspaces.get(workspaceId);
+
+    // IDOR Protection: If workspace exists in memory but is owned by a different user, reject access
+    if (workspace && cleanEmail && workspace.userEmail && workspace.userEmail.toLowerCase() !== cleanEmail && workspace.userEmail !== 'guest@insightlens.edu') {
+      return null;
+    }
 
     if (!workspace && pool) {
       try {
-        const { rows } = await pool.query('SELECT * FROM visual_workspaces WHERE id = $1', [workspaceId]);
+        const query = cleanEmail 
+          ? 'SELECT * FROM visual_workspaces WHERE id = $1 AND (LOWER(user_email) = $2 OR user_email = \'guest@insightlens.edu\')'
+          : 'SELECT * FROM visual_workspaces WHERE id = $1';
+        const params = cleanEmail ? [workspaceId, cleanEmail] : [workspaceId];
+        const { rows } = await pool.query(query, params);
         if (rows.length > 0) {
           workspace = {
             id: rows[0].id,
@@ -79,10 +89,13 @@ export class VisualWorkspaceService {
     }
 
     if (!workspace) {
+      if (workspaceId && workspaceId.startsWith('WKS')) {
+        return null;
+      }
       // Default sandbox workspace
       workspace = {
         id: workspaceId,
-        userEmail,
+        userEmail: cleanEmail || 'guest@insightlens.edu',
         name: 'Active Multi-Visual Workspace',
         intent: 'General Understanding',
         artifacts: []

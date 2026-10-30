@@ -83,6 +83,13 @@ export const saveReport = async (req, res, next) => {
       RETURNING *;
     `;
 
+    // Strip duplicate base64 image strings from fullData JSONB to prevent double TOAST bloat
+    const cleanedFullData = (fullData && typeof fullData === 'object') ? { ...fullData } : {};
+    delete cleanedFullData.imageDataUrl;
+    delete cleanedFullData.thumbnailDataUrl;
+    delete cleanedFullData.fullImage;
+    delete cleanedFullData.processedImageDataUrl;
+
     const values = [
       reportId,
       email,
@@ -98,7 +105,7 @@ export const saveReport = async (req, res, next) => {
       modelUsed || 'gemini-2.5-flash',
       parseInt(processingTimeMs, 10) || 0,
       confidenceScore || 'uncertain',
-      JSON.stringify(fullData || {}),
+      JSON.stringify(cleanedFullData),
       Boolean(favorite)
     ];
 
@@ -272,8 +279,8 @@ export const listReports = async (req, res, next) => {
     params.push(offset);
     const sql = `
       SELECT id, user_email, title, subject, category, summary_lead, date_formatted,
-             timestamp, thumbnail_data_url, image_data_url, full_image, model_used, processing_time_ms,
-             confidence_score, favorite, created_at
+             timestamp, COALESCE(thumbnail_data_url, image_data_url) AS thumbnail_data_url,
+             model_used, processing_time_ms, confidence_score, favorite, created_at
       FROM reports${whereSql}
       ORDER BY ${orderBy} LIMIT $${params.length - 1} OFFSET $${params.length}`;
 
@@ -290,8 +297,8 @@ export const listReports = async (req, res, next) => {
       summaryLead: r.summary_lead,
       date: r.date_formatted,
       timestamp: Number(r.timestamp),
-      thumbnailDataUrl: r.thumbnail_data_url || r.image_data_url || r.full_image || null,
-      imageDataUrl: r.image_data_url || r.full_image || r.thumbnail_data_url || null,
+      thumbnailDataUrl: r.thumbnail_data_url || null,
+      imageDataUrl: r.thumbnail_data_url || null,
       modelUsed: r.model_used,
       processingTimeMs: r.processing_time_ms,
       confidenceScore: r.confidence_score,

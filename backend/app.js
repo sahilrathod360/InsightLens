@@ -92,13 +92,8 @@ app.get('/api/health', async (req, res) => {
   let dbStatus = 'disconnected';
   if (pool) {
     try {
-      const client = await pool.connect();
-      try {
-        await client.query('SELECT 1');
-        dbStatus = 'connected';
-      } finally {
-        client.release();
-      }
+      await pool.query('SELECT 1');
+      dbStatus = 'connected';
     } catch (err) {
       console.error('[Health Check DB Notice]', err.message);
       dbStatus = 'error';
