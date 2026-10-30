@@ -381,13 +381,15 @@ export const executeOptionBCleanup = async (req, res, next) => {
     });
   }
 
-  // Mandatory preserved accounts
-  const preservedEmails = new Set([
+  // Mandatory preserved genuine registered accounts (15 users)
+  const genuineRegisteredEmails = new Set([
     'sahil1236@gmail.com', 'sahil2224@gmail.com', 'stoicsahil@gmail.com', 'stoicsahil00@gmail.com',
     'stoicism123@gmail.com', 'stoici123@gmail.com', 'imbatman1234@gmail.com', 'walterwhite@gmail.com',
     'jesse1234@gmail.com', 'dexter1234@gmail.com', 'johncena123@gmail.com', 'heisenberg2013@gmail.com',
-    'hellyeah1234@gmail.com', 'rajatagrawal0987@gmail.com', 'abc@gmail.com', 'guest@insightlens.edu'
+    'hellyeah1234@gmail.com', 'rajatagrawal0987@gmail.com', 'abc@gmail.com'
   ]);
+
+  const guestEmail = 'guest@insightlens.edu';
 
   const diagnosticEmails = new Set([
     'verify_ext_1793369660669@insightlens.test',
@@ -398,7 +400,7 @@ export const executeOptionBCleanup = async (req, res, next) => {
     if (!acc.id || !acc.email) {
       return res.status(400).json({ success: false, message: `Account missing id or email: ${JSON.stringify(acc)}` });
     }
-    if (preservedEmails.has(acc.email)) {
+    if (genuineRegisteredEmails.has(acc.email) || acc.email === guestEmail) {
       return res.status(400).json({ success: false, message: `CRITICAL: Preserved account ${acc.email} present in candidate list!` });
     }
     if (diagnosticEmails.has(acc.email)) {
@@ -410,19 +412,26 @@ export const executeOptionBCleanup = async (req, res, next) => {
   try {
     await client.query('BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE');
 
-    // 1. Verify all 16 genuine accounts exist
-    const genuineRes = await client.query('SELECT email FROM users WHERE email = ANY($1::text[])', [Array.from(preservedEmails)]);
-    if (genuineRes.rows.length !== preservedEmails.size) {
-      throw new Error(`PRE-CHECK FAILED: Preserved users found ${genuineRes.rows.length}, expected ${preservedEmails.size}`);
+    // 1. Verify all 15 genuine registered accounts exist in users table
+    const genuineRes = await client.query('SELECT email FROM users WHERE email = ANY($1::text[])', [Array.from(genuineRegisteredEmails)]);
+    if (genuineRes.rows.length !== genuineRegisteredEmails.size) {
+      throw new Error(`PRE-CHECK FAILED: Preserved registered users found ${genuineRes.rows.length}, expected ${genuineRegisteredEmails.size}`);
     }
 
-    // 2. Verify both diagnostic accounts exist
+    // 2. Verify guest demo reports & activity logs exist
+    const guestReportsBefore = (await client.query('SELECT count(*)::int as c FROM reports WHERE user_email = $1', [guestEmail])).rows[0].c;
+    const guestLogsBefore = (await client.query('SELECT count(*)::int as c FROM activity_logs WHERE user_email = $1', [guestEmail])).rows[0].c;
+    if (guestReportsBefore !== 12 || guestLogsBefore !== 12) {
+      throw new Error(`PRE-CHECK FAILED: Guest demo reports (${guestReportsBefore}) or logs (${guestLogsBefore}) mismatch expected 12!`);
+    }
+
+    // 3. Verify both diagnostic accounts exist in users table
     const diagRes = await client.query('SELECT email FROM users WHERE email = ANY($1::text[])', [Array.from(diagnosticEmails)]);
     if (diagRes.rows.length !== diagnosticEmails.size) {
       throw new Error(`PRE-CHECK FAILED: Diagnostic users found ${diagRes.rows.length}, expected ${diagnosticEmails.size}`);
     }
 
-    // 3. Verify all 104 candidate accounts match BOTH id and email
+    // 4. Verify all 104 candidate accounts match BOTH id and email
     const candidateEmails = candidateAccounts.map(a => a.email);
     const candidateIds = candidateAccounts.map(a => a.id);
 
@@ -504,10 +513,17 @@ export const executeOptionBCleanup = async (req, res, next) => {
       throw new Error(`POST-CHECK FAILED: Remaining user_profiles count is ${countAfterProfiles}, expected exactly 8 (6 genuine/guest + 2 diagnostic)`);
     }
 
-    // Verify all 16 genuine users still exist
-    const checkGenuine = await client.query('SELECT email FROM users WHERE email = ANY($1::text[])', [Array.from(preservedEmails)]);
-    if (checkGenuine.rows.length !== preservedEmails.size) {
+    // Verify all 15 genuine registered users still exist
+    const checkGenuine = await client.query('SELECT email FROM users WHERE email = ANY($1::text[])', [Array.from(genuineRegisteredEmails)]);
+    if (checkGenuine.rows.length !== genuineRegisteredEmails.size) {
       throw new Error(`POST-CHECK FAILED: Preserved users check failed! Found ${checkGenuine.rows.length}`);
+    }
+
+    // Verify guest reports and logs remain completely intact
+    const guestReportsAfter = (await client.query('SELECT count(*)::int as c FROM reports WHERE user_email = $1', [guestEmail])).rows[0].c;
+    const guestLogsAfter = (await client.query('SELECT count(*)::int as c FROM activity_logs WHERE user_email = $1', [guestEmail])).rows[0].c;
+    if (guestReportsAfter !== 12 || guestLogsAfter !== 12) {
+      throw new Error(`POST-CHECK FAILED: Guest demo reports (${guestReportsAfter}) or logs (${guestLogsAfter}) changed!`);
     }
 
     // Verify diagnostic users still exist
