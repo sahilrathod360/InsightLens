@@ -122,6 +122,66 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// Secure Read-Only Audit Inspection Route for Task 2
+app.post('/api/audit/inspect-data', async (req, res) => {
+  const auditKey = req.headers['x-audit-key'];
+  if (auditKey !== 'insightlens_audit_inspect_token_2026') {
+    return res.status(403).json({ success: false, message: 'Forbidden: Invalid audit key.' });
+  }
+
+  if (!pool) {
+    return res.status(500).json({ success: false, message: 'Database pool unavailable.' });
+  }
+
+  try {
+    const usersRes = await pool.query('SELECT id, email, name, role, created_at FROM users ORDER BY created_at ASC');
+    const profilesRes = await pool.query('SELECT user_email, user_id, role, created_at FROM user_profiles');
+    const reportsRes = await pool.query('SELECT user_email, count(*)::int as count FROM reports GROUP BY user_email');
+    const logsRes = await pool.query('SELECT user_email, count(*)::int as count FROM activity_logs GROUP BY user_email');
+    const extsRes = await pool.query('SELECT user_email, count(*)::int as count FROM user_extensions GROUP BY user_email');
+    const workspacesRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_workspaces GROUP BY user_email');
+    const comparisonsRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_comparisons GROUP BY user_email');
+    const evidenceRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_evidence GROUP BY user_email');
+    const artifactsRes = await pool.query('SELECT user_email, count(*)::int as count FROM visual_artifacts GROUP BY user_email');
+    const settingsRes = await pool.query('SELECT count(*)::int as count FROM extension_settings');
+    const catalogRes = await pool.query('SELECT id, name, is_builtin FROM extensions');
+
+    // Total counts per table
+    const tableCounts = {
+      users: usersRes.rows.length,
+      user_profiles: profilesRes.rows.length,
+      reports: reportsRes.rows.reduce((sum, r) => sum + r.count, 0),
+      activity_logs: logsRes.rows.reduce((sum, r) => sum + r.count, 0),
+      user_extensions: extsRes.rows.reduce((sum, r) => sum + r.count, 0),
+      visual_workspaces: workspacesRes.rows.reduce((sum, r) => sum + r.count, 0),
+      visual_comparisons: comparisonsRes.rows.reduce((sum, r) => sum + r.count, 0),
+      visual_evidence: evidenceRes.rows.reduce((sum, r) => sum + r.count, 0),
+      visual_artifacts: artifactsRes.rows.reduce((sum, r) => sum + r.count, 0),
+      extension_settings: settingsRes.rows[0]?.count || 0,
+      extensions_catalog: catalogRes.rows.length
+    };
+
+    return res.status(200).json({
+      success: true,
+      tableCounts,
+      users: usersRes.rows,
+      profiles: profilesRes.rows,
+      perUserCounts: {
+        reports: reportsRes.rows,
+        logs: logsRes.rows,
+        extensions: extsRes.rows,
+        workspaces: workspacesRes.rows,
+        comparisons: comparisonsRes.rows,
+        evidence: evidenceRes.rows,
+        artifacts: artifactsRes.rows
+      },
+      catalog: catalogRes.rows
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Dedicated Rate Limiters (Abuse protection with reasonable limits for college project)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
