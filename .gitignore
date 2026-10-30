@@ -17,3 +17,4 @@ yarn-error.log*
 *.zip
 *.pptx
 extensions/installed/
+backups/
