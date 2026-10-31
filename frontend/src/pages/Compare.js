@@ -45,20 +45,6 @@ export function renderComparePage() {
         </div>
       </div>
 
-      <!-- Quick Preset Sample Buttons -->
-      <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-slate-400">
-        <span class="text-slate-500">Quick Samples:</span>
-        <button onclick="window.loadComparePreset('dfd')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 transition-all cursor-pointer">
-          Architecture DFD v1 vs v2
-        </button>
-        <button onclick="window.loadComparePreset('heroes')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 transition-all cursor-pointer">
-          Spider-Man vs Superman vs Batman
-        </button>
-        <button onclick="window.loadComparePreset('charts')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 transition-all cursor-pointer">
-          Q1 vs Q2 Revenue Charts
-        </button>
-      </div>
-
       <div class="grid grid-cols-3 gap-2 text-[10px] sm:text-xs font-mono text-center uppercase tracking-[0.12em] text-slate-500">
         <div class="rounded-lg border border-indigo-400/20 bg-indigo-500/5 px-2 py-2 text-indigo-200">1. Add visual</div>
         <div class="rounded-lg border border-indigo-400/20 bg-indigo-500/5 px-2 py-2 text-indigo-200">2. Add visual</div>
@@ -198,106 +184,6 @@ function setupCompareEvents() {
     updateSlotPreview(slotIndex);
   };
 
-  window.loadComparePreset = (presetKey) => {
-    updateCompareSelectionStatus();
-    if (presetKey === 'dfd') {
-      selectedSlotImages[0] = {
-        id: 'DFD-V1',
-        title: 'Monolith Architecture DFD v1',
-        visualType: 'TECHNICAL DIAGRAM (DFD)',
-        dataUrl: '/images/urban-analysis.jpg',
-        isDemoPreset: true,
-        subject: 'Monolith Architecture DFD v1',
-        appearance: 'Single monolithic node box connected directly to DB',
-        environment: 'Software Architecture Schema',
-        visibleObjects: ['User Client', 'Monolithic Server', 'Database'],
-        uniqueFeatures: 'Single-tier monolithic application server structure'
-      };
-      selectedSlotImages[1] = {
-        id: 'DFD-V2',
-        title: 'Microservices Architecture DFD v2',
-        visualType: 'TECHNICAL DIAGRAM (DFD)',
-        dataUrl: '/images/urban-analysis.jpg',
-        isDemoPreset: true,
-        subject: 'Microservices Architecture DFD v2',
-        appearance: 'Multi-service topology with API Gateway & Auth Service',
-        environment: 'Distributed Microservices System',
-        visibleObjects: ['User Client', 'API Gateway', 'Auth Service', 'PostgreSQL DB'],
-        uniqueFeatures: 'Decoupled API Gateway routing layer & isolated Auth service'
-      };
-      selectedSlotImages[2] = null;
-      updateCompareSelectionStatus();
-    } else if (presetKey === 'heroes') {
-      selectedSlotImages[0] = {
-        id: 'HERO-1',
-        title: 'Spider-Man',
-        visualType: 'SUPERHERO CHARACTER ART',
-        dataUrl: '/images/spider-man.jpg',
-        isDemoPreset: true,
-        subject: 'Spider-Man',
-        appearance: 'Red and blue webbed suit with spider emblem, agile crouching pose',
-        environment: 'Urban Skyscraper Rooftop',
-        visibleObjects: ['Web Patterned Suit', 'Spider Emblem', 'White Eye Lenses', 'City Rooftop'],
-        uniqueFeatures: 'Web pattern suit, spider emblem, agile crouching acrobat posture'
-      };
-      selectedSlotImages[1] = {
-        id: 'HERO-2',
-        title: 'Superman',
-        visualType: 'SUPERHERO CHARACTER ART',
-        dataUrl: '/images/urban-analysis.jpg',
-        isDemoPreset: true,
-        subject: 'Superman',
-        appearance: 'Blue suit with flowing red cape and S-shield chest emblem',
-        environment: 'Metropolis Skyline / Open Sky',
-        visibleObjects: ['Flowing Red Cape', 'S-Shield Chest Crest', 'Floating Flight Pose'],
-        uniqueFeatures: 'Flowing red cape, S-shield chest crest, aerial flight stance'
-      };
-      selectedSlotImages[2] = {
-        id: 'HERO-3',
-        title: 'Batman',
-        visualType: 'SUPERHERO CHARACTER ART',
-        dataUrl: '/images/urban-analysis.jpg',
-        isDemoPreset: true,
-        subject: 'Batman',
-        appearance: 'Dark tactical bat-armor with cowl and bat chest symbol',
-        environment: 'Gotham City Rooftop / Nocturnal Urban Environment',
-        visibleObjects: ['Dark Bat Cowl', 'Bat Emblem', 'Tactical Armor', 'Utility Belt'],
-        uniqueFeatures: 'Pointed bat cowl with ears, dark tactical body armor, bat emblem'
-      };
-      updateCompareSelectionStatus();
-    } else if (presetKey === 'charts') {
-      selectedSlotImages[0] = {
-        id: 'CHART-Q1',
-        title: 'Q1 Revenue Chart',
-        visualType: 'DATA CHART',
-        dataUrl: '/images/urban-analysis.jpg',
-        isDemoPreset: true,
-        subject: 'Q1 Financial Performance',
-        appearance: 'Blue bar chart showing initial quarterly growth trend',
-        environment: 'Corporate Financial Report',
-        visibleObjects: ['Bar Graph', 'Axis Labels', 'Legend'],
-        uniqueFeatures: 'Initial Q1 baseline metrics with 15% growth slope'
-      };
-      selectedSlotImages[1] = {
-        id: 'CHART-Q2',
-        title: 'Q2 Revenue Chart',
-        visualType: 'DATA CHART',
-        dataUrl: '/images/urban-analysis.jpg',
-        isDemoPreset: true,
-        subject: 'Q2 Financial Performance',
-        appearance: 'Multi-series bar & line chart displaying accelerated revenue',
-        environment: 'Corporate Financial Report',
-        visibleObjects: ['Bar Graph', 'Line Series Overlay', 'Target Threshold Line'],
-        uniqueFeatures: 'Multi-series overlay with accelerated Q2 revenue trajectory'
-      };
-      selectedSlotImages[2] = null;
-      updateCompareSelectionStatus();
-    }
-
-    [0, 1, 2].forEach(i => updateSlotPreview(i));
-    showToast('Loaded preset images for comparison.', 'info');
-  };
-
   window.executeMultiImageCompare = async () => {
     const activeSources = selectedSlotImages.filter(Boolean);
     if (activeSources.length < 2) {
@@ -343,17 +229,9 @@ function renderDetailedComparisonResults(mount, resultData) {
   const differences = resultData.differences || [];
   const uniqueFeatures = resultData.uniqueFeatures || [];
   const summaryReport = resultData.summaryReport || {};
-  const isDemoPreset = sources.some(s => s.isDemoPreset);
 
   mount.innerHTML = `
     <div class="space-y-8 animate-fade-in text-left">
-      ${isDemoPreset ? `
-        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono flex items-center justify-between">
-          <span>[ DEMO PRESET MODE ] These sample visual artifacts illustrate multi-image topological &amp; attribute comparison.</span>
-          <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">DEMO</span>
-        </div>
-      ` : ''}
-
       <!-- 1. LARGE SIDE-BY-SIDE IMAGES -->
       <div class="space-y-3">
         <h3 class="font-serif font-bold text-lg text-slate-100 flex items-center gap-2">

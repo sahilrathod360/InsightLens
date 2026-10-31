@@ -16,7 +16,6 @@ import { computeImageStatistics } from '../utils/canvas.js';
 import { callGemini25Flash } from '../services/api.js';
 import { showToast } from '../utils/toast.js';
 import { renderResultScreen } from './ReportViewer.js';
-import { SAMPLE_DEMO_REPORT } from '../services/demoReport.js';
 
 export const PIPELINE_STEPS = [
   { id: 'step-1', label: '1. Ingesting visual artifact', weight: 10 },
@@ -49,7 +48,7 @@ let isAnalysisInProgress = false;
 
 export function setupLoadingFailureActions() {
   const retryBtn = document.getElementById('retry-live-analysis-btn');
-  const demoBtn = document.getElementById('view-demo-report-btn');
+  const returnDeskBtn = document.getElementById('return-desk-btn');
 
   if (retryBtn && !retryBtn.dataset.bound) {
     retryBtn.dataset.bound = 'true';
@@ -74,12 +73,10 @@ export function setupLoadingFailureActions() {
     });
   }
 
-  if (demoBtn && !demoBtn.dataset.bound) {
-    demoBtn.dataset.bound = 'true';
-    demoBtn.addEventListener('click', () => {
-      showToast('Rendering sample demonstration report (offline fixture)...', 'info');
-      setActiveReportData(SAMPLE_DEMO_REPORT);
-      renderResultScreen(SAMPLE_DEMO_REPORT);
+  if (returnDeskBtn && !returnDeskBtn.dataset.bound) {
+    returnDeskBtn.dataset.bound = 'true';
+    returnDeskBtn.addEventListener('click', () => {
+      navigateTo('desk');
     });
   }
 }
