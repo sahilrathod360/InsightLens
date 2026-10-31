@@ -128,7 +128,9 @@ ${d.conclusion || 'Empirical visual research assessment concluded successfully.'
 ${(Array.isArray(d.references) && d.references.length > 0)
   ? d.references.map((src, i) => {
       if (typeof src === 'object' && src !== null) {
-        return `${i + 1}. **${src.title}** - *${src.source}* (${src.year || '2026'})${src.url ? ` - [Link](${src.url})` : ''}`;
+        const badge = src.doiVerified ? ' `[Crossref DOI Verified]`' : (src.doi ? ' `[Scholarly Paper]`' : (src.sourceType === 'wikipedia' ? ' `[Wikipedia]`' : ''));
+        const link = src.url ? ` - [${src.doi ? `doi:${src.doi}` : 'Source Link'}](${src.url})` : '';
+        return `${i + 1}. **${src.title}** - *${src.source || src.journal || 'Academic Literature'}* (${src.year || '2026'})${badge}${link}`;
       }
       return `${i + 1}. ${src}`;
     }).join('\n')

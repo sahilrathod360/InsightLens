@@ -594,10 +594,15 @@ export function renderResultScreen(data) {
     } else if (typeof item === 'object' && item !== null) {
       return {
         title: item.title || item.name || '',
-        source: item.source || item.publisher || item.organization || '',
+        source: item.source || item.journal || item.publisher || item.organization || '',
         year: item.year || '',
-        url: item.url || item.doi || null,
-        verified: !!item.verified || !!(item.url || item.doi)
+        url: item.url || (item.doi ? `https://doi.org/${item.doi}` : null),
+        doi: item.doi || null,
+        doiVerified: !!item.doiVerified,
+        sourceType: item.sourceType || (item.doi ? 'academic' : (item.url && item.url.includes('wikipedia') ? 'wikipedia' : 'general')),
+        validationStatus: item.validationStatus || null,
+        validationBadge: item.validationBadge || null,
+        verified: !!item.verified || !!item.doiVerified || !!(item.url || item.doi)
       };
     }
     return null;
@@ -608,7 +613,7 @@ export function renderResultScreen(data) {
       refSection.classList.remove('hidden');
       refSection.style.display = 'block';
     }
-    const refTitle = validRefs.length === 0 ? `${sectionCounter++}. Sources` : `${sectionCounter++}. Source Availability`;
+    const refTitle = validRefs.length === 0 ? `${sectionCounter++}. Sources` : `${sectionCounter++}. Verified Sources & Literature`;
     setSectionHeading('section-references-title', refTitle);
     if (validRefs.length === 0) {
       refListEl.innerHTML = `
@@ -619,13 +624,27 @@ export function renderResultScreen(data) {
     } else {
       refListEl.innerHTML = validRefs.map((ref, i) => {
         const cleanUrl = sanitizeUrl(ref.url);
+        let badgeHtml = '';
+        if (ref.doiVerified) {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="material-symbols-outlined text-[11px]">verified</span> DOI Verified (Crossref)</span>`;
+        } else if (ref.sourceType === 'openalex' || ref.validationBadge === 'DOI_VERIFIED' || (ref.doi && ref.doi.length > 5)) {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20"><span class="material-symbols-outlined text-[11px]">menu_book</span> Scholarly Publication</span>`;
+        } else if (ref.sourceType === 'wikipedia' || ref.validationBadge === 'ENCYCLOPEDIC_RECORD' || (ref.url && ref.url.includes('wikipedia.org'))) {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20"><span class="material-symbols-outlined text-[11px]">public</span> Encyclopedic Record (Wikipedia)</span>`;
+        } else if (ref.verified) {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"><span class="material-symbols-outlined text-[11px]">link</span> Reachable Source</span>`;
+        }
+
         return `
           <div class="report-card flex items-start gap-3">
             <span class="text-[var(--accent-link)] font-bold font-mono shrink-0">[${i + 1}]</span>
-            <div class="space-y-1">
-              <p class="leading-relaxed text-[var(--text-primary)] text-xs font-semibold">${escapeHtml(ref.title)}</p>
+            <div class="space-y-1 w-full">
+              <div class="flex items-start justify-between gap-2 flex-wrap">
+                <p class="leading-relaxed text-[var(--text-primary)] text-xs font-semibold">${escapeHtml(ref.title)}</p>
+                ${badgeHtml}
+              </div>
               <p class="text-[var(--text-secondary)] text-[11px] font-mono">${escapeHtml(ref.source)}${ref.year ? ` • ${escapeHtml(ref.year)}` : ''}</p>
-              ${cleanUrl ? `<a href="${escapeHtml(cleanUrl)}" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-link)] text-[11px] hover:underline inline-flex items-center gap-1 mt-1 font-mono break-all"><span class="material-symbols-outlined text-[12px]">open_in_new</span> ${escapeHtml(cleanUrl)}${ref.verified ? ' (reachable)' : ' (not checked)'}</a>` : ''}
+              ${cleanUrl ? `<a href="${escapeHtml(cleanUrl)}" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-link)] text-[11px] hover:underline inline-flex items-center gap-1 mt-1 font-mono break-all"><span class="material-symbols-outlined text-[12px]">open_in_new</span> ${escapeHtml(cleanUrl)}</a>` : ''}
             </div>
           </div>
         `;
@@ -657,12 +676,15 @@ export function renderResultScreen(data) {
   const appEl = document.getElementById('appendix-telemetry-box');
   if (appEl) {
     const timestamp = new Date().toISOString();
+    const valStatus = data.validationStatus || 'Schema validated; claims not independently verified';
+    const retSourcesCount = Array.isArray(data.retrievedSources) ? data.retrievedSources.length : (data.groundingTelemetry?.retrievedCount || 0);
     appEl.innerHTML = `
       <div>Engine: InsightLens Academic Visual Intelligence System</div>
       <div>Multimodal Model: ${escapeHtml(activeModelStr)}</div>
       <div>Ingest Timestamp: ${escapeHtml(timestamp)}</div>
       <div>Citation display: ${escapeHtml(systemPreferences.citationStyle || 'APA')} where supplied</div>
-      <div>Validation Status: Schema validated; claims not independently verified</div>
+      <div>Validation Status: ${escapeHtml(valStatus)}</div>
+      ${retSourcesCount > 0 ? `<div>External Grounding: Grounded with ${retSourcesCount} verified external sources (OpenAlex, Crossref, Wikipedia)</div>` : ''}
     `;
   }
 
@@ -999,36 +1021,50 @@ export function renderEvidenceWorkbench(data) {
   const container = document.getElementById('report-evidence-workbench-container');
   if (!container) return;
 
-  // Resolve claims list from claims or evidenceLedger
+  // Resolve claims list by unifying claims and evidenceLedger without dropping either
+  const seenClaims = new Set();
   let ledger = [];
-  if (Array.isArray(data?.claims) && data.claims.length > 0) {
-    ledger = data.claims.map(c => {
-      const st = String(c.status || 'UNDETERMINABLE').toUpperCase();
-      const normStatus = (st === 'OBSERVED' || st === 'INFERRED' || st === 'EXTRACTION-UNCERTAIN') ? st : 'UNDETERMINABLE';
-      const evidenceType = normStatus === 'OBSERVED' ? 'visual_observation' : (c.source && !c.source.includes('Optical') ? 'external_source' : 'inference');
-      return {
-        claim: c.statement,
-        status: normStatus,
-        evidenceType,
-        evidence: c.evidence,
-        sourceTitle: c.source || 'Visual Optical Frame',
-        sourceUrl: c.sourceUrl || null,
-        reasoning: c.reasoning,
-        relatedSection: c.relatedSection || ''
-      };
+
+  const addClaimToLedger = (c, defaultType = null) => {
+    if (!c) return;
+    const stmt = String(c.claim || c.statement || '').trim();
+    if (!stmt) return;
+    const norm = stmt.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (seenClaims.has(norm)) return;
+    seenClaims.add(norm);
+
+    const st = String(c.status || c.supportStatus || 'UNDETERMINABLE').toUpperCase();
+    const normStatus = (st === 'OBSERVED' || st === 'INFERRED' || st === 'EXTRACTION-UNCERTAIN')
+      ? st
+      : (st === 'SUPPORTED' ? 'OBSERVED' : (st === 'PARTIALLY_SUPPORTED' ? 'INFERRED' : 'UNDETERMINABLE'));
+
+    let evidenceType = c.evidenceType || defaultType;
+    if (!evidenceType) {
+      if (normStatus === 'OBSERVED') evidenceType = 'visual_observation';
+      else if (c.sourceTitle && !c.sourceTitle.includes('Optical')) evidenceType = 'external_source';
+      else evidenceType = 'inference';
+    }
+
+    ledger.push({
+      claim: stmt,
+      status: normStatus,
+      evidenceType,
+      evidence: c.evidence || (normStatus === 'OBSERVED' ? 'Direct optical observation' : 'Contextual domain record'),
+      sourceTitle: c.sourceTitle || c.source || (normStatus === 'OBSERVED' ? 'Visual Optical Frame' : 'Domain Reference'),
+      sourceUrl: c.sourceUrl || null,
+      reasoning: c.reasoning || '',
+      relatedSection: c.relatedSection || ''
     });
-  } else if (Array.isArray(data?.evidenceLedger) && data.evidenceLedger.length > 0) {
-    ledger = data.evidenceLedger.map(item => {
-      let st = 'UNDETERMINABLE';
-      if (item.supportStatus === 'supported' || item.evidenceType === 'visual_observation') st = 'OBSERVED';
-      else if (item.supportStatus === 'partially_supported' || item.evidenceType === 'inference') st = 'INFERRED';
-      else if (item.supportStatus === 'uncertain' && item.evidenceType === 'visual_observation') st = 'EXTRACTION-UNCERTAIN';
-      return {
-        ...item,
-        status: st
-      };
-    });
-  } else if (Array.isArray(data?.visualEvidence) || Array.isArray(data?.observations)) {
+  };
+
+  if (Array.isArray(data?.evidenceLedger)) {
+    data.evidenceLedger.forEach(item => addClaimToLedger(item));
+  }
+  if (Array.isArray(data?.claims)) {
+    data.claims.forEach(c => addClaimToLedger(c));
+  }
+
+  if (ledger.length === 0 && (Array.isArray(data?.visualEvidence) || Array.isArray(data?.observations))) {
     const fallbackObs = (data.observations || []).map(obs => ({
       claim: obs.statement,
       evidenceType: 'visual_observation',
@@ -1049,7 +1085,7 @@ export function renderEvidenceWorkbench(data) {
       reasoning: ev.status === 'observed' ? 'Direct visual detection from image artifact.' : 'Analytical inference derived from optical features.',
       relatedSection: 'Visual Evidence'
     }));
-    ledger = [...fallbackObs, ...fallbackEv].filter(item => item.claim);
+    [...fallbackObs, ...fallbackEv].forEach(item => addClaimToLedger(item));
   }
 
   if (ledger.length === 0) {

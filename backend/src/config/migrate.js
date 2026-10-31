@@ -123,13 +123,15 @@ export async function initDb() {
         console.warn('[Database Migration] Legacy user_ui_preferences notice:', uiPrefErr.message);
       }
 
-      // 5. Drop legacy redundant tables safely
-      try {
-        await client.query(`DROP TABLE IF EXISTS user_preferences CASCADE`);
-        await client.query(`DROP TABLE IF EXISTS user_ui_preferences CASCADE`);
-        await client.query(`DROP TABLE IF EXISTS app_metrics CASCADE`);
-      } catch (dropErr) {
-        console.warn('[Database Migration] Drop legacy tables notice:', dropErr.message);
+      // 5. Drop legacy redundant tables safely (guarded against accidental execution)
+      if (process.env.ALLOW_DESTRUCTIVE_CLEANUP === 'true') {
+        try {
+          await client.query(`DROP TABLE IF EXISTS user_preferences CASCADE`);
+          await client.query(`DROP TABLE IF EXISTS user_ui_preferences CASCADE`);
+          await client.query(`DROP TABLE IF EXISTS app_metrics CASCADE`);
+        } catch (dropErr) {
+          console.warn('[Database Migration] Drop legacy tables notice:', dropErr.message);
+        }
       }
 
       // 6. Verification Indexes

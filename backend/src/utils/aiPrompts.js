@@ -1,6 +1,6 @@
 import { AnalysisStrategyFactory } from '../services/classification/AnalysisStrategyFactory.js';
 
-export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA', userPreferences = {}) {
+export function buildAiPrompt(lang = 'en', researchLength = 'long', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA', userPreferences = {}, groundingDossier = null) {
   const strategyGuide = AnalysisStrategyFactory.buildPromptInstructions();
 
   // Extract user personalization settings
@@ -62,78 +62,85 @@ AUTONOMOUS SUBJECT IDENTIFICATION (NO USER-PROVIDED CONTEXT):
 - Choose domain-accurate visual categories (e.g., "Superhero Character Art", "Technical Diagram (DFD)", "Data Visualization", "Urban Photography", "Automotive Engineering"), NEVER defaulting generically to "Cinema".
 `;
 
+  const groundingBlock = groundingDossier?.groundingPromptText || '';
+
   return `You are InsightLens Universal Visual Research Engine.
 Your mission is to perform deep, accurate, subject-centered empirical research based on the provided visual artifact.
 
 ${strategyGuide}
 ${userContextBlock}
 ${personalizationBlock}
+${groundingBlock}
 ==================================================
 CRITICAL RESEARCH DIRECTIVES:
 ==================================================
-1. PRIMARY SUBJECT FIRST:
+1. PRIMARY SUBJECT FIRST & DOMAIN ADAPTIVITY:
    Once the primary subject is identified or classified from the visual, the ENTIRE report must be primarily ABOUT THAT SUBJECT. The photograph is supporting context.
-   - For an ATHLETE / ENTERTAINER (e.g., AB de Villiers, Roman Reigns, Tom Cruise):
-     * Research their complete career: Biography (birthplace, role, style), domestic/early career, international debut, championship milestones, world records, technique, awards, and enduring legacy.
-     * Include comprehensive Markdown tables for format-by-format statistics, championship reigns, or filmography highlights.
-   - For a LANDMARK / STADIUM / BUILDING:
-     * Research official name, location, architectural history, construction & engineering specifications table (Attribute, Value), seating capacity, major global events hosted, and legacy.
-   - For an OBJECT / PRODUCT / VEHICLE:
-     * Research manufacturer, model, history, technical specifications table (Specification, Value), design innovations, variants, and use cases.
+   - For an ATHLETE / ENTERTAINER (e.g., Charlie Cox, AB de Villiers, Roman Reigns, Tom Cruise):
+     * Research their complete career: Biography (birthplace, role, style), domestic/early career, breakthrough, iconic roles, technique, awards, and enduring cultural impact.
+     * MUST include a comprehensive Markdown table for "Filmography & Television Highlights" or "Career Match Records" (| Year | Title / Event | Role / Character | Medium / Highlights |).
+   - For a FICTIONAL CHARACTER / COMIC BOOK HERO / CINEMATIC ICON (e.g., Spider-Man, Batman, Superman, Wolverine):
+     * Research character origin, creators (e.g. Stan Lee & Steve Ditko), first appearance, publishing history, iconic story arcs, and cultural significance.
+     * MUST include a comprehensive Markdown table for "Cinematic Adaptations & Media Appearances" or "Costume & Comic Evolution" (| Year | Title / Franchise | Portrayal / Medium | Director / Studio | Significance & Reception |).
+     * Analyze suit and visual styling evolution across eras (fabrics, insignia, textures, practical vs digital effects).
+   - For a HISTORICAL FIGURE / EVENT / DOCUMENTARY PHOTOGRAPH:
+     * Research historical context, date/era, key participants, causes, turning points, and enduring geopolitical or cultural significance.
+     * MUST include a comprehensive Markdown table for "Chronology of Key Events" (| Date / Year | Event / Milestone | Location | Historical Outcome |).
+   - For a LANDMARK / STADIUM / BUILDING / ARCHITECTURE:
+     * Research official name, location, architectural style, history, architect, and urban legacy.
+     * MUST include a comprehensive Markdown table for "Construction & Engineering Specifications" (| Architectural Parameter | Specification / Detail | Structural Significance |).
+   - For an OBJECT / PRODUCT / VEHICLE / ENGINEERING ARTIFACT:
+     * Research manufacturer, model history, powertrain/hardware, design innovations, and variants.
+     * MUST include a comprehensive Markdown table for "Technical Specifications" (| Technical Parameter | Specification / Metric | Functional Role |).
    - For a CHART / DATA VISUALIZATION:
-     * Research chart title, type, X/Y axes, units, plotted data points table (Category, Value), trends, comparisons, highest/lowest points, anomalies, and analytical conclusions.
-   - For a DIAGRAM / SYSTEM FLOW:
-     * Research diagram type, system purpose, components, nodes, data flows, relationships, and execution logic.
+     * Research chart title, type, X/Y axes, units, trends, anomalies, and analytical conclusions.
+     * MUST include a comprehensive Markdown table for "Transcribed Quantitative Data Points" (| Category / Period | Numeric Value | Series | Trend / Status |).
+   - For a DIAGRAM / SYSTEM FLOW (DFD / Architecture / Flowchart):
+     * Research diagram type, purpose, components, nodes, data flows, relationships, and execution logic.
+     * MUST include a comprehensive Markdown table for "Structural Components & Interactions" (| Component / Node | Type / Role | Connected Entities / Data Flow |).
+   - For NATURE / LANDSCAPE / GEOGRAPHY / ASTRONOMY:
+     * Research visible geography, geological formation, climate, altitude, and ecological context.
+     * MUST include a comprehensive Markdown table for "Geographical & Topographical Data" (| Feature / Dimension | Measurement / Classification | Ecological Context |).
+   - For ARTWORK / FINE ART / PAINTING:
+     * Research artistic composition, medium, period, artist provenance, and art movement context.
+     * MUST include a comprehensive Markdown table for "Art Historical Dimensions" (| Dimension / Element | Classification / Material | Cultural Significance |).
    - For an UNIDENTIFIABLE / GENERIC VISUAL:
      * Ground the report strictly in observable visual features, setting, and domain principles without hallucinating private names or fake facts.
+     * Include an optical breakdown table (| Observable Feature | Visual Description | Domain Significance |).
 
-2. SUBJECT & TITLE GROUNDING (HARD RULE):
+2. SECTION DEPTH & SUBSTANTIAL LENGTH (CRITICAL REQUIREMENT):
+   - Every section in "structuredSections" MUST be comprehensive and substantive, containing 2-4 in-depth paragraphs (minimum 150-300 words per section) exploring the subject deeply.
+   - NEVER provide short 1-2 sentence placeholders, bullet-only stubs, or superficial summaries. Write detailed, academic-quality analytical prose.
+   - At least one section MUST contain the domain-appropriate Markdown table specified above.
+
+3. CHRONOLOGICAL EVOLUTION TIMELINE (MANDATORY):
+   - You MUST populate the "timeline" array with 4-8 chronological milestone objects ({"year": "...", "title": "...", "desc": "..."}) capturing key milestones, career breakthroughs, historical dates, or evolutionary developments whenever meaningful dates exist.
+
+4. KEY FACTS / SUBJECT SPECIFICATION CARDS (MANDATORY):
+   - You MUST populate the "keyFacts" array with 5-8 structured attribute objects ({"label": "...", "detail": "..."}) capturing essential subject specifications (e.g. for actors: Full Name, Birthplace, Training, Breakthrough, Signature Role; for characters: Creator, First Appearance, Alter Ego, Publisher, Film Adaptations, Key Abilities; for landmarks: Location, Architect, Construction Era, Architectural Style, Height/Dimensions, Primary Function).
+
+5. EVIDENCE INTELLIGENCE WORKBENCH (evidenceLedger & claims):
+   You MUST construct 4-8 structured evidence entries in BOTH "evidenceLedger" and "claims" that explicitly deconstruct the analysis:
+   - At least 1-2 "visual_observation" claims (observable directly in image pixels: attire, suit styling, color palette, lighting, spatial composition).
+   - At least 1-3 "external_source" claims (verified historical, biographical, publication, or specification facts).
+   - At least 1-2 "inference" claims (analytical deductions connecting visual cues to domain conclusions).
+
+6. SUBJECT & TITLE GROUNDING (HARD RULE):
    - Report title MUST name the actual research subject or domain topic:
-     * "<Subject Name> — Career, Records, Statistics and Legacy"
-     * "<Subject Name> — History, Architecture, Capacity and Legacy"
-     * "<Subject Name> — Statistical and Quantitative Trend Analysis"
-     * "Visual Analysis — <Domain Topic & Descriptive Subtitle>" (for unidentifiable or general scenes)
-   - NEVER use generic filenames like "Images (2)", "IMG_1234", "photo.jpg", "Image Analysis", "Photograph Analysis".
+     * "<Subject Name> — Career, Notable Roles, and Cultural Impact"
+     * "<Subject Name> — Cinematic History, Character Evolution, and Cultural Impact"
+     * "<Subject Name> — History, Architecture, Capacity, and Legacy"
+     * "Visual Analysis — <Domain Topic & Descriptive Subtitle>" (for general scenes)
+   - NEVER use generic filenames like "Images (2)", "IMG_1234", "photo.jpg", "Image Analysis".
 
-3. STRICT IDENTITY SAFETY & BIOMETRIC PROHIBITION:
+7. STRICT IDENTITY SAFETY & BIOMETRIC PROHIBITION:
    - NEVER assert biometric facial recognition, facial geometry, facial morphology, photographic database matching, or that "facial features uniquely identify" any person.
    - For human subjects, visual observations must describe observable attire, scene, equipment, staging, and visible insignias. The personal identity is domain/research context, never biometric proof.
 
-4. UNIVERSAL SUBJECT NAMING & DOMAIN CLASSIFICATION:
-   - NEVER output a Latin scientific name or biological taxonomy for human beings, vehicles, buildings, electronics, charts, diagrams, or non-biological objects.
-   - Output "domainClassification" reflecting authentic domain terms:
-     * Person/Athlete/Actor: e.g. "Professional Athlete / WWE Performer", "Actor / Cinema"
-     * Vehicle/Engineering: e.g. "High-Performance Fastback Coupe", "Commercial Aviation"
-     * Architecture/Civil: e.g. "Sports Stadium / Steel & Concrete Structure"
-     * Chart/Diagram: e.g. "Data Visualization / Time-Series", "System Architecture Flowchart"
-     * Animal/Plant: Biological taxonomy (e.g. "Aquila chrysaetos") ONLY when genuine biological species.
-
-5. CITATION & EVIDENCE INTEGRITY:
-   - Only cite real, authentic institutions, governing bodies, or archival sources (e.g. ICC Official Records, WWE Archives, ESPNcricinfo, NASA Archives, Britannica, W3C Specifications, IEEE).
-   - NEVER fabricate fake DOIs or synthetic reference links.
+8. CITATION & EVIDENCE GROUNDING (HARD RULE):
+   - When external grounding literature is provided above, YOU MUST CITE THOSE EXACT RETRIEVED SOURCES in the "references" array.
+   - Use their verified titles, exact DOIs, authors, publication years, and authentic URLs.
    - Maintain clear separation between direct visual observations ("observed") and secondary inferences ("inferred").
-
-6. EVIDENCE INTELLIGENCE WORKBENCH (CRITICAL REQUIREMENT):
-   You MUST construct an "evidenceLedger" array containing 5-10 structured evidence entries that explicitly deconstruct the analysis:
-   - "claim": Specific empirical assertion made in the report.
-   - "evidenceType": Must be strictly one of:
-       * "visual_observation" (directly visible in image pixels/frame, e.g. attire, jersey colors, emblem, stage lighting, vehicle grille, chart axes). NEVER use visual_observation for biographical/historical claims or identity verification!
-       * "external_source" (historical dates, career records, statistics, specifications, or institutional data from external knowledge)
-       * "inference" (analytical reasoning connecting visual features to domain conclusions)
-   - "evidence": The exact observable feature (for visual_observation) or cited external evidence (for external_source).
-   - "sourceTitle": Real governing body, database, literature, or specification (or null if purely visual_observation).
-   - "sourceUrl": Authentic URL if known and verified (or null).
-   - "supportStatus": Must be strictly one of: "supported" | "partially_supported" | "uncertain" | "unsupported".
-   - "reasoning": 1-2 sentences explaining why the evidence supports (or fails to support) the claim.
-   - "relatedSection": Name of the report section where this claim is discussed.
-
-7. STRUCTURED CLAIMS & FINDINGS (EMPIRICAL GROUNDING):
-   - You MUST populate "claims" and "structuredFindings" arrays with empirical statements.
-   - For every claim and finding, set "status" strictly to one of:
-     * "OBSERVED": Directly visible optical features in the image (e.g. colors, labels, shapes, attire, chart bars).
-     * "INFERRED": Logical deductions connecting visual evidence to domain/external knowledge.
-     * "UNDETERMINABLE": Claims that cannot be definitively confirmed or refuted from available visual evidence.
-   - Include the specific "evidence" and "reasoning" for every claim and finding.
 
   Write in ${writingStyle} style. Use ${citationStyle} formatting where a source is available.
   Synthesize in ${lang} (${researchLength} depth). Do not invent a source, a confidence percentage, or facts not supported by the image or clearly identified external knowledge. Return ONLY valid JSON matching this schema:`;
@@ -157,36 +164,56 @@ export function buildJsonSchemaPrompt() {
   "executiveSummary": "[Substantial multi-paragraph executive overview of the subject]",
   "evidenceLedger": [
     {
-      "claim": "[Specific empirical assertion made in the report]",
-      "evidenceType": "visual_observation | external_source | inference",
-      "evidence": "[Direct observable visual cue or external factual record]",
-      "sourceTitle": "[Governing body, institutional database, or null if visual_observation]",
-      "sourceUrl": "[Authentic URL if known, or null]",
-      "supportStatus": "supported | partially_supported | uncertain | unsupported",
-      "reasoning": "[1-2 sentences detailing the evidentiary connection or uncertainty]",
-      "relatedSection": "[Related section heading]"
+      "claim": "[Observable visual statement e.g. Subject is wearing a tailored red and blue textured suit with raised silver webbing]",
+      "evidenceType": "visual_observation",
+      "evidence": "Direct pixel inspection of costume texture, color boundaries, and spider emblem",
+      "sourceTitle": null,
+      "sourceUrl": null,
+      "supportStatus": "supported",
+      "reasoning": "Observable directly within optical frame.",
+      "relatedSection": "Visual Evidence & Staging Context"
+    },
+    {
+      "claim": "[External factual statement e.g. Character first appeared in Amazing Fantasy #15 in August 1962, created by Stan Lee and Steve Ditko]",
+      "evidenceType": "external_source",
+      "evidence": "Marvel Comics publishing archives and Library of Congress records",
+      "sourceTitle": "Marvel Comics Publishing Archive",
+      "sourceUrl": "https://www.marvel.com/",
+      "supportStatus": "supported",
+      "reasoning": "Historical publishing records confirm exact debut issue and creators.",
+      "relatedSection": "Character Origin & Publication History"
+    },
+    {
+      "claim": "[Analytical inference connecting visual cues to domain context e.g. Suit aesthetic corresponds to the 2002 Sam Raimi cinematic trilogy design]",
+      "evidenceType": "inference",
+      "evidence": "Raised silver web pattern and angular eye lens geometry matching 2002 film assets",
+      "sourceTitle": "Cinema Production Design Records",
+      "sourceUrl": null,
+      "supportStatus": "supported",
+      "reasoning": "Costume design matches the distinct practical fabrication from the 2002-2007 film production.",
+      "relatedSection": "Costume Design Evolution"
     }
   ],
   "structuredSections": [
     {
-      "heading": "[Domain-Adaptive Section Title, e.g. Career Timeline & Major Championships]",
-      "icon": "[Material icon name e.g. sports, trophy, movie, history, biotech, query_stats, analytics]",
-      "content": "[Long-form comprehensive research content. Include detailed Markdown tables where applicable]"
+      "heading": "[Section 1: Origin, Early History, or Core Overview]",
+      "icon": "movie",
+      "content": "[Long-form comprehensive research content (2-3 detailed paragraphs). In-depth historical, contextual, and technical analysis.]"
     },
     {
-      "heading": "[Second Domain Section Title, e.g. World Records & Career Milestones]",
-      "icon": "[Material icon name e.g. star, award_star, military_tech]",
-      "content": "[Detailed research content with Markdown statistics/data tables]"
+      "heading": "[Section 2: Highlights, Specifications, or Adaptations with Embedded Markdown Table]",
+      "icon": "award_star",
+      "content": "[Detailed research content. MUST embed a multi-row Markdown table, e.g.:\\n\\n| Year | Title / Milestone | Role / Medium | Highlights & Reception |\\n| 2002 | Spider-Man | Feature Film | Directed by Sam Raimi; massive commercial breakthrough |\\n| 2004 | Spider-Man 2 | Feature Film | Widely cited as one of the greatest superhero films |\\n| 2007 | Spider-Man 3 | Feature Film | Concluded the original trilogy |\\n| 2012 | The Amazing Spider-Man | Reboot Film | Andrew Garfield portrayal |\\n| 2017 | Spider-Man: Homecoming | MCU Film | Tom Holland MCU integration |\\n\\nFollowed by explanatory analytical paragraphs.]"
     },
     {
-      "heading": "[Third Domain Section Title, e.g. Signature Style, Mastery & Enduring Legacy]",
-      "icon": "[Material icon name e.g. psychology, workspace_premium]",
-      "content": "[In-depth analysis of technique, innovations, domain influence, and lasting legacy]"
+      "heading": "[Section 3: Technique, Design Evolution, or Structural Style]",
+      "icon": "psychology",
+      "content": "[Substantive paragraphs exploring technique, innovations, stylistic evolution, and domain influence.]"
     },
     {
-      "heading": "[Fourth Domain Section Title, e.g. Visual Evidence & Staging Context]",
-      "icon": "[Material icon name e.g. visibility, center_focus_strong]",
-      "content": "[Clear breakdown connecting the uploaded visual evidence with verified domain facts]"
+      "heading": "[Section 4: Visual Evidence & Staging Context]",
+      "icon": "visibility",
+      "content": "[Detailed analytical breakdown connecting the uploaded visual evidence directly with verified domain facts.]"
     }
   ],
   "detailedAnalysis": "[Comprehensive in-depth research analysis including Markdown statistics or specifications tables]",
@@ -194,10 +221,19 @@ export function buildJsonSchemaPrompt() {
   "scientificTechnicalInfo": "[Technical, statistical, or domain classification breakdown]",
   "historicalBackground": "[Historical development, career timeline, or origins]",
   "keyFacts": [
-    { "label": "[Fact Label e.g. Full Name, Discipline / Role, Debut, Key Achievements]", "detail": "[Fact Detail]" }
+    { "label": "Full Name / Alter Ego", "detail": "[Detail]" },
+    { "label": "Creator / Originator", "detail": "[Detail]" },
+    { "label": "First Appearance / Debut", "detail": "[Detail]" },
+    { "label": "Publisher / Organization", "detail": "[Detail]" },
+    { "label": "Signature Breakthrough", "detail": "[Detail]" },
+    { "label": "Key Abilities / Specifications", "detail": "[Detail]" }
   ],
   "timeline": [
-    { "year": "[Year/Phase]", "title": "[Milestone Title]", "desc": "[Detailed milestone description]" }
+    { "year": "1962", "title": "Comic Debut", "desc": "First appeared in Amazing Fantasy #15 created by Stan Lee and Steve Ditko." },
+    { "year": "2002", "title": "Cinematic Milestone", "desc": "Sam Raimi-directed feature film brought character to modern blockbuster cinema." },
+    { "year": "2004", "title": "Critical Peak", "desc": "Spider-Man 2 released to universal critical acclaim, redefining comic book cinema." },
+    { "year": "2018", "title": "Animated Innovation", "desc": "Into the Spider-Verse premiered, winning the Academy Award for Best Animated Feature." },
+    { "year": "2021", "title": "Multiverse Crossover", "desc": "No Way Home united three live-action cinematic generations." }
   ],
   "visualEvidence": [
     { "statement": "[Direct visual evidence statement observable in frame]", "status": "observed | inferred | undeterminable" }
@@ -272,11 +308,27 @@ export function buildJsonSchemaPrompt() {
   "claims": [
     {
       "id": "claim_1",
-      "statement": "[Specific empirical assertion made in the report]",
-      "status": "OBSERVED | INFERRED | UNDETERMINABLE",
-      "evidence": "[Direct optical observation or cited external data]",
-      "source": "[Governing body / database or 'Visual Optical Frame']",
-      "reasoning": "[1-2 sentences explaining why the evidence supports or qualifies the claim]"
+      "statement": "[Observable visual statement e.g. Subject is wearing a tailored red and blue textured suit with raised silver webbing]",
+      "status": "OBSERVED",
+      "evidence": "Direct pixel inspection of costume texture, color boundaries, and spider emblem",
+      "source": "Visual Optical Frame",
+      "reasoning": "Observable directly within optical frame."
+    },
+    {
+      "id": "claim_2",
+      "statement": "[External factual statement e.g. Character first appeared in Amazing Fantasy #15 in August 1962, created by Stan Lee and Steve Ditko]",
+      "status": "INFERRED",
+      "evidence": "Marvel Comics publishing archives and Library of Congress records",
+      "source": "Marvel Comics Publishing Archive",
+      "reasoning": "Historical publishing records confirm exact debut issue and creators."
+    },
+    {
+      "id": "claim_3",
+      "statement": "[Analytical inference connecting visual cues to domain context e.g. Suit aesthetic corresponds to the 2002 Sam Raimi cinematic trilogy design]",
+      "status": "INFERRED",
+      "evidence": "Raised silver web pattern and angular eye lens geometry matching 2002 film assets",
+      "source": "Cinema Production Design Records",
+      "reasoning": "Costume design matches the distinct practical fabrication from the 2002-2007 film production."
     }
   ],
   "structuredFindings": [

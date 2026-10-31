@@ -16,5 +16,7 @@ yarn-error.log*
 # Temporary / Binary Artifacts
 *.zip
 *.pptx
+*.pdf
+backend/test/*_report_data.json
 extensions/installed/
 backups/

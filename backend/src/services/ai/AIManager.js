@@ -6,7 +6,8 @@ import ModelHealthTracker from './ModelHealthTracker.js';
 import { APIError } from '../../utils/apiUtils.js';
 import { optimizeImage } from '../../utils/imageOptimizer.js';
 import cacheManager from '../../utils/cacheManager.js';
-import { verifyAndCleanCitations } from './CitationVerifier.js';
+import { verifyAndCleanCitations, validateClaimsTraceability } from './CitationVerifier.js';
+import ResearchEngine from '../research/ResearchEngine.js';
 
 class AIManager {
   async generateReport(rawInputDataUrl, promptObj = {}, preferredProvider = null) {
@@ -37,12 +38,12 @@ class AIManager {
       };
     }
 
-    // Step 3: Global Safety Ceiling (35 seconds bounded live-analysis ceiling)
+    // Step 3: Global Safety Ceiling (60 seconds bounded live-analysis ceiling)
     const globalAbortController = new AbortController();
     const globalTimeoutId = setTimeout(() => {
-      console.warn('[AIManager] 35-second global safety ceiling reached. Terminating all active analysis candidates.');
+      console.warn('[AIManager] 60-second global safety ceiling reached. Terminating all active analysis candidates.');
       globalAbortController.abort();
-    }, 35000);
+    }, 60000);
 
     // Step 4: Multi-Model Candidate Selection from Registry (Up to 6 healthy candidates)
     const hasGeminiKey = !!config.apiKeys?.gemini;
@@ -62,7 +63,50 @@ class AIManager {
       throw new APIError('No vision-capable AI models configured with valid credentials.', 500, 'AIManager', 'NO_MODELS_AVAILABLE');
     }
 
-    // Step 5: Execute Adaptive Parallel Multimodal Racing Pool
+    // Step 5: Multi-Source Research Retrieval (OpenAlex, Crossref, Wikipedia)
+    let groundingDossier = null;
+    const groundingStartTime = Date.now();
+    try {
+      let candidateSubject = (promptObj?.subjectContext || promptObj?.topic || '').trim();
+      let candidateSearchQuery = '';
+      let candidateConcepts = Array.isArray(promptObj?.concepts) ? promptObj.concepts : [];
+      let candidateCategory = promptObj?.category || promptObj?.domain || '';
+
+      // If no subjectContext was provided by the user, perform fast entity identification from image
+      if (!candidateSubject && hasGeminiKey && !globalAbortController.signal.aborted) {
+        console.log('[AIManager] No subject context provided. Running fast visual entity extraction...');
+        const identified = await GeminiService.identifySubject(optResult.dataUrl, globalAbortController.signal);
+        if (identified && identified.subject) {
+          candidateSubject = identified.subject;
+          if (identified.searchQuery) candidateSearchQuery = identified.searchQuery;
+          if (Array.isArray(identified.concepts)) candidateConcepts = identified.concepts;
+          if (identified.category) candidateCategory = identified.category;
+          console.log(`[AIManager] Visual entity identified: "${candidateSubject}" [Category: ${candidateCategory}]`);
+        }
+      }
+
+      if (candidateSubject || candidateConcepts.length > 0) {
+        groundingDossier = await ResearchEngine.retrieveGroundingDossier({
+          subject: candidateSubject,
+          searchQuery: candidateSearchQuery,
+          concepts: candidateConcepts,
+          category: candidateCategory,
+          visualType: promptObj?.visualType || 'photograph',
+          maxAcademicSources: 4
+        });
+        console.log(`[AIManager] Grounding dossier assembled in ${Date.now() - groundingStartTime} ms with ${groundingDossier.retrievedCount} sources.`);
+      }
+    } catch (groundErr) {
+      console.warn('[AIManager] Research grounding failed (continuing without external sources):', groundErr.message);
+    }
+
+    // Attach grounding dossier to prompt object for multimodal models
+    promptObj = {
+      ...promptObj,
+      groundingDossier: groundingDossier || ResearchEngine.buildEmptyDossier()
+    };
+
+    // Step 6: Execute Adaptive Parallel Multimodal Racing Pool
     // Up to 2 concurrent models race simultaneously; failed slots immediately promote next healthy candidates from queue.
     const maxConcurrent = 2;
     const providerDiagnostics = [];
@@ -189,12 +233,19 @@ class AIManager {
         throw new APIError('All AI providers failed to generate a valid research report within timeout bounds.', 502, 'AIManager', 'AI_PROVIDERS_FAILED');
       }
 
-      // Step 6: Citation Verification against Live Endpoints
+      // Step 7: Citation & Claim Verification against Live Endpoints
       const citStart = Date.now();
       const validatedReferences = await verifyAndCleanCitations(
         raceWinner.result.references,
         raceWinner.result.subject,
-        raceWinner.result.category
+        raceWinner.result.category,
+        promptObj.groundingDossier
+      );
+
+      const claimsValidation = validateClaimsTraceability(
+        raceWinner.result.claims,
+        raceWinner.result.evidenceLedger,
+        promptObj.groundingDossier
       );
       const citationDurationMs = Date.now() - citStart;
 
@@ -203,16 +254,30 @@ class AIManager {
       const finalReport = {
         ...raceWinner.result,
         references: validatedReferences,
+        claims: claimsValidation.claims,
+        evidenceLedger: claimsValidation.evidenceLedger,
+        retrievedSources: promptObj.groundingDossier?.allSources || [],
+        groundingTelemetry: {
+          retrievedCount: promptObj.groundingDossier?.retrievedCount || 0,
+          retrievalLatencyMs: promptObj.groundingDossier?.retrievalLatencyMs || 0,
+          hasAcademicSources: promptObj.groundingDossier?.hasAcademicSources || false,
+          hasEncyclopedicSources: promptObj.groundingDossier?.hasEncyclopedicSources || false,
+          academicCount: promptObj.groundingDossier?.academicSources?.length || 0,
+          verificationTimeMs: citationDurationMs
+        },
+        validationStatus: promptObj.groundingDossier?.retrievedCount > 0
+          ? `Grounded in ${promptObj.groundingDossier.retrievedCount} verified external sources (OpenAlex, Crossref, Wikipedia). Citations validated.`
+          : (raceWinner.result.validationStatus || 'Empirically analyzed and citation validated.'),
         aiProvider: raceWinner.provider,
         actualModel: raceWinner.modelId,
         processingTimeMs: totalDurationMs,
         totalRequestDurationMs: totalDurationMs
       };
 
-      // Step 7: Store in Cache
+      // Step 8: Store in Cache
       cacheManager.set(cacheKey, finalReport);
 
-      // Step 8: Structured Production Telemetry
+      // Step 9: Structured Production Telemetry
       console.log('\n--- PRODUCTION METRICS LOG ---');
       console.log(`Image Size:             ${optResult.originalSizeKb} KB`);
       console.log(`Compressed Size:        ${optResult.compressedSizeKb} KB`);
@@ -221,6 +286,7 @@ class AIManager {
       console.log(`Model Selected:         ${finalReport.actualModel}`);
       console.log(`Time to First Byte:     ${finalReport.timeToFirstByteMs || 0} ms`);
       console.log(`Total Inference Time:   ${finalReport.totalInferenceTimeMs || 0} ms`);
+      console.log(`Research Retrieval:     ${promptObj.groundingDossier?.retrievalLatencyMs || 0} ms (${promptObj.groundingDossier?.retrievedCount || 0} sources)`);
       console.log(`JSON Parsing Time:      ${finalReport.jsonParsingTimeMs || 0} ms`);
       console.log(`Schema Validation Time: ${finalReport.schemaValidationTimeMs || 0} ms`);
       console.log(`Citation Verification:  ${citationDurationMs} ms`);

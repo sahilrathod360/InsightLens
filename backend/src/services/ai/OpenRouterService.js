@@ -17,14 +17,14 @@ class OpenRouterService {
     const startTime = Date.now();
     console.log(`[RACE] OpenRouter / ${modelId} START (timeout: ${timeoutMs}ms)`);
 
-    const { researchLength = 'long', language = 'en', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA', userPreferences = {} } = promptObj;
+    const { researchLength = 'long', language = 'en', subjectContext = '', writingStyle = 'classic', citationStyle = 'APA', userPreferences = {}, groundingDossier = null } = promptObj;
 
     let imageUrl = dataUrl;
     if (typeof dataUrl === 'string' && !dataUrl.startsWith('data:')) {
       imageUrl = `data:image/jpeg;base64,${dataUrl}`;
     }
 
-    const promptText = buildAiPrompt(language, researchLength, subjectContext, writingStyle, citationStyle, userPreferences);
+    const promptText = buildAiPrompt(language, researchLength, subjectContext, writingStyle, citationStyle, userPreferences, groundingDossier);
     const schemaText = buildJsonSchemaPrompt();
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -37,7 +37,7 @@ class OpenRouterService {
 
     const body = {
       model: modelId,
-      max_tokens: modelConfig.maxOutputTokens || 6000,
+      max_tokens: Math.min(modelConfig.maxOutputTokens || 2500, 2500),
       messages: [
         {
           role: "user",
