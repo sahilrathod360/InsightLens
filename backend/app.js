@@ -91,9 +91,11 @@ app.get('/healthz', (req, res) => {
 // API Health Check for Frontend & Monitoring (Checks Server + PostgreSQL + Auth Readiness)
 app.get('/api/health', async (req, res) => {
   let dbStatus = 'disconnected';
+  let tableCount = 0;
   if (pool) {
     try {
-      await pool.query('SELECT 1');
+      const tcRes = await pool.query(`SELECT COUNT(*)::int AS total FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`);
+      tableCount = tcRes.rows[0]?.total || 0;
       dbStatus = 'connected';
     } catch (err) {
       console.error('[Health Check DB Notice]', err.message);
@@ -117,6 +119,7 @@ app.get('/api/health', async (req, res) => {
     environment,
     commit: commitHash,
     database: dbStatus,
+    tableCount,
     auth: isAuthHealthy ? 'configured' : 'unconfigured',
     message: isHealthy ? 'InsightLens Backend is healthy.' : `InsightLens Backend degraded: ${issues.join('; ')}.`,
     timestamp: new Date().toISOString()

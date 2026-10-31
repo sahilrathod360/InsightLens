@@ -1047,8 +1047,8 @@ export function renderEvidenceWorkbench(data) {
       else evidenceType = 'inference';
     }
 
-    const verificationStatus = c.verificationStatus || (normStatus === 'OBSERVED' ? 'CLAIM_SUPPORT_VERIFIED' : (c.sourceTitle ? 'METADATA_MATCHED' : 'UNVERIFIED'));
-    const supportingSource = c.supportingSource || c.supportingSourceTitle || c.sourceTitle || (normStatus === 'OBSERVED' ? 'Direct Visual Optical Frame' : null);
+    const verificationStatus = c.verificationStatus || (normStatus === 'OBSERVED' ? 'DIRECT_VISUAL_OBSERVATION' : (c.sourceTitle ? 'METADATA_MATCHED' : 'ANALYTICAL_INFERENCE'));
+    const supportingSource = c.supportingSource || c.supportingSourceTitle || c.sourceTitle || (normStatus === 'OBSERVED' ? 'Direct Optical Frame' : null);
     const supportingPassage = c.supportingPassage || c.evidence || null;
 
     ledger.push({
@@ -1209,15 +1209,32 @@ export function renderEvidenceWorkbench(data) {
       const sMeta = statusConfig[itemStatusKey] || statusConfig[item.supportStatus] || statusConfig.UNDETERMINABLE;
       const safeUrl = sanitizeUrl(item.sourceUrl);
 
-      const vStatus = item.verificationStatus || (item.status === 'OBSERVED' ? 'CLAIM_SUPPORT_VERIFIED' : (item.supportingSource ? 'METADATA_MATCHED' : 'UNVERIFIED'));
-      const vBadgeClass = vStatus === 'CLAIM_SUPPORT_VERIFIED'
-        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-        : (vStatus === 'METADATA_MATCHED'
-          ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
-          : (vStatus === 'URL_ACCESSIBLE'
-            ? 'bg-teal-500/15 text-teal-400 border border-teal-500/30'
-            : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'));
-      const vIcon = vStatus === 'CLAIM_SUPPORT_VERIFIED' ? 'verified' : (vStatus === 'METADATA_MATCHED' ? 'menu_book' : (vStatus === 'URL_ACCESSIBLE' ? 'link' : 'info'));
+      const rawVStatus = item.verificationStatus || (item.status === 'OBSERVED' ? 'DIRECT_VISUAL_OBSERVATION' : (item.supportingSource ? 'METADATA_MATCHED' : 'ANALYTICAL_INFERENCE'));
+      let vLabel = rawVStatus;
+      let vBadgeClass = 'bg-slate-500/15 text-slate-400 border border-slate-500/30';
+      let vIcon = 'psychology';
+
+      if (rawVStatus === 'DIRECT_VISUAL_OBSERVATION' || rawVStatus === 'VISUALLY_OBSERVED' || (item.status === 'OBSERVED' && !item.sourceUrl)) {
+        vLabel = 'VISUALLY_OBSERVED';
+        vBadgeClass = 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+        vIcon = 'visibility';
+      } else if (rawVStatus === 'CLAIM_SUPPORT_VERIFIED' || rawVStatus === 'EXTERNALLY_VERIFIED') {
+        vLabel = 'EXTERNALLY_VERIFIED';
+        vBadgeClass = 'bg-sky-500/15 text-sky-400 border border-sky-500/30';
+        vIcon = 'verified';
+      } else if (rawVStatus === 'METADATA_MATCHED') {
+        vLabel = 'METADATA_MATCHED';
+        vBadgeClass = 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30';
+        vIcon = 'menu_book';
+      } else if (rawVStatus === 'URL_ACCESSIBLE') {
+        vLabel = 'URL_ACCESSIBLE';
+        vBadgeClass = 'bg-teal-500/15 text-teal-400 border border-teal-500/30';
+        vIcon = 'link';
+      } else {
+        vLabel = 'ANALYTICAL_INFERENCE';
+        vBadgeClass = 'bg-slate-500/15 text-slate-400 border border-slate-500/30';
+        vIcon = 'psychology';
+      }
 
       return `
         <div class="report-card p-4 space-y-3 border-l-4 ${tMeta.borderAccent} shadow-sm transition-all hover:border-[var(--border-hover)]">
@@ -1245,7 +1262,7 @@ export function renderEvidenceWorkbench(data) {
               </span>
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${vBadgeClass}" title="Grounding Verification Status">
                 <span class="material-symbols-outlined text-[12px]">${vIcon}</span>
-                ${vStatus}
+                ${vLabel}
               </span>
             </div>
           </div>

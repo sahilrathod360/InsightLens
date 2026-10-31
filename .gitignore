@@ -4,6 +4,7 @@ dist/
 
 # Environment Files
 .env
+.env*
 .env.local
 *.local
 
@@ -12,11 +13,27 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+*.log
 
 # Temporary / Binary Artifacts
 *.zip
 *.pptx
 *.pdf
+*.jpg
+*.png
+*.jpeg
+*.webp
 backend/test/*_report_data.json
 extensions/installed/
 backups/
+
+# Database dumps, backups & test results
+*backup*.json
+production_aiven_db_backup.json
+*_report.json
+audit_summary_results.json
+isolated_restoration_evidence.json
+database_cleanup_results.json
+*.backup
+*.dump
+

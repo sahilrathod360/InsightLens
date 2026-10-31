@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.get('/db-inventory', getDbInventory);
 router.post('/db-inventory', getDbInventory);
-router.post('/db-backup', exportTableBackup);
+router.all('/db-backup', exportTableBackup);
 
 export default router;

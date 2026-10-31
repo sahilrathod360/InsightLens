@@ -226,32 +226,22 @@ export async function verifyAndCleanCitations(rawReferences = [], subjectName = 
     return null;
   });
 
-  const cleanedReferences = results
+  let cleanedReferences = results
     .filter(r => r.status === 'fulfilled' && r.value !== null)
     .map(r => r.value);
 
-  // If after cleaning we have fewer references than our retrieved external sources,
-  // ensure any unmentioned retrieved academic works are included!
-  if (knownDossierSources.length > 0 && cleanedReferences.length < 3) {
-    const existingTitles = new Set(cleanedReferences.map(r => normalizeTitleForMatch(r.title)));
-    for (const src of knownDossierSources) {
-      const norm = normalizeTitleForMatch(src.title);
-      if (!existingTitles.has(norm)) {
-        cleanedReferences.push({
-          title: src.title,
-          source: src.sourceName,
-          year: src.year || 'Recent',
-          doi: src.doi || null,
-          url: src.url || null,
-          doiVerified: !!src.doiVerified,
-          urlReachable: true,
-          validationStatus: src.doiVerified ? 'DOI_VERIFIED' : (src.type === 'academic' ? 'METADATA_MATCHED' : 'ENCYCLOPEDIC_RECORD'),
-          sourceType: src.type === 'academic' ? 'ACADEMIC_PUBLICATION' : 'ENCYCLOPEDIC_CONTEXT',
-          verified: true
-        });
-        existingTitles.add(norm);
-      }
-    }
+  // Filter out any academic references that are completely unrelated to the subject entity
+  const normSubj = (subjectName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (normSubj.length > 3) {
+    cleanedReferences = cleanedReferences.filter(ref => {
+      if (ref.sourceType === 'ENCYCLOPEDIC_CONTEXT' || (ref.url && ref.url.includes('wikipedia.org'))) return true;
+      const tNorm = (ref.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const sNorm = (ref.source || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (tNorm.includes(normSubj) || sNorm.includes(normSubj)) return true;
+      const matchedDossier = knownDossierSources.find(s => normalizeTitleForMatch(s.title) === normalizeTitleForMatch(ref.title));
+      if (matchedDossier && matchedDossier.relevanceTier === 'DIRECTLY_RELEVANT') return true;
+      return false;
+    });
   }
 
   // Guarantee retrieved encyclopedic source (Wikipedia) is included in report references
@@ -353,11 +343,11 @@ export function validateClaimsTraceability(claims = [], evidenceLedger = [], ver
         statement: stmt,
         claim: stmt,
         status: 'OBSERVED',
-        supportingSource: 'Direct Visual Optical Frame',
+        supportingSource: 'Direct Optical Frame',
         supportingSourceTitle: 'Visual Optical Inspection',
         supportingPassage: item.evidence && !item.evidence.includes('Contextual') ? item.evidence : 'Directly observable from visual image artifact pixels.',
         sourceUrl: null,
-        verificationStatus: 'CLAIM_SUPPORT_VERIFIED',
+        verificationStatus: 'DIRECT_VISUAL_OBSERVATION',
         sourceType: 'DIRECT_VISUAL_OBSERVATION',
         rejectionReason: null,
         isSupportedByEvidence: true

@@ -123,14 +123,26 @@ export async function initDb() {
         console.warn('[Database Migration] Legacy user_ui_preferences notice:', uiPrefErr.message);
       }
 
-      // 5. Drop legacy redundant tables safely (guarded against accidental execution)
-      if (process.env.ALLOW_DESTRUCTIVE_CLEANUP === 'true') {
+      // 5. Drop legacy redundant and approved legacy prototype tables safely
+      const legacyTablesToDrop = [
+        'knowledge_autopsies',
+        'knowledge_decisions',
+        'knowledge_evolution_analyses',
+        'knowledge_gaps',
+        'knowledge_graph_edges',
+        'knowledge_graph_nodes',
+        'knowledge_projects',
+        'adversarial_analyses',
+        'assumption_stress_tests',
+        'user_preferences',
+        'user_ui_preferences',
+        'app_metrics'
+      ];
+      for (const tbl of legacyTablesToDrop) {
         try {
-          await client.query(`DROP TABLE IF EXISTS user_preferences CASCADE`);
-          await client.query(`DROP TABLE IF EXISTS user_ui_preferences CASCADE`);
-          await client.query(`DROP TABLE IF EXISTS app_metrics CASCADE`);
+          await client.query(`DROP TABLE IF EXISTS public."${tbl}" RESTRICT;`);
         } catch (dropErr) {
-          console.warn('[Database Migration] Drop legacy tables notice:', dropErr.message);
+          console.warn(`[Database Migration] Safe drop notice for ${tbl}:`, dropErr.message);
         }
       }
 

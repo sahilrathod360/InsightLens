@@ -24,11 +24,11 @@ const TEST_IMAGES = [
     jsonName: 'spiderman_verified_report.json'
   },
   {
-    name: 'Neural Network (Technical Diagram / Topology)',
-    filePath: 'C:\\InsightLens\\frontend\\public\\images\\neural-network.jpg',
-    expectedSubjectContains: 'Neural Network',
-    pdfName: 'neural_network_verified_report.pdf',
-    jsonName: 'neural_network_verified_report.json'
+    name: 'Manhattan Skyline (Urban Architecture / Golden Hour)',
+    filePath: 'C:\\InsightLens\\frontend\\public\\images\\manhattan-golden-hour.jpg',
+    expectedSubjectContains: 'Manhattan',
+    pdfName: 'manhattan_verified_report.pdf',
+    jsonName: 'manhattan_verified_report.json'
   }
 ];
 
@@ -141,6 +141,7 @@ async function runAudit() {
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 1600 });
     await page.goto('http://127.0.0.1:4174', { waitUntil: 'domcontentloaded', timeout: 25000 });
+    await page.waitForFunction(() => typeof window.renderResultScreen === 'function', { timeout: 10000 });
 
     await page.evaluate((reportData) => {
       window.navigateTo('desk');
@@ -154,7 +155,12 @@ async function runAudit() {
       }
     }, report);
 
-    await new Promise((r) => setTimeout(r, 1200));
+    await page.waitForFunction(() => {
+      const el = document.getElementById('report-title');
+      return el && el.textContent && el.textContent.trim().length > 2;
+    }, { timeout: 10000 }).catch(() => {});
+
+    await new Promise((r) => setTimeout(r, 2000));
 
     const repoPdfPath = path.join('C:\\InsightLens', testImg.pdfName);
     const artifactPdfPath = path.join(ARTIFACT_DIR, testImg.pdfName);

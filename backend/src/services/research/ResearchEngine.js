@@ -63,7 +63,10 @@ export class ResearchEngine {
       'geography', 'planning', 'environment', 'condition', 'conditions', 'nocturnal', 'diurnal',
       'setting', 'view', 'modern', 'historical', 'general', 'high', 'large', 'area', 'city',
       'character', 'characters', 'television', 'fictional', 'fiction', 'series', 'drama',
-      'actor', 'actress', 'movie', 'movies', 'film', 'films', 'media', 'popular', 'culture'
+      'actor', 'actress', 'movie', 'movies', 'film', 'films', 'media', 'popular', 'culture',
+      'man', 'men', 'white', 'black', 'red', 'blue', 'green', 'sky', 'light', 'lighting',
+      'face', 'human', 'home', 'family', 'music', 'making', 'time', 'world', 'life', 'day',
+      'night', 'dark', 'portrait', 'shadow', 'shadows', 'approach', 'pilot', 'paper', 'journal'
     ]);
 
     const getCoreTokens = (str) => (str || '').toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2 && !relevanceStopwords.has(w));
@@ -75,7 +78,7 @@ export class ResearchEngine {
       ...(categoryHint ? getCoreTokens(categoryHint) : [])
     ])];
 
-    const isNamedEntityOrCharacter = /\b(character|person|actor|actress|fictional|biography|figure)\b/i.test(`${cleanSubject} ${cleanConcepts.join(' ')} ${category}`);
+    const isNamedEntityOrCharacter = /\b(character|person|actor|actress|fictional|biography|figure|hero|superhero)\b/i.test(`${cleanSubject} ${cleanConcepts.join(' ')} ${category}`);
 
     const scoredScholarlyWorks = [];
     const rejectedScholarlyWorks = [];
@@ -86,20 +89,38 @@ export class ResearchEngine {
       const workConceptNames = (work.concepts || []).map(c => String(c).toLowerCase());
       const allWorkText = `${titleLower} ${workConceptNames.join(' ')} ${abstractLower}`;
 
+      // Strict Entity Anchor Check:
+      // If we are evaluating a specific named entity or character, the paper MUST mention the actual subject
+      // in either its title, abstract, or concept tags. Generic concepts like "lighting" or "portrait" are NOT enough!
+      const normSubject = cleanSubject.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const normWorkText = allWorkText.replace(/[^a-z0-9]/g, '');
+      const mentionsSubjectDirectly = normSubject.length > 3 && normWorkText.includes(normSubject);
+      const mentionsCoreSubjectTokens = subjectCoreTokens.length > 0 && subjectCoreTokens.some(tok => allWorkText.includes(tok));
+
+      if ((isNamedEntityOrCharacter || subjectCoreTokens.length > 0) && !mentionsSubjectDirectly && !mentionsCoreSubjectTokens) {
+        rejectedScholarlyWorks.push({
+          ...work,
+          relevanceScore: 0.0,
+          relevanceTier: 'IRRELEVANT',
+          relevanceRationale: `Paper does not mention core entity "${cleanSubject}"; rejected as unrelated domain literature.`
+        });
+        continue;
+      }
+
       let score = 0.0;
       const matchedKeywords = [];
 
       // 1. Direct core term matches in title
-      for (const tok of allDomainTokens) {
+      for (const tok of subjectCoreTokens) {
         if (titleLower.includes(tok)) {
-          score += 0.35;
+          score += 0.40;
           matchedKeywords.push(`title:${tok}`);
         }
       }
 
       // 2. Exact match of subject phrase
-      if (cleanSubject.length > 3 && allWorkText.includes(cleanSubject.toLowerCase())) {
-        score += 0.40;
+      if (mentionsSubjectDirectly) {
+        score += 0.45;
         matchedKeywords.push(`exact_subject:${cleanSubject}`);
       }
 
@@ -112,21 +133,11 @@ export class ResearchEngine {
       }
 
       // 4. Abstract body correlation
-      for (const tok of allDomainTokens) {
+      for (const tok of subjectCoreTokens) {
         if (abstractLower.includes(tok) && !matchedKeywords.includes(`title:${tok}`)) {
-          score += 0.10;
+          score += 0.15;
           matchedKeywords.push(`abstract:${tok}`);
         }
-      }
-
-      // 5. Subject Entity Anchor Check (Mandatory for named entities or specific subjects)
-      // If the query is a specific entity, an academic paper MUST contain either the subject phrase
-      // or at least one core subject token in its title or abstract text. Generic concept overlap alone is rejected!
-      const hasSubjectTokenInText = subjectCoreTokens.some(tok => allWorkText.includes(tok));
-      const hasExactSubject = cleanSubject.length > 3 && allWorkText.includes(cleanSubject.toLowerCase());
-      if (subjectCoreTokens.length > 0 && !hasSubjectTokenInText && !hasExactSubject) {
-        // Severe penalty if paper does not mention the actual entity
-        score = Math.min(score, 0.20);
       }
 
       // 6. Explicit domain preservation: dark skies, light pollution, astronomy, environmental monitoring
