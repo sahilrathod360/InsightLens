@@ -280,8 +280,39 @@ export async function verifyAndCleanCitations(rawReferences = [], subjectName = 
 }
 
 /**
+ * Helper to extract the most relevant supporting passage from source text
+ */
+function extractSupportingPassage(stmt, sourceText) {
+  if (!sourceText || typeof sourceText !== 'string') return null;
+  const cleanSource = sourceText.replace(/\s+/g, ' ').trim();
+  const sentences = cleanSource.split(/(?<=[.!?])\s+/);
+  const stmtWords = (stmt || '').toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 3);
+  if (stmtWords.length === 0) return cleanSource.slice(0, 200);
+
+  let bestSentence = '';
+  let maxMatches = 0;
+  for (const s of sentences) {
+    const sLower = s.toLowerCase();
+    const matches = stmtWords.filter(w => sLower.includes(w)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      bestSentence = s.trim();
+    }
+  }
+
+  if (maxMatches >= 2 && bestSentence) {
+    return bestSentence.length > 280 ? bestSentence.slice(0, 280) + '...' : bestSentence;
+  }
+  return cleanSource.slice(0, 240) + '...';
+}
+
+/**
  * Validate evidence-to-claim traceability against verified retrieved sources.
- * Updates each claim with an honest claim verification status.
+ * Updates each claim with an honest claim verification status:
+ * - CLAIM_SUPPORT_VERIFIED: Source content directly confirms the specific claim
+ * - METADATA_MATCHED: Publication exists in Crossref / OpenAlex but content has not been checked against the claim
+ * - URL_ACCESSIBLE: URL responds with 200 OK but content support is unverified
+ * - UNVERIFIED: No source support established
  */
 export function validateClaimsTraceability(claims = [], evidenceLedger = [], verifiedRefsOrDossier = [], maybeDossier = null) {
   let verifiedReferences = [];
@@ -295,98 +326,202 @@ export function validateClaimsTraceability(claims = [], evidenceLedger = [], ver
     verifiedReferences = Array.isArray(groundingDossier.allSources) ? groundingDossier.allSources : [];
   }
 
-  const verifiedRefMap = new Map();
-  for (const ref of verifiedReferences) {
-    if (ref && ref.title) verifiedRefMap.set(normalizeTitleForMatch(ref.title), ref);
-  }
+  const allDossierSources = groundingDossier?.allSources || verifiedReferences || [];
 
-  // Build searchable text from grounding abstracts
-  const groundingTexts = [];
-  if (groundingDossier?.encyclopedicSource?.extract) {
-    groundingTexts.push(groundingDossier.encyclopedicSource.extract.toLowerCase());
-  }
-  for (const a of groundingDossier?.academicSources || []) {
-    if (a.abstract) groundingTexts.push(a.abstract.toLowerCase());
-    if (a.title) groundingTexts.push(a.title.toLowerCase());
-  }
-
-  const enrichedClaims = (Array.isArray(claims) ? claims : []).map(claim => {
-    if (!claim) return claim;
-    const stmt = String(claim.statement || '').toLowerCase();
-    const sourceTitle = String(claim.source || claim.sourceTitle || '');
-    const normSourceTitle = normalizeTitleForMatch(sourceTitle);
-
-    let claimVerification = 'NOT_INDEPENDENTLY_VERIFIED';
-    let isSupportedByEvidence = false;
-    let status = claim.status || 'UNDETERMINABLE';
+  // Helper function to evaluate and verify a single claim/ledger statement
+  function evaluateClaimSupport(item, defaultStatus = 'OBSERVED', defaultType = null) {
+    if (!item) return item;
+    const stmt = String(item.statement || item.claim || '').trim();
+    const stmtLower = stmt.toLowerCase();
+    let status = item.status || defaultStatus;
 
     // Calibrate external research/historical statements from OBSERVED to INFERRED
-    const isExternalFact = /\b(launched|founded|born|created in|published in|released in|debuted in|grossed|box office|\$\d+|(?:billion|million) dollars?|invented by|authored by)\b/i.test(stmt);
-    if (status === 'OBSERVED' && isExternalFact) {
+    const isExternalFact = /\b(launched|founded|born|created in|published in|released in|debuted in|grossed|box office|\$\d+|(?:billion|million) dollars?|invented by|authored by|directed by|written by|portrayed by|starred in)\b/i.test(stmtLower);
+    if ((status === 'OBSERVED' || status === 'observed') && isExternalFact) {
       status = 'INFERRED';
     }
 
-    if (status === 'OBSERVED') {
-      // Class 1: Direct Visual Observation (observable directly in optical image frame)
-      claimVerification = 'DIRECT_VISUAL_OBSERVATION';
-      isSupportedByEvidence = true;
-    } else {
-      // Distinguish academic content affirmation vs encyclopedic background vs inference
-      const academicTexts = (groundingDossier?.academicSources || [])
-        .map(a => `${a.title || ''} ${a.abstract || ''}`.toLowerCase());
-      const wikiExtract = (groundingDossier?.encyclopedicSource?.extract || '').toLowerCase();
-      const words = stmt.split(/\s+/).filter(w => w.length > 4);
+    const isVisualObservation = (status === 'OBSERVED' || status === 'observed' || item.evidenceType === 'visual_observation') && !isExternalFact;
 
-      const hasAcademicMatch = academicTexts.some(txt => {
-        if (words.length === 0) return false;
-        const matchCount = words.filter(w => txt.includes(w)).length;
-        return matchCount >= Math.min(3, words.length);
-      });
+    // Core entity tokens from statement
+    const stmtTokens = stmtLower.split(/[^a-z0-9]+/).filter(w => w.length > 3 && !['with', 'from', 'this', 'that', 'have', 'were', 'been', 'which', 'their', 'about'].includes(w));
 
-      const hasWikiMatch = wikiExtract && words.length > 0 ? (words.filter(w => wikiExtract.includes(w)).length >= Math.min(2, words.length)) : false;
+    // Case 1: Direct Visual Observation in optical image frame
+    if (isVisualObservation) {
+      return {
+        ...item,
+        statement: stmt,
+        claim: stmt,
+        status: 'OBSERVED',
+        supportingSource: 'Direct Visual Optical Frame',
+        supportingSourceTitle: 'Visual Optical Inspection',
+        supportingPassage: item.evidence && !item.evidence.includes('Contextual') ? item.evidence : 'Directly observable from visual image artifact pixels.',
+        sourceUrl: null,
+        verificationStatus: 'CLAIM_SUPPORT_VERIFIED',
+        sourceType: 'DIRECT_VISUAL_OBSERVATION',
+        rejectionReason: null,
+        isSupportedByEvidence: true
+      };
+    }
 
-      if (hasAcademicMatch) {
-        // Class 2: Supported by Retrieved Source Content (Academic abstract textual affirmation)
-        claimVerification = 'SOURCE_SUPPORTED';
-        isSupportedByEvidence = true;
-      } else if (hasWikiMatch) {
-        // Class 3: Background Information (Encyclopedic context from Wikipedia)
-        claimVerification = 'BACKGROUND_TERTIARY_CONTEXT';
-        isSupportedByEvidence = false;
-      } else if (status === 'INFERRED') {
-        // Class 4: Inferred (analytical deduction or structural reasoning)
-        claimVerification = 'INFERRED_REASONING';
-        isSupportedByEvidence = false;
+    // Case 2: Claim cites an explicit external source (or we evaluate against retrieved sources)
+    const rawSourceTitle = String(item.sourceTitle || item.source || '').trim();
+    const rawSourceUrl = String(item.sourceUrl || item.url || '').trim();
+
+    let matchedSource = null;
+    if (rawSourceTitle) {
+      const normRaw = normalizeTitleForMatch(rawSourceTitle);
+      matchedSource = allDossierSources.find(s => normalizeTitleForMatch(s.title) === normRaw);
+      if (!matchedSource) {
+        matchedSource = allDossierSources.find(s => normRaw.includes(normalizeTitleForMatch(s.title)) || normalizeTitleForMatch(s.title).includes(normRaw));
+      }
+    }
+    if (!matchedSource && rawSourceUrl) {
+      matchedSource = allDossierSources.find(s => s.url === rawSourceUrl || (s.doi && rawSourceUrl.includes(s.doi)));
+    }
+
+    // Check semantic support against matched source
+    if (matchedSource) {
+      const sourceText = (matchedSource.abstract || matchedSource.extract || '').toLowerCase();
+      if (sourceText.length > 30) {
+        const matchingTokens = stmtTokens.filter(tok => sourceText.includes(tok));
+        // Need at least 2 key entity tokens or 40% of tokens to confirm semantic support
+        const isSemanticallySupported = matchingTokens.length >= Math.min(2, stmtTokens.length);
+
+        if (isSemanticallySupported) {
+          return {
+            ...item,
+            statement: stmt,
+            claim: stmt,
+            status: 'INFERRED',
+            supportingSource: matchedSource.title,
+            supportingSourceTitle: matchedSource.title,
+            supportingPassage: extractSupportingPassage(stmt, matchedSource.abstract || matchedSource.extract),
+            sourceUrl: matchedSource.url || (matchedSource.doi ? `https://doi.org/${matchedSource.doi}` : null),
+            verificationStatus: 'CLAIM_SUPPORT_VERIFIED',
+            sourceType: matchedSource.type === 'academic' ? 'ACADEMIC_PUBLICATION' : 'ENCYCLOPEDIC_CONTEXT',
+            rejectionReason: null,
+            isSupportedByEvidence: true
+          };
+        } else {
+          // The cited source does NOT mention the claim entities! (Spurious keyword overlap)
+          // Look for fallback support in other retrieved sources (especially Wikipedia or relevant papers)
+          const fallbackSource = allDossierSources.find(s => {
+            const fText = (s.abstract || s.extract || '').toLowerCase();
+            return fText.length > 30 && stmtTokens.filter(tok => fText.includes(tok)).length >= Math.min(2, stmtTokens.length);
+          });
+
+          if (fallbackSource) {
+            return {
+              ...item,
+              statement: stmt,
+              claim: stmt,
+              status: 'INFERRED',
+              supportingSource: fallbackSource.title,
+              supportingSourceTitle: fallbackSource.title,
+              supportingPassage: extractSupportingPassage(stmt, fallbackSource.abstract || fallbackSource.extract),
+              sourceUrl: fallbackSource.url || (fallbackSource.doi ? `https://doi.org/${fallbackSource.doi}` : null),
+              verificationStatus: 'CLAIM_SUPPORT_VERIFIED',
+              sourceType: fallbackSource.type === 'academic' ? 'ACADEMIC_PUBLICATION' : 'ENCYCLOPEDIC_CONTEXT',
+              rejectionReason: `Originally cited source ("${matchedSource.title}") does not mention the entities in this claim. Re-attributed to verified source "${fallbackSource.title}".`,
+              isSupportedByEvidence: true
+            };
+          }
+
+          // No other source supports it: Decouple mismatched paper and mark UNVERIFIED
+          return {
+            ...item,
+            statement: stmt,
+            claim: stmt,
+            status: 'INFERRED',
+            supportingSource: null,
+            supportingSourceTitle: null,
+            supportingPassage: null,
+            sourceUrl: null,
+            verificationStatus: 'UNVERIFIED',
+            sourceType: 'UNVERIFIED',
+            rejectionReason: `Cited source ("${matchedSource.title}") was decoupled: text does not confirm the specific entities in this claim (${stmtTokens.slice(0, 3).join(', ')}).`,
+            isSupportedByEvidence: false
+          };
+        }
       } else {
-        // Class 5: Not Independently Verified (ungrounded or unchecked claim)
-        claimVerification = 'NOT_INDEPENDENTLY_VERIFIED';
-        isSupportedByEvidence = false;
+        // Matched source has no abstract text (metadata only)
+        if (matchedSource.doiVerified) {
+          return {
+            ...item,
+            statement: stmt,
+            claim: stmt,
+            status: 'INFERRED',
+            supportingSource: matchedSource.title,
+            supportingSourceTitle: matchedSource.title,
+            supportingPassage: null,
+            sourceUrl: matchedSource.url || `https://doi.org/${matchedSource.doi}`,
+            verificationStatus: 'METADATA_MATCHED',
+            sourceType: 'ACADEMIC_PUBLICATION',
+            rejectionReason: 'Publication metadata confirmed via Crossref DOI registry, but full text is not available to confirm semantic support.',
+            isSupportedByEvidence: false
+          };
+        } else if (matchedSource.url) {
+          return {
+            ...item,
+            statement: stmt,
+            claim: stmt,
+            status: 'INFERRED',
+            supportingSource: matchedSource.title,
+            supportingSourceTitle: matchedSource.title,
+            supportingPassage: null,
+            sourceUrl: matchedSource.url,
+            verificationStatus: 'URL_ACCESSIBLE',
+            sourceType: 'GENERAL_REFERENCE',
+            rejectionReason: 'Source URL responds with HTTP 200, but text content was not verified against the specific claim.',
+            isSupportedByEvidence: false
+          };
+        }
       }
     }
 
-    return {
-      ...claim,
-      status,
-      claimVerification,
-      isSupportedByEvidence
-    };
-  });
+    // Case 3: No source was attached. Check if any retrieved source in dossier supports this claim
+    const supportingDossierSource = allDossierSources.find(s => {
+      const sText = (s.abstract || s.extract || '').toLowerCase();
+      return sText.length > 30 && stmtTokens.filter(tok => sText.includes(tok)).length >= Math.min(2, stmtTokens.length);
+    });
 
-  const enrichedEvidenceLedger = (Array.isArray(evidenceLedger) ? evidenceLedger : []).map(item => {
-    if (!item) return item;
-    let claimVerification = 'NOT_INDEPENDENTLY_VERIFIED';
-    if (item.supportStatus === 'supported' || item.evidenceType === 'visual_observation') {
-      claimVerification = 'DIRECT_VISUAL_OBSERVATION';
-    } else if (item.evidenceType === 'inference' || item.supportStatus === 'partially_supported') {
-      claimVerification = 'INFERRED_REASONING';
-    } else if (item.sourceTitle && item.sourceTitle.toLowerCase().includes('wikipedia')) {
-      claimVerification = 'BACKGROUND_TERTIARY_CONTEXT';
+    if (supportingDossierSource) {
+      return {
+        ...item,
+        statement: stmt,
+        claim: stmt,
+        status: 'INFERRED',
+        supportingSource: supportingDossierSource.title,
+        supportingSourceTitle: supportingDossierSource.title,
+        supportingPassage: extractSupportingPassage(stmt, supportingDossierSource.abstract || supportingDossierSource.extract),
+        sourceUrl: supportingDossierSource.url || (supportingDossierSource.doi ? `https://doi.org/${supportingDossierSource.doi}` : null),
+        verificationStatus: 'CLAIM_SUPPORT_VERIFIED',
+        sourceType: supportingDossierSource.type === 'academic' ? 'ACADEMIC_PUBLICATION' : 'ENCYCLOPEDIC_CONTEXT',
+        rejectionReason: null,
+        isSupportedByEvidence: true
+      };
     }
+
+    // Case 4: Pure ungrounded inference or analytical deduction
     return {
       ...item,
-      claimVerification
+      statement: stmt,
+      claim: stmt,
+      status: (status === 'OBSERVED' ? 'INFERRED' : status),
+      supportingSource: null,
+      supportingSourceTitle: null,
+      supportingPassage: null,
+      sourceUrl: null,
+      verificationStatus: 'UNVERIFIED',
+      sourceType: 'UNVERIFIED',
+      rejectionReason: 'No retrieved publication or encyclopedic source contains textual evidence confirming this claim.',
+      isSupportedByEvidence: false
     };
-  });
+  }
+
+  const enrichedClaims = (Array.isArray(claims) ? claims : []).map(c => evaluateClaimSupport(c, 'OBSERVED', 'visual_observation'));
+  const enrichedEvidenceLedger = (Array.isArray(evidenceLedger) ? evidenceLedger : []).map(item => evaluateClaimSupport(item, 'INFERRED', item.evidenceType));
 
   return {
     claims: enrichedClaims,

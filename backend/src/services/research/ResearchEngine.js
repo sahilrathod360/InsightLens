@@ -61,15 +61,21 @@ export class ResearchEngine {
       'digital', 'abstract', 'photo', 'image', 'mesh', 'wireframe', 'recent', 'analysis', 'study',
       'system', 'systems', 'structure', 'concept', 'theory', 'architecture', 'landscape',
       'geography', 'planning', 'environment', 'condition', 'conditions', 'nocturnal', 'diurnal',
-      'setting', 'view', 'modern', 'historical', 'general', 'high', 'large', 'area', 'city'
+      'setting', 'view', 'modern', 'historical', 'general', 'high', 'large', 'area', 'city',
+      'character', 'characters', 'television', 'fictional', 'fiction', 'series', 'drama',
+      'actor', 'actress', 'movie', 'movies', 'film', 'films', 'media', 'popular', 'culture'
     ]);
 
     const getCoreTokens = (str) => (str || '').toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2 && !relevanceStopwords.has(w));
+    const subjectCoreTokens = getCoreTokens(cleanSubject);
+    const conceptsCoreTokens = cleanConcepts.map(getCoreTokens).flat();
     const allDomainTokens = [...new Set([
-      ...getCoreTokens(cleanSubject),
-      ...cleanConcepts.map(getCoreTokens).flat(),
+      ...subjectCoreTokens,
+      ...conceptsCoreTokens,
       ...(categoryHint ? getCoreTokens(categoryHint) : [])
     ])];
+
+    const isNamedEntityOrCharacter = /\b(character|person|actor|actress|fictional|biography|figure)\b/i.test(`${cleanSubject} ${cleanConcepts.join(' ')} ${category}`);
 
     const scoredScholarlyWorks = [];
     const rejectedScholarlyWorks = [];
@@ -93,12 +99,12 @@ export class ResearchEngine {
 
       // 2. Exact match of subject phrase
       if (cleanSubject.length > 3 && allWorkText.includes(cleanSubject.toLowerCase())) {
-        score += 0.30;
+        score += 0.40;
         matchedKeywords.push(`exact_subject:${cleanSubject}`);
       }
 
       // 3. Domain concept alignment
-      for (const tok of allDomainTokens) {
+      for (const tok of conceptsCoreTokens) {
         if (workConceptNames.some(c => c.includes(tok))) {
           score += 0.15;
           matchedKeywords.push(`concept:${tok}`);
@@ -113,7 +119,17 @@ export class ResearchEngine {
         }
       }
 
-      // 5. Explicit domain preservation: dark skies, light pollution, astronomy, environmental monitoring
+      // 5. Subject Entity Anchor Check (Mandatory for named entities or specific subjects)
+      // If the query is a specific entity, an academic paper MUST contain either the subject phrase
+      // or at least one core subject token in its title or abstract text. Generic concept overlap alone is rejected!
+      const hasSubjectTokenInText = subjectCoreTokens.some(tok => allWorkText.includes(tok));
+      const hasExactSubject = cleanSubject.length > 3 && allWorkText.includes(cleanSubject.toLowerCase());
+      if (subjectCoreTokens.length > 0 && !hasSubjectTokenInText && !hasExactSubject) {
+        // Severe penalty if paper does not mention the actual entity
+        score = Math.min(score, 0.20);
+      }
+
+      // 6. Explicit domain preservation: dark skies, light pollution, astronomy, environmental monitoring
       const isDarkSkiesOrEnviro = /dark sk(y|ies)|light pollution|astrophotography|nocturnal environment|sky glow/i.test(allWorkText);
       const isSubjectNocturnal = cleanSubject.toLowerCase().includes('night') || cleanSubject.toLowerCase().includes('nocturnal') || cleanConcepts.some(c => /night|dark|star|sky/i.test(c));
       if (isDarkSkiesOrEnviro && isSubjectNocturnal) {
@@ -121,7 +137,7 @@ export class ResearchEngine {
         matchedKeywords.push('domain:dark_skies_environmental');
       }
 
-      // 6. Divergent domain penalties (Reject homonyms / totally unrelated academic fields)
+      // 7. Divergent domain penalties (Reject homonyms / totally unrelated academic fields)
       const isUnrelatedPedagogy = /\b(pedagogical|pedagogy|curriculum|k-12|elementary students?|teaching math)\b/i.test(allWorkText);
       const isUnrelatedArchaeology = /\b(archaeological excavation|indigenous medicine wheel|pottery sherds?|ancient tomb)\b/i.test(allWorkText);
       const isUnrelatedMedicine = /\b(fetal|fetuses|brachial plexus|carcinoma|biopsy|clinical trial|syndrome)\b/i.test(allWorkText);
@@ -138,7 +154,7 @@ export class ResearchEngine {
       if (finalScore >= 0.50) {
         relevanceTier = 'DIRECTLY_RELEVANT';
         relevanceRationale = `Direct conceptual match on core subject markers (${matchedKeywords.slice(0, 3).join(', ')}).`;
-      } else if (finalScore >= 0.30) {
+      } else if (finalScore >= 0.35) {
         relevanceTier = 'TANGENTIALLY_RELATED';
         relevanceRationale = `Tangential domain relation; broad secondary overlap on (${matchedKeywords.slice(0, 2).join(', ')}).`;
       }
@@ -152,9 +168,11 @@ export class ResearchEngine {
       };
 
       // Admission Rule:
-      // If ordinary image: admit ONLY DIRECTLY_RELEVANT (finalScore >= 0.50). Do not force papers!
+      // If ordinary visual or named character/entity: admit ONLY DIRECTLY_RELEVANT (finalScore >= 0.50). Do not force papers!
       // If technical / scholarly subject: admit DIRECTLY_RELEVANT, and TANGENTIALLY_RELATED only if needed.
-      const isAdmissible = isOrdinaryVisual ? (relevanceTier === 'DIRECTLY_RELEVANT') : (finalScore >= 0.35);
+      const isAdmissible = (isOrdinaryVisual || isNamedEntityOrCharacter)
+        ? (relevanceTier === 'DIRECTLY_RELEVANT')
+        : (finalScore >= 0.35);
 
       if (isAdmissible) {
         scoredScholarlyWorks.push(enrichedWork);
@@ -335,9 +353,10 @@ Verified Extract: "${wikiData.extract}"
 
     text += `CITATION & EVIDENCE GROUNDING INSTRUCTIONS:
 1. In the "references" JSON array, include the above retrieved external sources. Keep their exact titles, DOIs, and URLs.
-2. For each claim in "evidenceLedger" and "claims", if the claim is based on the above retrieved literature, link it to the exact "sourceTitle" and "sourceUrl".
-3. Distinguish directly observed visual features ("OBSERVED") from facts sourced from external literature ("INFERRED").
-4. If a claim is not supported by the retrieved evidence or direct visual cues, explicitly indicate uncertainty ("UNDETERMINABLE").
+2. For each claim in "evidenceLedger" and "claims", link it to the exact "sourceTitle" and "sourceUrl" ONLY if that source's excerpt actually documents that specific fact.
+3. For biographical, character identity, casting, and premiere facts, link to the verified Wikipedia encyclopedic background (Tier 2). DO NOT link biographical facts to theoretical academic papers unless their excerpt explicitly documents them.
+4. Distinguish directly observed visual features ("OBSERVED") from facts sourced from external literature ("INFERRED").
+5. If a claim is not supported by the retrieved evidence or direct visual cues, explicitly indicate uncertainty ("UNDETERMINABLE").
 ==================================================
 `;
 

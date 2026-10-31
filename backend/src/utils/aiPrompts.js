@@ -141,6 +141,8 @@ CRITICAL RESEARCH DIRECTIVES:
    - When external grounding literature is provided above, YOU MUST CITE THOSE EXACT RETRIEVED SOURCES in the "references" array.
    - Use their verified titles, exact DOIs, authors, publication years, and authentic URLs.
    - Maintain clear separation between direct visual observations ("observed") and secondary inferences ("inferred").
+   - NEVER attach an academic paper to a factual claim unless the paper's excerpt actually documents that specific fact.
+   - For biographical, casting, broadcast history, or premiere milestones, cite the verified Wikipedia / archival context, NOT an unrelated theoretical paper.
 
   Write in ${writingStyle} style. Use ${citationStyle} formatting where a source is available.
   Synthesize in ${lang} (${researchLength} depth). Do not invent a source, a confidence percentage, or facts not supported by the image or clearly identified external knowledge. Return ONLY valid JSON matching this schema:`;

@@ -677,14 +677,16 @@ export function renderResultScreen(data) {
   if (appEl) {
     const timestamp = new Date().toISOString();
     const valStatus = data.validationStatus || 'Schema validated; claims not independently verified';
-    const retSourcesCount = Array.isArray(data.retrievedSources) ? data.retrievedSources.length : (data.groundingTelemetry?.retrievedCount || 0);
+    const retSourcesCount = Array.isArray(data.references) && data.references.length > 0
+      ? data.references.length
+      : (Array.isArray(data.retrievedSources) ? data.retrievedSources.length : (data.groundingTelemetry?.retrievedCount || 0));
     appEl.innerHTML = `
       <div>Engine: InsightLens Academic Visual Intelligence System</div>
       <div>Multimodal Model: ${escapeHtml(activeModelStr)}</div>
       <div>Ingest Timestamp: ${escapeHtml(timestamp)}</div>
       <div>Citation display: ${escapeHtml(systemPreferences.citationStyle || 'APA')} where supplied</div>
       <div>Validation Status: ${escapeHtml(valStatus)}</div>
-      ${retSourcesCount > 0 ? `<div>External Grounding: Grounded with ${retSourcesCount} verified external sources (OpenAlex, Crossref, Wikipedia)</div>` : ''}
+      ${retSourcesCount > 0 ? `<div>External Grounding: Grounded with ${retSourcesCount} verified external source${retSourcesCount === 1 ? '' : 's'} (OpenAlex, Crossref, Wikipedia)</div>` : ''}
     `;
   }
 
@@ -1045,13 +1047,21 @@ export function renderEvidenceWorkbench(data) {
       else evidenceType = 'inference';
     }
 
+    const verificationStatus = c.verificationStatus || (normStatus === 'OBSERVED' ? 'CLAIM_SUPPORT_VERIFIED' : (c.sourceTitle ? 'METADATA_MATCHED' : 'UNVERIFIED'));
+    const supportingSource = c.supportingSource || c.supportingSourceTitle || c.sourceTitle || (normStatus === 'OBSERVED' ? 'Direct Visual Optical Frame' : null);
+    const supportingPassage = c.supportingPassage || c.evidence || null;
+
     ledger.push({
       claim: stmt,
       status: normStatus,
       evidenceType,
       evidence: c.evidence || (normStatus === 'OBSERVED' ? 'Direct optical observation' : 'Contextual domain record'),
       sourceTitle: c.sourceTitle || c.source || (normStatus === 'OBSERVED' ? 'Visual Optical Frame' : 'Domain Reference'),
+      supportingSource,
+      supportingPassage,
       sourceUrl: c.sourceUrl || null,
+      verificationStatus,
+      rejectionReason: c.rejectionReason || null,
       reasoning: c.reasoning || '',
       relatedSection: c.relatedSection || ''
     });
@@ -1199,6 +1209,16 @@ export function renderEvidenceWorkbench(data) {
       const sMeta = statusConfig[itemStatusKey] || statusConfig[item.supportStatus] || statusConfig.UNDETERMINABLE;
       const safeUrl = sanitizeUrl(item.sourceUrl);
 
+      const vStatus = item.verificationStatus || (item.status === 'OBSERVED' ? 'CLAIM_SUPPORT_VERIFIED' : (item.supportingSource ? 'METADATA_MATCHED' : 'UNVERIFIED'));
+      const vBadgeClass = vStatus === 'CLAIM_SUPPORT_VERIFIED'
+        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+        : (vStatus === 'METADATA_MATCHED'
+          ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+          : (vStatus === 'URL_ACCESSIBLE'
+            ? 'bg-teal-500/15 text-teal-400 border border-teal-500/30'
+            : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'));
+      const vIcon = vStatus === 'CLAIM_SUPPORT_VERIFIED' ? 'verified' : (vStatus === 'METADATA_MATCHED' ? 'menu_book' : (vStatus === 'URL_ACCESSIBLE' ? 'link' : 'info'));
+
       return `
         <div class="report-card p-4 space-y-3 border-l-4 ${tMeta.borderAccent} shadow-sm transition-all hover:border-[var(--border-hover)]">
           <!-- Card Header: Claim and Badges -->
@@ -1213,15 +1233,19 @@ export function renderEvidenceWorkbench(data) {
               </h3>
             </div>
 
-            <!-- Type & Status Badges -->
-            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 font-mono text-[10px] font-semibold">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md ${tMeta.badgeClass}">
-                <span class="material-symbols-outlined text-[13px]">${tMeta.icon}</span>
+            <!-- Type, Status & Verification Badges -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-1.5 shrink-0 font-mono text-[10px] font-semibold">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${tMeta.badgeClass}">
+                <span class="material-symbols-outlined text-[12px]">${tMeta.icon}</span>
                 ${tMeta.label}
               </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md ${sMeta.badgeClass}">
-                <span class="material-symbols-outlined text-[13px]">${sMeta.icon}</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${sMeta.badgeClass}">
+                <span class="material-symbols-outlined text-[12px]">${sMeta.icon}</span>
                 ${sMeta.label}
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${vBadgeClass}" title="Grounding Verification Status">
+                <span class="material-symbols-outlined text-[12px]">${vIcon}</span>
+                ${vStatus}
               </span>
             </div>
           </div>
@@ -1245,20 +1269,39 @@ export function renderEvidenceWorkbench(data) {
             </div>
           </div>
 
+          <!-- Supporting Passage (if verified from literature or encyclopedic extract) -->
+          ${item.supportingPassage ? `
+            <div class="p-2.5 bg-[var(--bg-card)] rounded-lg border border-indigo-500/20 text-xs space-y-1">
+              <span class="text-[10px] font-mono text-indigo-400 uppercase font-semibold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">format_quote</span>
+                Verified Supporting Evidence Passage
+              </span>
+              <p class="text-[var(--text-secondary)] italic leading-relaxed">"${escapeHtml(item.supportingPassage)}"</p>
+            </div>
+          ` : ''}
+
+          <!-- Decoupling / Rejection Rationale (if applicable) -->
+          ${item.rejectionReason ? `
+            <div class="p-2.5 bg-amber-500/10 rounded-lg border border-amber-500/25 text-xs text-amber-300 font-mono flex items-start gap-1.5">
+              <span class="material-symbols-outlined text-[14px] shrink-0 mt-0.5 text-amber-400">warning</span>
+              <div><strong class="text-amber-200">Decoupling / Rejection Rationale:</strong> ${escapeHtml(item.rejectionReason)}</div>
+            </div>
+          ` : ''}
+
           <!-- Card Footer: Source Attribution -->
           <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] font-mono text-[var(--text-muted)] border-t border-[var(--border-color)]">
             <div class="flex items-center gap-1.5 truncate">
               <span class="material-symbols-outlined text-[14px] text-[var(--text-muted)]">attribution</span>
-              <span>Source:</span>
-              ${item.sourceTitle ? `<span class="text-[var(--text-primary)] font-medium truncate">${escapeHtml(item.sourceTitle)}</span>` : '<span class="text-slate-400">Direct Optical Artifact Inspection</span>'}
+              <span>Supporting Source:</span>
+              ${item.supportingSource ? `<span class="text-[var(--text-primary)] font-medium truncate">${escapeHtml(item.supportingSource)}</span>` : '<span class="italic text-[var(--text-muted)]">None</span>'}
             </div>
 
             ${safeUrl ? `
               <a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[var(--accent-link)] hover:underline">
                 <span class="material-symbols-outlined text-[13px]">open_in_new</span>
-                <span>Reference URL</span>
+                <span>Source URL</span>
               </a>
-            ` : ''}
+            ` : '<span class="text-[var(--text-muted)] italic">Source URL: None</span>'}
           </div>
         </div>
       `;

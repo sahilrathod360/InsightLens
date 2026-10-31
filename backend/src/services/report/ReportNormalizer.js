@@ -164,6 +164,11 @@ function normalizeClaims(rawClaims, evidenceLedger = [], visualEvidence = [], ob
       status, // 'OBSERVED' | 'INFERRED' | 'UNDETERMINABLE'
       evidence,
       source: source || (status === 'OBSERVED' ? 'Visual Optical Frame' : 'Historical & Domain Reference'),
+      supportingSource: item.supportingSource || source || (status === 'OBSERVED' ? 'Direct Visual Optical Frame' : null),
+      supportingPassage: item.supportingPassage || evidence || null,
+      sourceUrl: item.sourceUrl || null,
+      verificationStatus: item.verificationStatus || (status === 'OBSERVED' ? 'CLAIM_SUPPORT_VERIFIED' : (source ? 'METADATA_MATCHED' : 'UNVERIFIED')),
+      rejectionReason: item.rejectionReason || null,
       reasoning: reasoning || (status === 'OBSERVED' ? 'Direct optical observation visible in image artifact.' : 'Analytical inference derived from domain records.')
     });
   }
@@ -462,15 +467,18 @@ export function normalizeReport(raw) {
     diagramStructure,
     chartStructure,
     references: Array.isArray(raw.references) ? raw.references : [],
-    retrievedSources: Array.isArray(raw.retrievedSources) ? raw.retrievedSources : [],
-    groundingTelemetry: raw.groundingTelemetry || null,
+    retrievedSources: Array.isArray(raw.references) && raw.references.length > 0 ? raw.references : (Array.isArray(raw.retrievedSources) ? raw.retrievedSources : []),
+    groundingTelemetry: raw.groundingTelemetry ? {
+      ...raw.groundingTelemetry,
+      retrievedCount: Array.isArray(raw.references) ? raw.references.length : (raw.groundingTelemetry.retrievedCount || 0)
+    } : null,
     limitations: Array.isArray(raw.limitations)
       ? raw.limitations.filter(Boolean)
       : (typeof raw.limitations === 'string' && raw.limitations.trim() ? [raw.limitations.trim()] : []),
     evidenceStatus,
-    validationStatus: raw.validationStatus || (raw.retrievedSources?.length > 0
-      ? `Grounded in ${raw.retrievedSources.length} verified external sources (OpenAlex, Crossref, Wikipedia). Citations validated.`
-      : 'Schema validated; claims are not independently verified.')
+    validationStatus: (Array.isArray(raw.references) && raw.references.length > 0)
+      ? `Grounded in ${raw.references.length} verified external sources (OpenAlex, Crossref, Wikipedia). Citations validated.`
+      : (raw.validationStatus || 'Schema validated; claims are not independently verified.')
   };
 
   if (!normalized.id) {

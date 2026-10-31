@@ -155,7 +155,7 @@ class GeminiService {
       }
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
 
     const executeCall = async (currentTimeout) => {
       const controller = new AbortController();
@@ -174,13 +174,12 @@ class GeminiService {
             contents: [{
               parts: [
                 { inline_data: { mime_type: mimeType, data: base64Data } },
-                { text: 'Analyze this image and identify its primary subject for scholarly and academic research. For geographic locations, cities, architectural landmarks, or monuments, identify the specific canonical entity name (e.g. "Empire State Building, New York City", "Manhattan Skyline"), never generic textbook phrases (e.g. "Urban Morphology and Metropolitan Analysis"). For abstract visuals, diagrams, network meshes, or digital graphics, identify the canonical scientific, technological, or mathematical subject (e.g. "Artificial Neural Network", "Graph Theory Network Topology", "Digital Mesh Wireframe"), never stock-photo descriptive filler (e.g. "plexus background", "wallpaper"). Return JSON ONLY with keys: subject, searchQuery, concepts, category.' }
+                { text: 'Analyze this image and identify its primary subject for scholarly and academic research. For people, fictional characters, or cultural figures, identify the exact specific character or person name (e.g. "Walter White", "Spider-Man", "Albert Einstein") rather than just the franchise or media title. For geographic locations, cities, architectural landmarks, or monuments, identify the specific canonical entity name (e.g. "Empire State Building, New York City", "Manhattan Skyline"), never generic textbook phrases (e.g. "Urban Morphology and Metropolitan Analysis"). For abstract visuals, diagrams, network meshes, or digital graphics, identify the canonical scientific, technological, or mathematical subject (e.g. "Artificial Neural Network", "Graph Theory Network Topology", "Digital Mesh Wireframe"), never stock-photo descriptive filler (e.g. "plexus background", "wallpaper"). Return JSON ONLY with keys: subject, searchQuery, concepts, category.' }
               ]
             }],
             generationConfig: {
               response_mime_type: "application/json",
-              maxOutputTokens: 250,
-              thinking_config: { thinking_budget: 0 }
+              maxOutputTokens: 250
             }
           }),
           signal: controller.signal

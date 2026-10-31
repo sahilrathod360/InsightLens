@@ -250,23 +250,24 @@ class AIManager {
       const citationDurationMs = Date.now() - citStart;
 
       const totalDurationMs = Date.now() - startTime;
+      const refCount = validatedReferences.length;
 
       const finalReport = {
         ...raceWinner.result,
         references: validatedReferences,
         claims: claimsValidation.claims,
         evidenceLedger: claimsValidation.evidenceLedger,
-        retrievedSources: promptObj.groundingDossier?.allSources || [],
+        retrievedSources: validatedReferences,
         groundingTelemetry: {
-          retrievedCount: promptObj.groundingDossier?.retrievedCount || 0,
+          retrievedCount: refCount,
           retrievalLatencyMs: promptObj.groundingDossier?.retrievalLatencyMs || 0,
-          hasAcademicSources: promptObj.groundingDossier?.hasAcademicSources || false,
-          hasEncyclopedicSources: promptObj.groundingDossier?.hasEncyclopedicSources || false,
-          academicCount: promptObj.groundingDossier?.academicSources?.length || 0,
+          hasAcademicSources: validatedReferences.some(r => r.sourceType === 'ACADEMIC_PUBLICATION'),
+          hasEncyclopedicSources: validatedReferences.some(r => r.sourceType === 'ENCYCLOPEDIC_CONTEXT'),
+          academicCount: validatedReferences.filter(r => r.sourceType === 'ACADEMIC_PUBLICATION').length,
           verificationTimeMs: citationDurationMs
         },
-        validationStatus: promptObj.groundingDossier?.retrievedCount > 0
-          ? `Grounded in ${promptObj.groundingDossier.retrievedCount} verified external sources (OpenAlex, Crossref, Wikipedia). Citations validated.`
+        validationStatus: refCount > 0
+          ? `Grounded in ${refCount} verified external source${refCount === 1 ? '' : 's'} (OpenAlex, Crossref, Wikipedia). Citations validated.`
           : (raceWinner.result.validationStatus || 'Empirically analyzed and citation validated.'),
         aiProvider: raceWinner.provider,
         actualModel: raceWinner.modelId,

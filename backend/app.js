@@ -31,6 +31,7 @@ import liveVisionRoutes from './src/routes/livevision.routes.js';
 import regionRoutes from './src/routes/region.routes.js';
 import guessRoutes from './src/routes/guess.routes.js';
 import narrationRoutes from './src/routes/narration.routes.js';
+import auditRoutes from './src/routes/audit.routes.js';
 
 console.log('Creating Express app instance...');
 const app = express();
@@ -199,6 +200,7 @@ app.use('/api/live-vision', requireAuth, liveVisionRoutes);
 app.use('/api/regions', requireAuth, regionRoutes);
 app.use('/api/guess', requireAuth, guessRoutes);
 app.use('/api/narration', requireAuth, narrationRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

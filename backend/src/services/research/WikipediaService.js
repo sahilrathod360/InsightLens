@@ -92,24 +92,15 @@ export class WikipediaService {
         // Fall back to entity root or search
       }
 
-      // If direct query was a compound phrase (e.g. "Manhattan Skyline") and direct lookup failed/disambiguated,
-      // try primary entity root (e.g. "Manhattan" or "Empire State Building")
+      // If direct query was a compound phrase with visual descriptors (e.g. "Manhattan Skyline", "Spider-Man Wallpaper"),
+      // try stripping non-entity visual descriptors (never split proper nouns into isolated words)
       if (!summaryData) {
         const queryWords = cleanQuery.split(' ');
         if (queryWords.length > 1) {
-          const candidateRoots = [];
-          if (cleanQuery.toLowerCase().includes('manhattan')) candidateRoots.push('Manhattan');
-          if (cleanQuery.toLowerCase().includes('empire state')) candidateRoots.push('Empire_State_Building');
-
-          const coreTokens = getCoreTokens(cleanQuery);
-          for (const token of coreTokens) {
-            const capitalized = token.charAt(0).toUpperCase() + token.slice(1);
-            if (!candidateRoots.includes(capitalized)) candidateRoots.push(capitalized);
-          }
-          
-          for (const root of candidateRoots) {
+          const strippedQuery = cleanQuery.replace(/\b(skyline|panorama|panoramic view|aerial view|wallpaper|background image|background|diagram|illustration|photo|portrait|overview)\b/gi, '').trim();
+          if (strippedQuery && strippedQuery.toLowerCase() !== cleanQuery.toLowerCase()) {
             try {
-              const rootRes = await fetch(`${WIKI_REST_BASE}/page/summary/${encodeURIComponent(root)}`, {
+              const rootRes = await fetch(`${WIKI_REST_BASE}/page/summary/${encodeURIComponent(strippedQuery.replace(/\s+/g, '_'))}`, {
                 headers: { 'User-Agent': WIKI_USER_AGENT, 'Accept': 'application/json' },
                 signal: controller.signal
               });
@@ -118,7 +109,6 @@ export class WikipediaService {
                 if (rootJson && rootJson.type !== 'disambiguation' && rootJson.extract) {
                   if (!isGeographicMismatch(contextText, `${rootJson.title} ${rootJson.description || ''}`)) {
                     summaryData = rootJson;
-                    break;
                   }
                 }
               }
@@ -127,9 +117,9 @@ export class WikipediaService {
         }
       }
 
-      // 2. Search Fallback with strict relevance and geographic validation
+      // 2. Search Fallback with context-aware candidate ranking and disambiguation resolution
       if (!summaryData) {
-        const searchUrl = `${WIKI_SEARCH_BASE}/search/page?q=${encodeURIComponent(cleanQuery)}&limit=5`;
+        const searchUrl = `${WIKI_SEARCH_BASE}/search/page?q=${encodeURIComponent(cleanQuery)}&limit=8`;
         const searchRes = await fetch(searchUrl, {
           headers: { 'User-Agent': WIKI_USER_AGENT, 'Accept': 'application/json' },
           signal: controller.signal
@@ -144,14 +134,17 @@ export class WikipediaService {
           ]);
 
           const cleanQueryNorm = cleanQuery.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').trim();
-          const isEntertainmentContext = /\b(film|movie|actor|actress|character|comic|fictional|superhero|song|album|band|game|art|painting|music)\b/i.test(contextText);
+          const isEntertainmentContext = /\b(film|movie|actor|actress|character|comic|fictional|superhero|song|album|band|game|art|painting|music|television|drama|series)\b/i.test(contextText);
+
+          const scoredCandidates = [];
 
           for (const page of searchJson.pages || []) {
             if (!page || !page.key) continue;
+            const titleLower = (page.title || '').toLowerCase();
             const desc = (page.description || '').toLowerCase();
 
             // Deprioritize generic directory/list pages
-            if (/^(list of|index of|outline of|timeline of)\b/i.test(page.title)) {
+            if (/^(list of|index of|outline of|timeline of|category:)\b/i.test(page.title)) {
               continue;
             }
 
@@ -165,34 +158,56 @@ export class WikipediaService {
               continue;
             }
 
-            // Evaluate non-generic entity overlap
+            // Reject isolated single-word tokens when querying a multi-word entity (e.g. matching "White" when searching "Walter White")
             const pageTitleTokens = getCoreTokens(page.title);
-            const pageTitleNorm = (page.title || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').trim();
-
-            const isSubstring = (cleanQueryNorm.includes(pageTitleNorm) || pageTitleNorm.includes(cleanQueryNorm)) && pageTitleNorm.length > 3;
-            const sharesCoreToken = pageTitleTokens.some(t => allCoreTokens.has(t));
-
-            // Must share an explicit core non-generic entity token or be an exact title substring
-            if (!isSubstring && !sharesCoreToken) {
+            const queryWords = cleanQuery.split(/\s+/).filter(w => w.length > 0);
+            if (queryWords.length > 1 && pageTitleTokens.length === 1 && !cleanQueryNorm.includes(titleLower)) {
               continue;
             }
 
-            // Fetch summary to ensure it's a standard article
-            const pageUrl = `${WIKI_REST_BASE}/page/summary/${encodeURIComponent(page.key)}`;
-            const pageRes = await fetch(pageUrl, {
-              headers: { 'User-Agent': WIKI_USER_AGENT, 'Accept': 'application/json' },
-              signal: controller.signal
-            });
+            // Scoring system for search candidates
+            let score = 0;
+            if (titleLower === cleanQueryNorm) {
+              score += 25;
+            } else if (titleLower.startsWith(`${cleanQueryNorm} (`)) {
+              score += 20; // Exact entity with disambiguation tag e.g. "Walter White (Breaking Bad)"
+            } else if (titleLower.includes(cleanQueryNorm)) {
+              score += 12;
+            }
 
-            if (pageRes.ok) {
-              const candidateSummary = await pageRes.json();
-              if (candidateSummary && candidateSummary.type !== 'disambiguation' && candidateSummary.extract) {
-                if (!isGeographicMismatch(contextText, `${candidateSummary.title} ${candidateSummary.description || ''}`)) {
-                  summaryData = candidateSummary;
-                  break;
+            // Contextual concept overlap in title or description
+            for (const tok of allCoreTokens) {
+              if (titleLower.includes(tok)) score += 4;
+              if (desc.includes(tok)) score += 3;
+            }
+
+            if (score > 0) {
+              scoredCandidates.push({ page, score });
+            }
+          }
+
+          // Sort candidates by score descending
+          scoredCandidates.sort((a, b) => b.score - a.score);
+
+          for (const candidate of scoredCandidates) {
+            const page = candidate.page;
+            const pageUrl = `${WIKI_REST_BASE}/page/summary/${encodeURIComponent(page.key)}`;
+            try {
+              const pageRes = await fetch(pageUrl, {
+                headers: { 'User-Agent': WIKI_USER_AGENT, 'Accept': 'application/json' },
+                signal: controller.signal
+              });
+
+              if (pageRes.ok) {
+                const candidateSummary = await pageRes.json();
+                if (candidateSummary && candidateSummary.type !== 'disambiguation' && candidateSummary.extract) {
+                  if (!isGeographicMismatch(contextText, `${candidateSummary.title} ${candidateSummary.description || ''}`)) {
+                    summaryData = candidateSummary;
+                    break;
+                  }
                 }
               }
-            }
+            } catch (candErr) {}
           }
         }
       }
