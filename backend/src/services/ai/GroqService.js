@@ -1,8 +1,74 @@
 import { config } from '../../config/env.js';
-import { buildAiPrompt, buildJsonSchemaPrompt } from '../../utils/aiPrompts.js';
 import { APIError } from '../../utils/apiUtils.js';
 import { parseAIResponse } from '../../utils/aiParser.js';
 import ModelHealthTracker from './ModelHealthTracker.js';
+
+/**
+ * Builds a compact, high-density prompt tailored specifically for Groq's
+ * free-tier token budgets (7,000 ITPM / 1,000 OTPM) while enforcing the
+ * strict InsightLens research JSON schema.
+ */
+function buildGroqPrompt(promptObj = {}) {
+  const {
+    language = 'en',
+    subjectContext = '',
+    category = '',
+    groundingDossier = null
+  } = promptObj;
+
+  let groundingText = '';
+  if (groundingDossier && Array.isArray(groundingDossier.sources) && groundingDossier.sources.length > 0) {
+    groundingText = '\nVERIFIED GROUNDING SOURCES:\n' + groundingDossier.sources.slice(0, 3).map((s, i) => 
+      `[Source ${i + 1}] "${s.title}" (${s.year || 'n.d.'}) - ${s.url}`
+    ).join('\n') + '\nStrictly cite and ground your claims in these sources.\n';
+  }
+
+  const subjectStr = subjectContext ? `Subject: "${subjectContext}"` : 'Identify the primary subject accurately from visible optical features.';
+
+  return `You are InsightLens's premier research scientist. Conduct an exhaustive scholarly visual analysis of this image.
+Language: ${language}
+${subjectStr}
+${category ? `Category: "${category}"` : ''}
+${groundingText}
+Return valid JSON matching this schema:
+{
+  "title": "Exhaustive scholarly title",
+  "subject": "Precise canonical entity name",
+  "domain": "Academic domain",
+  "category": "Taxonomic category",
+  "detectionSummary": "Empirical visual observations of optics, lighting, morphology, and composition.",
+  "summaryLead": "Executive research thesis statement.",
+  "executiveSummary": "In-depth academic synthesis of visual presentation, historical context, and broader significance.",
+  "visualEvidence": [
+    { "feature": "Visual feature name", "observation": "Detailed observation" }
+  ],
+  "observations": [
+    "Specific optical or morphological observation 1",
+    "Specific optical or morphological observation 2"
+  ],
+  "keyTakeaways": [
+    "Key finding 1",
+    "Key finding 2"
+  ],
+  "methodology": "Multimodal visual decomposition and cross-referential analysis.",
+  "structuredSections": [
+    {
+      "heading": "Visual Composition and Semiotics",
+      "content": "Deep scholarly analysis examining composition, optics, and thematic execution."
+    },
+    {
+      "heading": "Historical and Theoretical Context",
+      "content": "Comprehensive domain context, narrative significance, and scholarly implications."
+    }
+  ],
+  "timeline": [
+    { "year": "Key Year", "event": "Significant historical or contextual milestone" }
+  ],
+  "references": [
+    { "title": "Authoritative Reference Title", "authors": ["Author Name"], "year": 2020, "url": "https://doi.org/..." }
+  ]
+}`;
+}
 
 class GroqService {
   /**
@@ -18,7 +84,7 @@ class GroqService {
       throw new APIError('Groq API key is missing or not configured.', 401, 'Groq', 'INVALID_KEY');
     }
 
-    const modelId = modelConfig.id || 'llama-3.2-11b-vision-preview';
+    const modelId = modelConfig.id || 'qwen/qwen3.8-27b';
     const timeoutMs = modelConfig.timeoutMs || 25000;
 
     const startTime = Date.now();
@@ -40,8 +106,7 @@ class GroqService {
       imageUrl = `data:image/jpeg;base64,${dataUrl}`;
     }
 
-    const promptText = buildAiPrompt(language, researchLength, subjectContext, writingStyle, citationStyle, userPreferences, groundingDossier);
-    const schemaText = buildJsonSchemaPrompt();
+    const promptText = buildGroqPrompt(promptObj);
     const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
     const headers = {
@@ -49,16 +114,19 @@ class GroqService {
       'Content-Type': 'application/json'
     };
 
+    // Note: Groq on-demand tier enforces a 1,000 OTPM ceiling; cap to 850 to prevent 429 pre-flight rejections
+    const tokenLimit = Math.min(modelConfig.maxOutputTokens || 850, 850);
+
     const body = {
       model: modelId,
-      max_tokens: Math.min(modelConfig.maxOutputTokens || 6000, 8000),
+      max_tokens: tokenLimit,
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "user",
           content: [
-            { type: "text", text: `${promptText}\n\n${schemaText}` },
+            { type: "text", text: promptText },
             { type: "image_url", image_url: { url: imageUrl } }
           ]
         }
@@ -180,8 +248,8 @@ class GroqService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'llama-3.2-11b-vision-preview',
-          max_tokens: 300,
+          model: 'qwen/qwen3.8-27b',
+          max_tokens: 250,
           temperature: 0.1,
           response_format: { type: "json_object" },
           messages: [
@@ -237,7 +305,7 @@ class GroqService {
       const latencyMs = Date.now() - startTime;
       if (res.ok) {
         const data = await res.json();
-        const visionModels = (data.data || []).filter(m => m.id.includes('vision') || m.id.includes('11b') || m.id.includes('90b'));
+        const visionModels = (data.data || []).filter(m => m.id.includes('vision') || m.id.includes('qwen'));
         return {
           success: true,
           provider: 'Groq',

@@ -52,7 +52,14 @@ export const config = {
   jwtSecret: jwtSecret,
   isJwtConfigured: isJwtConfigured,
   aiProvider: process.env.AI_PROVIDER || 'gemini',
-  aiProviders: (process.env.AI_PROVIDERS || 'gemini,openrouter,groq').split(',').map(s => s.trim().toLowerCase()),
+  aiProviders: (() => {
+    const list = (process.env.AI_PROVIDERS || 'gemini,openrouter,groq').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const hasGroq = process.env.GROQ_API_KEY && !process.env.GROQ_API_KEY.toLowerCase().includes('your_') && !process.env.GROQ_API_KEY.toLowerCase().includes('placeholder');
+    if (hasGroq && !list.includes('groq')) {
+      list.push('groq');
+    }
+    return list;
+  })(),
   apiKeys: {
     gemini: process.env.GEMINI_API_KEY,
     openrouter: process.env.OPENROUTER_API_KEY,

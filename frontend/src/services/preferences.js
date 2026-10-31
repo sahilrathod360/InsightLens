@@ -5,7 +5,7 @@ import { API_BASE, getAuthHeaders } from '../utils/api.js';
 export const DEFAULT_PREFERENCES = {
   theme: 'dark', // 'dark' | 'light' | 'system'
   provider: 'auto', // 'auto' | 'gemini' | 'openrouter' | 'groq'
-  model: 'auto', // 'auto' | 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' | 'gemini-2.5-pro' | 'llama-3.2-11b-vision-preview'
+  model: 'auto', // 'auto' | 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' | 'gemini-2.5-pro' | 'qwen/qwen3.8-27b'
   language: 'en', // 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja'
   researchLength: 'long', // 'long' | 'short'
   writingStyle: 'classic', // 'classic' | 'concise' | 'exhaustive'

@@ -158,8 +158,7 @@ function ensureSettingsDOM() {
                 <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
                 <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
                 <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-                <option value="llama-3.2-11b-vision-preview">Groq Llama 3.2 11B Vision</option>
-                <option value="llama-3.2-90b-vision-preview">Groq Llama 3.2 90B Vision</option>
+                <option value="qwen/qwen3.8-27b">Groq Qwen 2.5 27B Vision (LPU Ultra-Fast)</option>
               </select>
               <p id="model-auto-explanation" class="text-[11px] text-indigo-300 leading-relaxed font-mono">
                 When Auto is selected, the server selects healthy configured candidates. A selected model is tried first when available.

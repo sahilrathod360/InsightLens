@@ -17,19 +17,14 @@ async function runGroqIntegrationTests() {
   // 1. Model Registry Groq Models Check
   try {
     console.log('[Test 1] Verifying Groq models registered in ModelRegistry...');
-    const m11b = ModelRegistry.getModel('llama-3.2-11b-vision-preview');
-    const m90b = ModelRegistry.getModel('llama-3.2-90b-vision-preview');
+    const mQwen = ModelRegistry.getModel('qwen/qwen3.8-27b');
 
-    assert(m11b, 'llama-3.2-11b-vision-preview must be registered');
-    assert.strictEqual(m11b.provider, 'groq', '11b model provider must be groq');
-    assert.strictEqual(m11b.vision, true, '11b model must be vision-capable');
-    assert.strictEqual(m11b.structuredJson, true, '11b model must support structuredJson');
+    assert(mQwen, 'qwen/qwen3.8-27b must be registered');
+    assert.strictEqual(mQwen.provider, 'groq', 'qwen model provider must be groq');
+    assert.strictEqual(mQwen.vision, true, 'qwen model must be vision-capable');
+    assert.strictEqual(mQwen.structuredJson, true, 'qwen model must support structuredJson');
 
-    assert(m90b, 'llama-3.2-90b-vision-preview must be registered');
-    assert.strictEqual(m90b.provider, 'groq', '90b model provider must be groq');
-    assert.strictEqual(m90b.vision, true, '90b model must be vision-capable');
-
-    console.log('  ✓ Groq models verified in ModelRegistry with multimodal vision capabilities.');
+    console.log('  ✓ Groq Qwen vision model verified in ModelRegistry with multimodal capabilities.');
     passed++;
   } catch (err) {
     console.error('  ✗ Test 1 Failed:', err.message);
@@ -85,7 +80,7 @@ async function runGroqIntegrationTests() {
     let rejectedMissing = false;
     try {
       await GroqService.generateWithModel(
-        { id: 'llama-3.2-11b-vision-preview' },
+        { id: 'qwen/qwen3.8-27b' },
         'data:image/jpeg;base64,1234'
       );
     } catch (e) {
@@ -155,7 +150,7 @@ async function runGroqIntegrationTests() {
       ]
     });
 
-    const parsed = parseAIResponse(sampleGroqJson, 'Groq', 'llama-3.2-11b-vision-preview');
+    const parsed = parseAIResponse(sampleGroqJson, 'Groq', 'qwen/qwen3.8-27b');
     assert(parsed.subject === "James Webb Space Telescope", 'Subject must match');
     assert(parsed.structuredSections.length === 1, 'Sections must be parsed');
     assert(parsed.references.length === 1, 'References must be parsed');
@@ -181,18 +176,18 @@ async function runGroqIntegrationTests() {
   // 8. Model Health Tracker Integration
   try {
     console.log('[Test 8] Testing ModelHealthTracker recording for Groq models...');
-    ModelHealthTracker.recordSuccess('llama-3.2-11b-vision-preview', 1200);
-    const stats = ModelHealthTracker.getStats('llama-3.2-11b-vision-preview');
+    ModelHealthTracker.recordSuccess('qwen/qwen3.8-27b', 1200);
+    const stats = ModelHealthTracker.getStats('qwen/qwen3.8-27b');
     assert(stats.successCount >= 1, 'Success count must increment');
-    assert(ModelHealthTracker.isAvailable('llama-3.2-11b-vision-preview'), 'Model must be marked available');
+    assert(ModelHealthTracker.isAvailable('qwen/qwen3.8-27b'), 'Model must be marked available');
 
     // Simulate 429 rate limit
-    ModelHealthTracker.recordFailure('llama-3.2-11b-vision-preview', 'HTTP_429', 500, 'Rate limit exceeded');
-    assert(!ModelHealthTracker.isAvailable('llama-3.2-11b-vision-preview'), 'Model must enter cooldown on HTTP 429');
+    ModelHealthTracker.recordFailure('qwen/qwen3.8-27b', 'HTTP_429', 500, 'Rate limit exceeded');
+    assert(!ModelHealthTracker.isAvailable('qwen/qwen3.8-27b'), 'Model must enter cooldown on HTTP 429');
     
     // Clear cooldown via recordSuccess
-    ModelHealthTracker.recordSuccess('llama-3.2-11b-vision-preview', 800);
-    assert(ModelHealthTracker.isAvailable('llama-3.2-11b-vision-preview'), 'Model available after cooldown clear');
+    ModelHealthTracker.recordSuccess('qwen/qwen3.8-27b', 800);
+    assert(ModelHealthTracker.isAvailable('qwen/qwen3.8-27b'), 'Model available after cooldown clear');
     console.log('  ✓ ModelHealthTracker handles Groq latency tracking, failure telemetry, and 429 cooldowns.');
     passed++;
   } catch (err) {

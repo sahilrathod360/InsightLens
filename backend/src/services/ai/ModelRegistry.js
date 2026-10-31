@@ -123,27 +123,15 @@ export const MODEL_REGISTRY = [
 
   // --- GROQ MULTIMODAL LPU VISION MODELS ---
   {
-    id: 'llama-3.2-11b-vision-preview',
+    id: 'qwen/qwen3.8-27b',
     provider: 'groq',
-    displayName: 'Groq: Llama 3.2 11B Vision',
+    displayName: 'Groq: Qwen 2.5 27B Vision',
     vision: true,
     structuredJson: true,
-    maxOutputTokens: 6000,
-    timeoutMs: 20000,
+    maxOutputTokens: 950,
+    timeoutMs: 15000,
     speedTier: 'FAST',
-    priority: 98,
-    enabled: true
-  },
-  {
-    id: 'llama-3.2-90b-vision-preview',
-    provider: 'groq',
-    displayName: 'Groq: Llama 3.2 90B Vision',
-    vision: true,
-    structuredJson: true,
-    maxOutputTokens: 6000,
-    timeoutMs: 25000,
-    speedTier: 'DEEP',
-    priority: 92,
+    priority: 96,
     enabled: true
   }
 ];
