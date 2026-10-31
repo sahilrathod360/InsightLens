@@ -52,10 +52,13 @@ export const config = {
   jwtSecret: jwtSecret,
   isJwtConfigured: isJwtConfigured,
   aiProvider: process.env.AI_PROVIDER || 'gemini',
-  aiProviders: (process.env.AI_PROVIDERS || 'gemini,openrouter').split(',').map(s => s.trim().toLowerCase()),
+  aiProviders: (process.env.AI_PROVIDERS || 'gemini,openrouter,groq').split(',').map(s => s.trim().toLowerCase()),
   apiKeys: {
     gemini: process.env.GEMINI_API_KEY,
-    openrouter: process.env.OPENROUTER_API_KEY
+    openrouter: process.env.OPENROUTER_API_KEY,
+    groq: (process.env.GROQ_API_KEY && !process.env.GROQ_API_KEY.toLowerCase().includes('your_') && !process.env.GROQ_API_KEY.toLowerCase().includes('placeholder'))
+      ? process.env.GROQ_API_KEY.trim()
+      : null
   },
   uploadPath: process.env.UPLOAD_PATH || 'src/uploads/',
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE, 10) || 26214400, // 25MB

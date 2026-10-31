@@ -145,6 +145,7 @@ function ensureSettingsDOM() {
                 <option value="auto" selected>Auto (Configured providers)</option>
                 <option value="gemini">Google Gemini API</option>
                 <option value="openrouter">OpenRouter API (Future-Ready Cloud Gateway)</option>
+                <option value="groq">Groq Cloud (LPU Ultra-Fast Vision)</option>
               </select>
               <p class="text-[11px] text-on-surface-variant leading-relaxed">Auto uses the configured healthy candidates. A selected provider restricts the race to that provider.</p>
             </div>
@@ -157,6 +158,8 @@ function ensureSettingsDOM() {
                 <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
                 <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
                 <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+                <option value="llama-3.2-11b-vision-preview">Groq Llama 3.2 11B Vision</option>
+                <option value="llama-3.2-90b-vision-preview">Groq Llama 3.2 90B Vision</option>
               </select>
               <p id="model-auto-explanation" class="text-[11px] text-indigo-300 leading-relaxed font-mono">
                 When Auto is selected, the server selects healthy configured candidates. A selected model is tried first when available.
@@ -174,7 +177,7 @@ function ensureSettingsDOM() {
               <span class="text-[10px] font-mono text-emerald-400 font-semibold uppercase">Server-Side Managed</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
               <!-- Gemini Status & Test Card -->
               <div class="space-y-3 bg-surface-container-lowest p-4 rounded-xl border ghost-border">
                 <div class="flex items-center justify-between">
@@ -211,6 +214,26 @@ function ensureSettingsDOM() {
                   <button type="button" id="test-openrouter-conn-btn" class="w-full py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg text-[11px] font-mono border border-purple-500/30 cursor-pointer transition-colors flex items-center justify-center gap-1.5">
                     <span class="material-symbols-outlined text-[14px]">sensors</span>
                     Test OpenRouter Connection
+                  </button>
+                </div>
+              </div>
+
+              <!-- Groq Status & Test Card -->
+              <div class="space-y-3 bg-surface-container-lowest p-4 rounded-xl border ghost-border">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-400 text-[20px]">bolt</span>
+                    <strong class="font-medium text-on-surface">Groq Cloud LPU</strong>
+                  </div>
+                  <span class="text-[10px] text-amber-400 font-mono">Ultra-Fast LPU</span>
+                </div>
+                <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                  Ultra-low latency LPU inference with Llama 3.2 Vision models for lightning-fast analysis.
+                </p>
+                <div class="pt-1">
+                  <button type="button" id="test-groq-conn-btn" class="w-full py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-lg text-[11px] font-mono border border-amber-500/30 cursor-pointer transition-colors flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px]">sensors</span>
+                    Test Groq Connection
                   </button>
                 </div>
               </div>
@@ -434,6 +457,7 @@ export function setupSettingsEvents() {
 
   const testGeminiConnBtn = document.getElementById('test-gemini-conn-btn');
   const testOpenRouterConnBtn = document.getElementById('test-openrouter-conn-btn');
+  const testGroqConnBtn = document.getElementById('test-groq-conn-btn');
 
   const dataExportBtn = document.getElementById('data-export-settings-btn');
   const dataImportBtn = document.getElementById('data-import-settings-btn');
@@ -461,6 +485,18 @@ export function setupSettingsEvents() {
       testResultBox.innerHTML = '<span class="text-purple-400 font-bold">Testing backend OpenRouter API connection...</span>';
     }
     const res = await testApiConnection('openrouter');
+    if (testResultBox) {
+      testResultBox.innerHTML = `<span class="${res.success ? 'text-emerald-400' : 'text-amber-400'} font-bold">${escapeHtml(res.status)}:</span> ${escapeHtml(res.message)}`;
+    }
+  });
+
+  // Test Server-Side Groq Connection
+  testGroqConnBtn?.addEventListener('click', async () => {
+    if (testResultBox) {
+      testResultBox.classList.remove('hidden');
+      testResultBox.innerHTML = '<span class="text-amber-400 font-bold">Testing backend Groq API connection...</span>';
+    }
+    const res = await testApiConnection('groq');
     if (testResultBox) {
       testResultBox.innerHTML = `<span class="${res.success ? 'text-emerald-400' : 'text-amber-400'} font-bold">${escapeHtml(res.status)}:</span> ${escapeHtml(res.message)}`;
     }

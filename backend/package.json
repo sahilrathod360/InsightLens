@@ -8,7 +8,7 @@
     "build": "node -e \"console.log('Backend build verified')\"",
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/auth.test.mjs && node test/analysis.test.mjs && node test/evidence.test.mjs && node test/livevision.test.mjs && node test/comparison.test.mjs && node test/extensions.test.mjs && node test/security-hardening.test.mjs && node test/dfd-structural-integrity.test.mjs && node test/pdf-section-parity.test.mjs && node test/visual-intelligence-core.test.mjs && node test/test-research-integrations.mjs && node test/wikipedia-research.test.mjs && node test/test-all-api-endpoints.mjs",
+    "test": "node test/auth.test.mjs && node test/analysis.test.mjs && node test/evidence.test.mjs && node test/livevision.test.mjs && node test/comparison.test.mjs && node test/extensions.test.mjs && node test/security-hardening.test.mjs && node test/dfd-structural-integrity.test.mjs && node test/pdf-section-parity.test.mjs && node test/visual-intelligence-core.test.mjs && node test/test-research-integrations.mjs && node test/wikipedia-research.test.mjs && node test/test-all-api-endpoints.mjs && node test/groq-integration.test.mjs",
     "test:e2e": "node test/e2e-browser.test.mjs",
     "test:avatar": "node test/test-avatar-login-flow.mjs"
   },

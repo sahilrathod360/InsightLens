@@ -119,6 +119,32 @@ export const MODEL_REGISTRY = [
     speedTier: 'FAST',
     priority: 80,
     enabled: true
+  },
+
+  // --- GROQ MULTIMODAL LPU VISION MODELS ---
+  {
+    id: 'llama-3.2-11b-vision-preview',
+    provider: 'groq',
+    displayName: 'Groq: Llama 3.2 11B Vision',
+    vision: true,
+    structuredJson: true,
+    maxOutputTokens: 6000,
+    timeoutMs: 20000,
+    speedTier: 'FAST',
+    priority: 98,
+    enabled: true
+  },
+  {
+    id: 'llama-3.2-90b-vision-preview',
+    provider: 'groq',
+    displayName: 'Groq: Llama 3.2 90B Vision',
+    vision: true,
+    structuredJson: true,
+    maxOutputTokens: 6000,
+    timeoutMs: 25000,
+    speedTier: 'DEEP',
+    priority: 92,
+    enabled: true
   }
 ];
 
@@ -152,7 +178,7 @@ class ModelRegistry {
     });
   }
 
-  getVisionCandidates({ maxCandidates = 4, hasGeminiKey = true, hasOpenRouterKey = true, allowedProviders = null, preferredProvider = null, preferredModel = null } = {}) {
+  getVisionCandidates({ maxCandidates = 4, hasGeminiKey = true, hasOpenRouterKey = true, hasGroqKey = true, allowedProviders = null, preferredProvider = null, preferredModel = null } = {}) {
     const providerSet = Array.isArray(allowedProviders) ? new Set(allowedProviders) : null;
     const allVision = Array.from(this.models.values())
       .filter(m => m.enabled && m.vision)
@@ -160,6 +186,7 @@ class ModelRegistry {
       .filter(m => {
         if (m.provider === 'gemini') return hasGeminiKey;
         if (m.provider === 'openrouter') return hasOpenRouterKey;
+        if (m.provider === 'groq') return hasGroqKey;
         return false;
       });
 
@@ -181,7 +208,7 @@ class ModelRegistry {
     });
 
     let selectedPool = pool;
-    if (preferredProvider && ['gemini', 'openrouter'].includes(preferredProvider)) {
+    if (preferredProvider && ['gemini', 'openrouter', 'groq'].includes(preferredProvider)) {
       const providerSpecific = pool.filter(m => m.provider === preferredProvider);
       const otherProviders = pool.filter(m => m.provider !== preferredProvider);
       // Place preferred provider models first, followed by other healthy models as fallback

@@ -1,6 +1,7 @@
 import { config } from '../../config/env.js';
 import GeminiService from './GeminiService.js';
 import OpenRouterService from './OpenRouterService.js';
+import GroqService from './GroqService.js';
 import ModelRegistry from './ModelRegistry.js';
 import ModelHealthTracker from './ModelHealthTracker.js';
 import { APIError } from '../../utils/apiUtils.js';
@@ -48,11 +49,13 @@ class AIManager {
     // Step 4: Multi-Model Candidate Selection from Registry (Up to 6 healthy candidates)
     const hasGeminiKey = !!config.apiKeys?.gemini;
     const hasOpenRouterKey = !!config.apiKeys?.openrouter;
+    const hasGroqKey = !!config.apiKeys?.groq;
 
     const candidates = ModelRegistry.getVisionCandidates({
       maxCandidates: 6,
       hasGeminiKey,
       hasOpenRouterKey,
+      hasGroqKey,
       allowedProviders: config.aiProviders,
       preferredProvider,
       preferredModel: promptObj?.model || null
@@ -73,9 +76,25 @@ class AIManager {
       let candidateCategory = promptObj?.category || promptObj?.domain || '';
 
       // If no subjectContext was provided by the user, perform fast entity identification from image
-      if (!candidateSubject && hasGeminiKey && !globalAbortController.signal.aborted) {
+      if (!candidateSubject && !globalAbortController.signal.aborted) {
         console.log('[AIManager] No subject context provided. Running fast visual entity extraction...');
-        const identified = await GeminiService.identifySubject(optResult.dataUrl, globalAbortController.signal);
+        let identified = null;
+        if (preferredProvider === 'groq' && hasGroqKey) {
+          console.log('[AIManager] Preferred provider is Groq. Running Groq LPU Vision for subject extraction...');
+          identified = await GroqService.identifySubject(optResult.dataUrl, globalAbortController.signal);
+          if (!identified && hasGeminiKey && !globalAbortController.signal.aborted) {
+            console.log('[AIManager] Falling back to Gemini for subject extraction...');
+            identified = await GeminiService.identifySubject(optResult.dataUrl, globalAbortController.signal);
+          }
+        } else {
+          if (hasGeminiKey) {
+            identified = await GeminiService.identifySubject(optResult.dataUrl, globalAbortController.signal);
+          }
+          if (!identified && hasGroqKey && !globalAbortController.signal.aborted) {
+            console.log('[AIManager] Falling back to Groq LPU Vision for subject extraction...');
+            identified = await GroqService.identifySubject(optResult.dataUrl, globalAbortController.signal);
+          }
+        }
         if (identified && identified.subject) {
           candidateSubject = identified.subject;
           if (identified.searchQuery) candidateSearchQuery = identified.searchQuery;
@@ -139,7 +158,10 @@ class AIManager {
             activeControllers.set(modelId, controller);
             activeCount++;
 
-            const service = modelConfig.provider === 'gemini' ? GeminiService : OpenRouterService;
+            let service;
+            if (modelConfig.provider === 'gemini') service = GeminiService;
+            else if (modelConfig.provider === 'groq') service = GroqService;
+            else service = OpenRouterService;
             const taskStart = Date.now();
             console.log(`[RACE] Launching candidate [${activeCount}/${maxConcurrent} active, queue pos ${queueIndex}/${candidates.length}]: ${modelConfig.provider}/${modelId}`);
 

@@ -163,7 +163,41 @@ export const testProviderConnection = async (req, res, next) => {
   const startMs = Date.now();
 
   try {
-    if (provider === 'openrouter') {
+    if (provider === 'groq') {
+      const keyToUse = apiKey || config.apiKeys.groq;
+      if (!keyToUse) {
+        return res.status(200).json({
+          success: false,
+          message: 'Please enter or configure a Groq API key (GROQ_API_KEY) to test connection.',
+          data: { status: 'Missing Key', latency: 0 }
+        });
+      }
+
+      const groqRes = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { 'Authorization': `Bearer ${keyToUse}` }
+      });
+      const elapsed = Date.now() - startMs;
+
+      if (groqRes.ok) {
+        return res.status(200).json({
+          success: true,
+          message: `Groq LPU API Connection Successful (${elapsed}ms latency)`,
+          data: { status: 'HTTP 200 OK', latency: elapsed }
+        });
+      } else if (groqRes.status === 429) {
+        return res.status(200).json({
+          success: true,
+          message: `Groq API Rate Limit Reached (HTTP 429). Auto Model Fallback active.`,
+          data: { status: 'HTTP 429 Rate Limit', latency: elapsed }
+        });
+      } else {
+        return res.status(200).json({
+          success: false,
+          message: `Groq API Key Error (HTTP ${groqRes.status})`,
+          data: { status: `HTTP ${groqRes.status}`, latency: elapsed }
+        });
+      }
+    } else if (provider === 'openrouter') {
       const keyToUse = apiKey || config.apiKeys.openrouter;
       if (!keyToUse) {
         return res.status(200).json({
