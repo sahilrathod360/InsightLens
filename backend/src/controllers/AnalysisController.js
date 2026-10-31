@@ -95,7 +95,7 @@ export const analyzeArtifact = async (req, res, next) => {
       }
     }
 
-    const report = await AIManager.generateReport(dataUrl, enrichedPromptObj, preferredProvider);
+    const report = await AIManager.generateReport(dataUrl, enrichedPromptObj, preferredProvider, requestId);
 
     // Verify database connection pool availability
     if (!pool) {

@@ -166,52 +166,61 @@ class ModelRegistry {
     });
   }
 
-  getVisionCandidates({ maxCandidates = 4, hasGeminiKey = true, hasOpenRouterKey = true, hasGroqKey = true, allowedProviders = null, preferredProvider = null, preferredModel = null } = {}) {
-    const providerSet = Array.isArray(allowedProviders) ? new Set(allowedProviders) : null;
-    const allVision = Array.from(this.models.values())
-      .filter(m => m.enabled && m.vision)
-      .filter(m => !providerSet || providerSet.has(m.provider))
-      .filter(m => {
-        if (m.provider === 'gemini') return hasGeminiKey;
-        if (m.provider === 'openrouter') return hasOpenRouterKey;
-        if (m.provider === 'groq') return hasGroqKey;
-        return false;
-      });
-
-    // Separate healthy models from models currently in cooldown
-    const healthy = allVision.filter(m => ModelHealthTracker.isAvailable(m.id));
-    const pool = healthy.length > 0 ? healthy : allVision;
-
-    // Prioritize by registry priority + historical average latency
-    pool.sort((a, b) => {
-      const statsA = ModelHealthTracker.getStats(a.id);
-      const statsB = ModelHealthTracker.getStats(b.id);
-      
-      // If one model is faster by > 3s on average, prioritize it
-      if (statsA?.avgLatencyMs && statsB?.avgLatencyMs) {
-        if (statsA.avgLatencyMs + 3000 < statsB.avgLatencyMs) return -1;
-        if (statsB.avgLatencyMs + 3000 < statsA.avgLatencyMs) return 1;
+  getGeminiCandidates({ preferredModel = null } = {}) {
+    const geminiModels = Array.from(this.models.values())
+      .filter(m => m.enabled && m.vision && m.provider === 'gemini');
+    const healthy = geminiModels.filter(m => ModelHealthTracker.isAvailable(m.id));
+    const pool = healthy.length > 0 ? healthy : geminiModels;
+    pool.sort((a, b) => b.priority - a.priority);
+    if (preferredModel && preferredModel !== 'auto') {
+      const match = pool.find(m => m.id === preferredModel);
+      if (match) {
+        return [match, ...pool.filter(m => m.id !== preferredModel)];
       }
-      return b.priority - a.priority;
-    });
-
-    let selectedPool = pool;
-    if (preferredProvider && ['gemini', 'openrouter', 'groq'].includes(preferredProvider)) {
-      const providerSpecific = pool.filter(m => m.provider === preferredProvider);
-      const otherProviders = pool.filter(m => m.provider !== preferredProvider);
-      // Place preferred provider models first, followed by other healthy models as fallback
-      selectedPool = providerSpecific.length > 0 ? [...providerSpecific, ...otherProviders] : pool;
     }
+    return pool;
+  }
 
-    const preferred = preferredModel && preferredModel !== 'auto'
-      ? selectedPool.filter(m => m.id === preferredModel)
+  getGroqCandidates() {
+    const groqModels = Array.from(this.models.values())
+      .filter(m => m.enabled && m.vision && m.provider === 'groq');
+    const healthy = groqModels.filter(m => ModelHealthTracker.isAvailable(m.id));
+    return healthy.length > 0 ? healthy : groqModels;
+  }
+
+  getOpenRouterCandidates({ preferredModel = null } = {}) {
+    const orModels = Array.from(this.models.values())
+      .filter(m => m.enabled && m.vision && m.provider === 'openrouter');
+    const healthy = orModels.filter(m => ModelHealthTracker.isAvailable(m.id));
+    const pool = healthy.length > 0 ? healthy : orModels;
+    pool.sort((a, b) => b.priority - a.priority);
+    if (preferredModel && preferredModel !== 'auto') {
+      const match = pool.find(m => m.id === preferredModel);
+      if (match) {
+        return [match, ...pool.filter(m => m.id !== preferredModel)];
+      }
+    }
+    return pool;
+  }
+
+  getVisionCandidates({ maxCandidates = 6, hasGeminiKey = true, hasOpenRouterKey = true, hasGroqKey = true, allowedProviders = null, preferredProvider = null, preferredModel = null } = {}) {
+    const providerSet = Array.isArray(allowedProviders) ? new Set(allowedProviders) : null;
+
+    // MANDATORY PRIORITY CHAIN: Gemini -> Groq -> OpenRouter
+    // Gemini is ALWAYS first-choice. Groq is fallback 1. OpenRouter is fallback 2.
+    const geminiList = hasGeminiKey && (!providerSet || providerSet.has('gemini'))
+      ? this.getGeminiCandidates({ preferredModel })
       : [];
 
-    // A selected valid model is always tried first, but preserve the resilient
-    // multi-model race by adding healthy candidates after it.
-    const ordered = preferred.length > 0
-      ? [...preferred, ...selectedPool.filter(m => m.id !== preferred[0].id)]
-      : selectedPool;
+    const groqList = hasGroqKey && (!providerSet || providerSet.has('groq'))
+      ? this.getGroqCandidates()
+      : [];
+
+    const openRouterList = hasOpenRouterKey && (!providerSet || providerSet.has('openrouter'))
+      ? this.getOpenRouterCandidates({ preferredModel })
+      : [];
+
+    const ordered = [...geminiList, ...groqList, ...openRouterList];
     return ordered.slice(0, maxCandidates);
   }
 

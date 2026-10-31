@@ -51,20 +51,31 @@ async function runGroqIntegrationTests() {
     failed++;
   }
 
-  // 3. Preferred Provider Routing: preferredProvider = 'groq'
+  // 3. Mandatory Provider Priority: Gemini is ALWAYS first; Groq is first fallback when Gemini unavailable
   try {
-    console.log('[Test 3] Testing preferredProvider = "groq" routing in ModelRegistry...');
-    const groqFirstCandidates = ModelRegistry.getVisionCandidates({
-      maxCandidates: 4,
+    console.log('[Test 3] Testing mandatory priority order in ModelRegistry (Gemini -> Groq -> OpenRouter)...');
+    const priorityCandidates = ModelRegistry.getVisionCandidates({
+      maxCandidates: 6,
       hasGeminiKey: true,
       hasOpenRouterKey: true,
       hasGroqKey: true,
       allowedProviders: ['gemini', 'openrouter', 'groq'],
-      preferredProvider: 'groq'
+      preferredProvider: 'groq' // Settings should NOT override mandatory policy
     });
 
-    assert.strictEqual(groqFirstCandidates[0].provider, 'groq', 'First candidate must be groq when preferredProvider is groq');
-    console.log(`  ✓ Preferred Groq candidate placed first: ${groqFirstCandidates[0].id}`);
+    assert.strictEqual(priorityCandidates[0].provider, 'gemini', 'First candidate must ALWAYS be Gemini per mandatory provider priority');
+    
+    // When Gemini is unavailable, Groq must be first fallback
+    const groqFallbackCandidates = ModelRegistry.getVisionCandidates({
+      maxCandidates: 4,
+      hasGeminiKey: false,
+      hasOpenRouterKey: true,
+      hasGroqKey: true,
+      allowedProviders: ['openrouter', 'groq']
+    });
+    assert.strictEqual(groqFallbackCandidates[0].provider, 'groq', 'Groq must be first fallback when Gemini is unavailable');
+
+    console.log(`  ✓ Mandatory priority verified: Gemini is always primary, Groq is first fallback (${groqFallbackCandidates[0].id})`);
     passed++;
   } catch (err) {
     console.error('  ✗ Test 3 Failed:', err.message);

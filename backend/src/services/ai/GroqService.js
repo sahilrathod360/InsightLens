@@ -30,6 +30,11 @@ Language: ${language}
 ${subjectStr}
 ${category ? `Category: "${category}"` : ''}
 ${groundingText}
+CRITICAL FACTUAL GROUNDING DIRECTIVE:
+- NEVER invent or fabricate false character names, actor names, or fictional movie titles (e.g., do NOT invent names like "Michael Collings in Patriot").
+- If the subject's exact identity is not 100% established by visual cues, state that the identity is undetermined and describe the visual scene and attire objectively.
+- Maintain strict evidentiary separation: visual observations describe observable scene/clothing only.
+
 Return valid JSON matching this schema:
 {
   "title": "Exhaustive scholarly title",
@@ -39,12 +44,14 @@ Return valid JSON matching this schema:
   "detectionSummary": "Empirical visual observations of optics, lighting, morphology, and composition.",
   "summaryLead": "Executive research thesis statement.",
   "executiveSummary": "In-depth academic synthesis of visual presentation, historical context, and broader significance.",
+  "detailedAnalysis": "Exhaustive visual analysis of spatial composition, focal vectors, lighting, and palette.",
+  "identification": "Classification within domain taxonomy based on physical attributes and visual markers.",
+  "scientificTechnicalInfo": "Technical benchmarks, material properties, and domain parameters.",
   "visualEvidence": [
-    { "feature": "Visual feature name", "observation": "Detailed observation" }
+    { "statement": "Primary optical attribute and observation in frame", "status": "observed" }
   ],
   "observations": [
-    "Specific optical or morphological observation 1",
-    "Specific optical or morphological observation 2"
+    { "statement": "Specific optical or morphological observation", "status": "observed" }
   ],
   "keyTakeaways": [
     "Key finding 1",
@@ -62,7 +69,7 @@ Return valid JSON matching this schema:
     }
   ],
   "timeline": [
-    { "year": "Key Year", "event": "Significant historical or contextual milestone" }
+    { "year": "Key Year", "title": "Milestone Title", "desc": "Significant historical or contextual milestone" }
   ],
   "references": [
     { "title": "Authoritative Reference Title", "authors": ["Author Name"], "year": 2020, "url": "https://doi.org/..." }
@@ -238,7 +245,7 @@ class GroqService {
       else signal.addEventListener('abort', onParentAbort);
     }
 
-    const promptText = 'Analyze this image and identify its primary subject for scholarly and academic research. For people, fictional characters, or cultural figures, identify the exact specific character or person name (e.g. "Walter White", "Spider-Man", "Albert Einstein") rather than just the franchise or media title. For geographic locations, cities, architectural landmarks, or monuments, identify the specific canonical entity name (e.g. "Empire State Building, New York City", "Manhattan Skyline"), never generic textbook phrases. For abstract visuals, diagrams, network meshes, or digital graphics, identify the canonical scientific, technological, or mathematical subject (e.g. "Artificial Neural Network", "Graph Theory Network Topology", "Digital Mesh Wireframe"). Return JSON ONLY with keys: subject, searchQuery, concepts, category.';
+    const promptText = 'Analyze the visual features of this image carefully and identify its primary subject for scholarly and academic research. Do NOT invent fictional character names, actors, or non-existent movie titles (e.g. never guess fictional names if uncertain). For well-known cultural figures or fictional characters, identify their exact canonical name (e.g. "Saul Goodman / Jimmy McGill", "Walter White", "Spider-Man", "Albert Einstein"). For geographic locations, landmarks, or monuments, identify the specific canonical entity name (e.g. "Empire State Building, New York City", "Manhattan Skyline"). For abstract visuals or diagrams, identify the canonical scientific or technical subject. If uncertain of exact identity, describe the visible profession, setting, and visual attributes accurately without fabricating identities. Return JSON ONLY with keys: subject, searchQuery, concepts, category.';
 
     try {
       const res = await fetch(endpoint, {
