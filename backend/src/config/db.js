@@ -24,13 +24,9 @@ if (rawDbUrl) {
     .replace(/[?&]$/, '');
 
   const poolMax = process.env.DB_POOL_MAX ? parseInt(process.env.DB_POOL_MAX, 10) : 5;
-  const rawCa = (process.env.DATABASE_CA_CERT || process.env.PGSSLROOTCERT || '')
-    .replace(/^["']|["']$/g, '')
+  const ca = (process.env.DATABASE_CA_CERT || process.env.PGSSLROOTCERT || '')
     .replace(/\\n/g, '\n')
     .trim();
-  const ca = rawCa && !rawCa.includes('BEGIN CERTIFICATE')
-    ? Buffer.from(rawCa, 'base64').toString('utf8').trim()
-    : rawCa;
   const rejectUnauthorized = process.env.NODE_ENV === 'production'
     ? true
     : process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false';
