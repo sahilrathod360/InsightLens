@@ -8,16 +8,15 @@ const { Pool } = pg;
  * Securely uses process.env.DATABASE_URL.
  *
  * Aiven PostgreSQL mandates SSL encryption.
- * We strip any ?sslmode=... or &sslmode=... from the connection URI to prevent
- * pg-connection-string from overriding our explicit rejectUnauthorized: false setting,
- * which resolves the SELF_SIGNED_CERT_IN_CHAIN error on cloud containers.
+ * We strip any ?sslmode=... or &sslmode=... from the connection URI so the
+ * explicit certificate-validation policy below cannot be overridden by the URI.
  */
 let pool = null;
 
 const rawDbUrl = (process.env.DATABASE_URL || config.databaseUrl || '').trim().replace(/^["']|["']$/g, '');
 
 if (rawDbUrl) {
-  // Strip ?sslmode=... or &sslmode=... from URI cleanly
+  // Strip sslmode from the URI so it cannot override the explicit SSL policy.
   const cleanDbUrl = rawDbUrl
     .replace(/([?&])sslmode=[^&]*(&?)/gi, (match, prefix, suffix) => {
       return prefix === '?' && suffix === '&' ? '?' : '';
@@ -25,10 +24,18 @@ if (rawDbUrl) {
     .replace(/[?&]$/, '');
 
   const poolMax = process.env.DB_POOL_MAX ? parseInt(process.env.DB_POOL_MAX, 10) : 5;
+  const ca = (process.env.DATABASE_CA_CERT || process.env.PGSSLROOTCERT || '')
+    .replace(/\\n/g, '\n')
+    .trim();
+  const rejectUnauthorized = process.env.NODE_ENV === 'production'
+    ? true
+    : process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false';
+
   pool = new Pool({
     connectionString: cleanDbUrl,
     ssl: {
-      rejectUnauthorized: false
+      rejectUnauthorized,
+      ...(ca ? { ca } : {})
     },
     max: poolMax,
     idleTimeoutMillis: 10000,

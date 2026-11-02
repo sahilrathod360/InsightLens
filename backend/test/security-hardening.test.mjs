@@ -37,6 +37,8 @@ const workspaceServiceSource = source('src/services/workspace/VisualWorkspaceSer
 const reportControllerSource = source('src/controllers/ReportController.js');
 
 assert.match(dbSource, /max:\s*poolMax/);
+assert.match(dbSource, /rejectUnauthorized,\s*\n\s*\.\.\.\(ca \? \{ ca \} : \{\}\)/);
+assert.doesNotMatch(dbSource, /rejectUnauthorized:\s*false/);
 assert.match(workspaceServiceSource, /workspace\.userEmail\.toLowerCase\(\)\s*!==\s*cleanEmail/);
 assert.match(reportControllerSource, /COALESCE\(thumbnail_data_url,\s*image_data_url\)/);
 

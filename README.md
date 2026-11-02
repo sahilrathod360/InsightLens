@@ -70,7 +70,7 @@ The InsightLens database is structured into **15 physical tables**, each designe
 - **Contained Avatar Uploads:** Avatar previews and profile photos are strictly bounded to circular containers with CSS `object-fit: cover`, preventing layout displacement.
 
 ### 2. Multi-Model Vision & Evidence Engine
-- **True Parallel Provider Race:** Executes concurrent requests across Google Gemini (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`) and OpenRouter gateway candidates.
+- **Sequential provider fallback:** Attempts Google Gemini first, Groq only after a genuine Gemini failure, and OpenRouter only after both fail. Providers are never raced in parallel.
 - **Evidence Verification:** Spatial bounding box coordinate normalization with `[0, 1]` bounds clipping and claim classification (`OBSERVED`, `INFERRED`, `UNDETERMINABLE`).
 - **Diagram & Chart Extraction:** Structural extraction of nodes, edges, processes, data stores, and data flows with duplicate resolution.
 
