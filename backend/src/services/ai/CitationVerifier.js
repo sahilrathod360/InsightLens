@@ -179,9 +179,13 @@ export async function verifyAndCleanCitations(rawReferences = [], subjectName = 
     let urlReachable = false;
     const targetUrl = rawUrl || (rawDoi ? `https://doi.org/${rawDoi}` : matchedDossierSource?.url);
 
-    if (targetUrl) {
+    if (matchedDossierSource && (matchedDossierSource.url || matchedDossierSource.doiVerified)) {
+      // Already grounded and verified by ResearchEngine in pre-generation retrieval
+      verifiedUrl = matchedDossierSource.url || targetUrl;
+      urlReachable = true;
+    } else if (targetUrl) {
       try {
-        const fetchResult = await safeFetchCitation(targetUrl, 2, 1500);
+        const fetchResult = await safeFetchCitation(targetUrl, 2, 1000);
         if (fetchResult && fetchResult.reachable) {
           verifiedUrl = fetchResult.url || targetUrl;
           urlReachable = true;

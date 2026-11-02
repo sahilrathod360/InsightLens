@@ -141,7 +141,7 @@ class GeminiService {
     throw lastError || new APIError('All Gemini candidate models failed', 500, 'Gemini');
   }
 
-  async identifySubject(dataUrl, signal = null, timeoutMs = 15000) {
+  async identifySubject(dataUrl, signal = null, timeoutMs = 6000) {
     const apiKey = config.apiKeys.gemini;
     if (!apiKey) return null;
 
@@ -157,60 +157,48 @@ class GeminiService {
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
 
-    const executeCall = async (currentTimeout) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), currentTimeout);
-      const onParentAbort = () => controller.abort();
-      if (signal) {
-        if (signal.aborted) controller.abort();
-        else signal.addEventListener('abort', onParentAbort);
-      }
-
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inline_data: { mime_type: mimeType, data: base64Data } },
-                { text: 'Analyze this image and identify its primary subject for scholarly and academic research. For people, fictional characters, or cultural figures, identify the exact specific character or person name (e.g. "Walter White", "Spider-Man", "Albert Einstein") rather than just the franchise or media title. For geographic locations, cities, architectural landmarks, or monuments, identify the specific canonical entity name (e.g. "Empire State Building, New York City", "Manhattan Skyline"), never generic textbook phrases (e.g. "Urban Morphology and Metropolitan Analysis"). For abstract visuals, diagrams, network meshes, or digital graphics, identify the canonical scientific, technological, or mathematical subject (e.g. "Artificial Neural Network", "Graph Theory Network Topology", "Digital Mesh Wireframe"), never stock-photo descriptive filler (e.g. "plexus background", "wallpaper"). Return JSON ONLY with keys: subject, searchQuery, concepts, category.' }
-              ]
-            }],
-            generationConfig: {
-              response_mime_type: "application/json",
-              maxOutputTokens: 250
-            }
-          }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        if (!res.ok) {
-          console.warn(`[GeminiService] identifySubject HTTP ${res.status}: ${await res.text().catch(() => '')}`);
-          return null;
-        }
-        const data = await res.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!rawText) return null;
-        return JSON.parse(rawText);
-      } finally {
-        clearTimeout(timeoutId);
-        if (signal) signal.removeEventListener('abort', onParentAbort);
-      }
-    };
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const onParentAbort = () => controller.abort();
+    if (signal) {
+      if (signal.aborted) controller.abort();
+      else signal.addEventListener('abort', onParentAbort);
+    }
 
     try {
-      return await executeCall(timeoutMs);
-    } catch (e) {
-      if (signal?.aborted) return null;
-      console.warn(`[GeminiService] identifySubject attempt 1 failed (${e.message}). Retrying once...`);
-      try {
-        await new Promise(r => setTimeout(r, 600));
-        return await executeCall(timeoutMs);
-      } catch (retryErr) {
-        console.warn(`[GeminiService] identifySubject retry failed: ${retryErr.message}`);
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: mimeType, data: base64Data } },
+              { text: 'Analyze this image and identify its primary subject for scholarly and academic research. For people, fictional characters, or cultural figures, identify the exact specific character or person name (e.g. "Walter White", "Spider-Man", "Albert Einstein") rather than just the franchise or media title. For geographic locations, cities, architectural landmarks, or monuments, identify the specific canonical entity name (e.g. "Empire State Building, New York City", "Manhattan Skyline"), never generic textbook phrases (e.g. "Urban Morphology and Metropolitan Analysis"). For abstract visuals, diagrams, network meshes, or digital graphics, identify the canonical scientific, technological, or mathematical subject (e.g. "Artificial Neural Network", "Graph Theory Network Topology", "Digital Mesh Wireframe"), never stock-photo descriptive filler (e.g. "plexus background", "wallpaper"). Return JSON ONLY with keys: subject, searchQuery, concepts, category.' }
+            ]
+          }],
+          generationConfig: {
+            response_mime_type: "application/json",
+            maxOutputTokens: 250
+          }
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        console.warn(`[GeminiService] identifySubject HTTP ${res.status}: ${await res.text().catch(() => '')}`);
         return null;
       }
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) return null;
+      return JSON.parse(rawText);
+    } catch (e) {
+      if (signal?.aborted) return null;
+      console.warn(`[GeminiService] identifySubject failed: ${e.message}`);
+      return null;
+    } finally {
+      clearTimeout(timeoutId);
+      if (signal) signal.removeEventListener('abort', onParentAbort);
     }
   }
 }

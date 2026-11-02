@@ -34,6 +34,7 @@ CRITICAL FACTUAL GROUNDING DIRECTIVE:
 - NEVER invent or fabricate false character names, actor names, or fictional movie titles (e.g., do NOT invent names like "Michael Collings in Patriot").
 - If the subject's exact identity is not 100% established by visual cues, state that the identity is undetermined and describe the visual scene and attire objectively.
 - Maintain strict evidentiary separation: visual observations describe observable scene/clothing only.
+- Keep text fields concise, high-density, and direct (1-2 sentences per field) to maintain structured brevity.
 
 Return valid JSON matching this schema:
 {
@@ -121,8 +122,8 @@ class GroqService {
       'Content-Type': 'application/json'
     };
 
-    // Note: Groq on-demand tier enforces a 1,000 OTPM ceiling; cap to 850 to prevent 429 pre-flight rejections
-    const tokenLimit = Math.min(modelConfig.maxOutputTokens || 850, 850);
+    // Note: Groq on-demand tier enforces a 1,000 OTPM ceiling; cap to 1000 to prevent 429 pre-flight rejections
+    const tokenLimit = Math.min(modelConfig.maxOutputTokens || 1000, 1000);
 
     const body = {
       model: modelId,

@@ -50,12 +50,12 @@ class AIManager {
       };
     }
 
-    // Step 3: Global Safety Ceiling (60 seconds bounded live-analysis ceiling)
+    // Step 3: Global Safety Ceiling (45 seconds bounded live-analysis ceiling)
     const globalAbortController = new AbortController();
     const globalTimeoutId = setTimeout(() => {
-      console.warn(`[InsightLens][${reqId}] 60-second global safety ceiling reached. Terminating active operations.`);
+      console.warn(`[InsightLens][${reqId}] 45-second global safety ceiling reached. Terminating active operations.`);
       globalAbortController.abort();
-    }, 60000);
+    }, 45000);
 
     const hasGeminiKey = !!config.apiKeys?.gemini;
     const hasGroqKey = !!config.apiKeys?.groq;
@@ -158,7 +158,7 @@ class AIManager {
 
       // --- STAGE A: PRIMARY PROVIDER — GOOGLE GEMINI (ALWAYS ATTEMPTED FIRST) ---
       const geminiCandidates = hasGeminiKey
-        ? ModelRegistry.getGeminiCandidates({ preferredModel: promptObj?.model })
+        ? ModelRegistry.getGeminiCandidates({ preferredModel: promptObj?.model }).slice(0, 2)
         : [];
 
       if (!hasGeminiKey || geminiCandidates.length === 0) {
@@ -189,6 +189,14 @@ class AIManager {
             const latencyMs = Date.now() - callStart;
             geminiFailReason = err.message || 'Gemini error';
             console.warn(`[InsightLens][${reqId}] [AI] Gemini / ${modelConfig.id} FAILED in ${latencyMs}ms | Reason: ${geminiFailReason}`);
+
+            // If account-level quota, rate limit, or auth error occurs, all Gemini models on this key will fail.
+            // Break immediately to trigger Groq fallback with zero delay.
+            const isAccountLevel = /429|quota|resourceexhausted|rate_limit|rate limit|401|403/i.test(geminiFailReason);
+            if (isAccountLevel) {
+              console.warn(`[InsightLens][${reqId}] [AI] Gemini account-level limit encountered (${geminiFailReason}). Triggering immediate Groq fallback.`);
+              break;
+            }
           }
         }
         if (!successfulResult) {

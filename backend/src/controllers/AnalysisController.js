@@ -3,6 +3,9 @@ import pool from '../config/db.js';
 import { getCompletedAnalysis, storeCompletedAnalysis } from '../middleware/analysisAdmission.js';
 import { normalizeReportId } from '../utils/idUtils.js';
 
+// In-flight request deduplication map to prevent parallel duplicate execution
+const inFlightAnalyses = new Map();
+
 export const analyzeArtifact = async (req, res, next) => {
   const reqStartTime = Date.now();
   const requestId = req.idempotencyKey || `REQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -95,7 +98,22 @@ export const analyzeArtifact = async (req, res, next) => {
       }
     }
 
-    const report = await AIManager.generateReport(dataUrl, enrichedPromptObj, preferredProvider, requestId);
+    const dedupKey = `${email.toLowerCase()}_${trimmedUrl.length}_${trimmedUrl.slice(0, 80)}_${(promptObj?.subjectContext || '').trim().toLowerCase()}`;
+    if (inFlightAnalyses.has(dedupKey)) {
+      console.log(`[AnalysisController] In-flight deduplication hit for ${email}. Awaiting existing analysis...`);
+      const existingResult = await inFlightAnalyses.get(dedupKey);
+      return res.status(200).json({ ...existingResult, replayed: true });
+    }
+
+    const reportPromise = AIManager.generateReport(dataUrl, enrichedPromptObj, preferredProvider, requestId);
+    inFlightAnalyses.set(dedupKey, reportPromise);
+
+    let report;
+    try {
+      report = await reportPromise;
+    } finally {
+      inFlightAnalyses.delete(dedupKey);
+    }
 
     // Verify database connection pool availability
     if (!pool) {

@@ -33,12 +33,19 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, s
     userEmail: userEmail
   };
 
+  const abortController = new AbortController();
+  const abortTimer = setTimeout(() => {
+    abortController.abort(new Error('Analysis request timed out after 38 seconds. The server may be under heavy load.'));
+  }, 38000);
+
   try {
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: getAuthHeaders({ 'Idempotency-Key': crypto.randomUUID() }),
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: abortController.signal
     });
+    clearTimeout(abortTimer);
 
     if (!response.ok) {
       const errJson = await response.json().catch(() => ({}));
@@ -47,6 +54,9 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, s
       }
       if (response.status === 413) {
         throw new Error('Image size is too large. Please select an image under 20MB.');
+      }
+      if (response.status === 502 || response.status === 504) {
+        throw new Error('Analysis server took too long to respond. The report may still be saving in the background. Please check your Dashboard or retry.');
       }
       if (response.status === 500) {
         throw new Error(errJson.message || 'Database persistence or server error during analysis. Please try again.');
@@ -65,9 +75,14 @@ export async function callGemini25Flash(dataUrl, researchLength, writingStyle, s
     return finalData;
   } catch (err) {
     console.error('[InsightLens API] Analysis error:', err.message);
+    if (err.name === 'AbortError' || err.message?.includes('timed out')) {
+      throw new Error('Analysis server took too long to respond. The report may still be saving in the background. Please check your Dashboard or retry.');
+    }
     if (err.message && err.message.includes('Failed to fetch')) {
       throw new Error('Unable to connect to the analysis service. Please check your internet connection or try again.');
     }
     throw err;
+  } finally {
+    clearTimeout(abortTimer);
   }
 }

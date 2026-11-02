@@ -42,8 +42,8 @@ export class ResearchEngine {
 
     // 1. Parallel Retrieval: Wikipedia + OpenAlex concurrently
     const [wikiResult, openAlexResult] = await Promise.allSettled([
-      WikipediaService.getEntitySummary(cleanSubject || primaryQuery, { timeoutMs: 5500, concepts: cleanConcepts, category }),
-      OpenAlexService.searchWorks(academicQuery || primaryQuery, { limit: maxAcademicSources + 4, timeoutMs: 6000 })
+      WikipediaService.getEntitySummary(cleanSubject || primaryQuery, { timeoutMs: 3500, concepts: cleanConcepts, category }),
+      OpenAlexService.searchWorks(academicQuery || primaryQuery, { limit: maxAcademicSources + 4, timeoutMs: 3500 })
     ]);
 
     const wikiData = wikiResult.status === 'fulfilled' ? wikiResult.value : null;
@@ -203,7 +203,7 @@ export class ResearchEngine {
     const doiVerifyTasks = scoredScholarlyWorks.slice(0, maxAcademicSources).map(async (work) => {
       let crossrefMeta = null;
       if (work.doi) {
-        crossrefMeta = await CrossrefService.verifyDoi(work.doi, { timeoutMs: 3000 });
+        crossrefMeta = await CrossrefService.verifyDoi(work.doi, { timeoutMs: 2000 });
       }
 
       const isDoiVerified = crossrefMeta && crossrefMeta.verified;

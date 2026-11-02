@@ -220,7 +220,7 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
 
     // Step 5: Sending request to AI & Dynamic Progress Heartbeat
     setStepActive('step-5');
-    if (statusTitle) statusTitle.textContent = 'Connecting to AI Multimodal Inference Engine...';
+    if (statusTitle) statusTitle.textContent = 'Connecting to Google Gemini (Primary Vision AI)...';
     setProgress(60);
 
     let currentModelName = 'Gemini Vision AI';
@@ -237,18 +237,30 @@ export async function runLoadingProgressionWithGemini(dataUrl, researchLength, w
 
     const apiPromise = callGemini25Flash(dataUrl, researchLength, writingStyle, subjectContext, onModelAttempt, onRetryNotice);
 
-    // Smooth Progress Heartbeat (60% -> 92%)
+    // Dynamic Progress Heartbeat with honest status stages
     let stepProgress = 60;
     heartbeatTimer = setInterval(() => {
       if (thisAnalysisId !== getCurrentAnalysisId()) {
         clearInterval(heartbeatTimer);
         return;
       }
-      if (stepProgress < 92) {
+      if (stepProgress < 94) {
         stepProgress += 1;
         setProgress(stepProgress);
+
+        if (statusTitle) {
+          if (stepProgress >= 88) {
+            statusTitle.textContent = 'Verifying empirical citations & evidence ledger...';
+            setStepActive('step-7');
+          } else if (stepProgress >= 78) {
+            statusTitle.textContent = 'Synthesizing structured visual intelligence & timeline...';
+            setStepActive('step-6');
+          } else if (stepProgress >= 68) {
+            statusTitle.textContent = 'Conducting cross-registry scholarly research (OpenAlex, Crossref, Wikipedia)...';
+          }
+        }
       }
-    }, 700);
+    }, 600);
 
     const reportData = await apiPromise;
     clearInterval(heartbeatTimer);
